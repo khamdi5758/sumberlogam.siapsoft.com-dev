@@ -1,7 +1,7 @@
 <template>
   <div class="relative" ref="contactDropdownRef">
     <label class="block text-sm font-medium text-dark-base mb-2">
-      Contact Association
+      Tambah Contact Association
     </label>
     <div
       @click="isContactDropdownOpen = !isContactDropdownOpen"
@@ -95,6 +95,206 @@
     @submit="handleContactQuickSubmit"
   />
 </template>
+<script>
+import { mapActions, mapGetters, mapMutations } from "vuex";
+import { X, ChevronDown, Search, Check, Plus } from "lucide-vue-next";
+import AddContactQuickForm from "@/components/forms/AddContactQuickForm.vue";
+
+export default {
+  name: "ContactAssociationForm",
+
+  components: {
+    X,
+    ChevronDown,
+    Search,
+    Check,
+    Plus,
+    AddContactQuickForm,
+  },
+
+  props: {
+    modelValue: {
+      type: Array,
+      default: () => [],
+    },
+    contacts: {
+      type: Array,
+      default: () => [],
+    },
+  },
+
+  data() {
+    return {
+      isContactDropdownOpen: false,
+      contactSearch: "",
+      showAddContactQuickForm: false,
+      page: 1,
+      debounceTimer: null,
+      hasMore: true,
+      isLoading: false,
+    };
+  },
+
+  computed: {
+    ...mapGetters({
+      allContacts: "assoc/allContacts",
+    }),
+
+    contactassoc: {
+      get() {
+        return this.modelValue || [];
+      },
+      set(value) {
+        this.$emit("update:modelValue", value);
+      },
+    },
+
+    // 🔥 deduplicate
+    contactOptions() {
+      let data = [];
+
+      if (Array.isArray(this.contacts) && this.contacts.length > 0) {
+        data = this.contacts;
+      } else {
+        data = this.allContacts || [];
+      }
+
+      const map = new Map();
+      data.forEach((item) => {
+        map.set(item.id, item);
+      });
+
+      return Array.from(map.values());
+    },
+
+    filteredContacts() {
+      return this.contactOptions;
+    },
+
+    selectedContacts() {
+      if (!this.contactassoc.length) return [];
+
+      return this.contactOptions.filter((contact) =>
+        this.contactassoc.includes(String(contact.id))
+      );
+    },
+  },
+
+  mounted() {
+    document.addEventListener("click", this.handleClickOutside);
+  },
+
+  unmounted() {
+    document.removeEventListener("click", this.handleClickOutside);
+  },
+
+  methods: {
+    ...mapActions({
+      getcontacts: "assoc/getcontacts",
+    }),
+
+    ...mapMutations({
+      resetContacts: "assoc/RESET_CONTACTS",
+    }),
+
+    async fetchContacts() {
+      if (!this.hasMore || this.isLoading) return;
+
+      this.isLoading = true;
+
+      const res = await this.getcontacts({
+        page: this.page,
+        search: this.contactSearch,
+      });
+
+      this.hasMore = res.next_page_url !== null;
+
+      if (this.hasMore) {
+        this.page++;
+      }
+
+      this.isLoading = false;
+    },
+
+    handleScroll() {
+      const el = this.$refs.scrollContainer;
+      if (!el || this.isLoading || !this.hasMore) return;
+
+      const bottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 10;
+
+      if (bottom) {
+        this.fetchContacts();
+      }
+    },
+
+    // 🔥 FIXED
+    toggleContact(contact) {
+      const contactId = String(contact.id);
+
+      let newValue;
+
+      if (this.contactassoc.includes(contactId)) {
+        newValue = this.contactassoc.filter((id) => id !== contactId);
+      } else {
+        newValue = [...this.contactassoc, contactId];
+      }
+
+      this.contactassoc = newValue;
+    },
+
+    isContactSelected(id) {
+      return this.contactassoc.includes(String(id));
+    },
+
+    getDisplayNameFromContact(contact) {
+      return `${contact.first_name || ""} ${contact.last_name || ""}`.trim();
+    },
+
+    handleClickOutside(e) {
+      if (!this.$refs.contactDropdownRef?.contains(e.target)) {
+        this.isContactDropdownOpen = false;
+      }
+    },
+  },
+
+  watch: {
+    isContactDropdownOpen(val) {
+      if (!val) {
+        this.contactSearch = "";
+        this.page = 1;
+        this.hasMore = true;
+      }
+
+      if (val && this.contactOptions.length === 0) {
+        this.fetchContacts();
+      }
+    },
+
+    contactSearch() {
+      clearTimeout(this.debounceTimer);
+
+      this.debounceTimer = setTimeout(() => {
+        this.page = 1;
+        this.hasMore = true;
+
+        // 🔥 RESET DATA BIAR TIDAK DUPLIKAT
+        this.resetContacts();
+
+        this.fetchContacts();
+      }, 300);
+    },
+  },
+};
+</script>
+
+
+
+
+
+
+
+<!-- 
+ditutup karena salah file, ini untuk referensi saja, jangan disarankan untuk dikembalikan ke codebase
 
 <script>
 import { mapActions, mapGetters } from "vuex";
@@ -241,7 +441,9 @@ export default {
       } else {
         newValue = this.contactassoc.filter((id, i) => i !== index);
       }
-      this.contactassoc = newValue;
+
+      console.log("Toggling contact:", newValue);
+      // this.contactassoc = newValue;
     },
 
     isContactSelected(id) {
@@ -284,6 +486,9 @@ export default {
         this.fetchContacts();
       }, 300);
     },
+    selectedContacts(newVal) {
+      console.log("Selected contacts changed:", newVal);
+    }
   },
 };
-</script>
+</script> -->

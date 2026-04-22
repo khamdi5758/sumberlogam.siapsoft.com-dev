@@ -14,6 +14,7 @@ import DocsEditor from "@/components/widgets/DocsEditor.vue";
 import HistoryDetail from "@/components/widgets/historydetail.vue";
 import { buildFormData } from "@/utils/buildFormData";
 import ContactSection from "./component/ContactSection.vue";
+import DealsSection from "./component/DealsSection.vue";
 
 export default {
   name: "CreateCompanyForm",
@@ -34,6 +35,7 @@ export default {
     DocsEditor,
     HistoryDetail,
     ContactSection,
+    DealsSection,
   },
 
   props: {
@@ -142,6 +144,10 @@ export default {
     hasCompanyId() {
       return !!(this.initialData?.id || this.savedCompany?.id);
     },
+
+    companyid() {
+      return this.initialData?.id || this.savedCompany?.id || null;
+    },
   },
 
   watch: {
@@ -182,7 +188,59 @@ export default {
       getinduestries: "company/getinduestries",
       getsources: "company/getsources",
       gettype: "company/gettype",
+      saveContactAssociationCompany: "company/saveContactAssociationCompany",
+      saveDealAssociationCompany: "company/saveDealAssociationCompany",
+      fetchcompanybyid: "company/fetchcompanybyid",
     }),
+
+    onContactassocSave(action, data) {
+      let formdata = new FormData();
+
+      formdata.append("action", action);
+      formdata.append("company_id", this.companyid);
+      formdata.append("contact_ids", data.contactassoc);
+      console.log(data);
+      this.saveContactAssociationCompany(formdata)
+        .then((res) => {
+          alertService.success(
+            res.message || "Hubungan contact berhasil disimpan",
+          );
+          this.fetchcompanybyid(this.companyid);
+        })
+        .catch((err) => {
+          alertService.error(
+            err.response?.data?.message ||
+              err.message ||
+              "Gagal menyimpan hubungan contact",
+          );
+        });
+
+      // this.formData.contactassoc = data.contactassoc;
+      // console.log(action,data,'=>',this.companyid);
+    },
+
+    ondealsassocSave(action, data) {
+      let formdata = new FormData();
+      formdata.append("action", action);
+      formdata.append("company_id", this.companyid);
+      formdata.append("deal_ids", data.dealassoc);
+      console.log(data);
+      this.saveDealAssociationCompany(formdata)
+        .then((res) => {
+          alertService.success(
+            res.message || "Hubungan contact berhasil disimpan",
+          );
+          this.fetchcompanybyid(this.companyid);
+        })
+        .catch((err) => {
+          alertService.error(
+            err.response?.data?.message ||
+              err.message ||
+              "Gagal menyimpan hubungan contact",
+          );
+        });
+
+    },
 
     setFormData(data) {
       console.log("Setting form data with:", data);
@@ -578,7 +636,7 @@ export default {
       this.historyitems.splice(index, 1);
       alertService.toastInfo("Item dihapus dari histori");
     },
- 
+
     async handleRemoveContact(contactId) {
       const confirm = await alertService.confirm(
         "Apakah Anda yakin ingin menghapus hubungan contact ini?",
@@ -588,30 +646,34 @@ export default {
           cancelButtonText: "Kembali",
         },
       );
- 
+
       if (!confirm?.isConfirmed) return;
- 
+
       // Filter out ID from formData
       this.formData.contactassoc = this.formData.contactassoc.filter(
         (id) => String(id) !== String(contactId),
       );
- 
+
       // Update store state for immediate UI feedback
       const storeState = this.$store.state.company;
       const currentCompanyById = storeState.companybyid;
-      
-      if (currentCompanyById && Array.isArray(currentCompanyById.contactassoc)) {
+
+      if (
+        currentCompanyById &&
+        Array.isArray(currentCompanyById.contactassoc)
+      ) {
         const updated = { ...currentCompanyById };
         updated.contactassoc = updated.contactassoc.filter(
           (c) => String(c.id) !== String(contactId),
         );
         this.$store.commit("company/setcompanybyid", updated);
       }
- 
+
       alertService.toastSuccess("Hubungan contact dilepaskan");
     },
   },
-};</script>
+};
+</script>
 
 <template>
   <!-- Overlay Background -->
@@ -854,55 +916,19 @@ export default {
         <div v-if="activeTab === 'Contacts'" class="p-6 h-full">
           <ContactSection
             :contacts="companybyidcontactassociated"
-            @remove="handleRemoveContact"
+            @remove="(data) => onContactassocSave('d', data)"
+            @save="(data) => onContactassocSave('i', data)"
           />
-
-          <!-- <div class="flex items-center gap-3 mb-8">
-            <button
-              type="button"
-              @click="$emit('add-note')"
-              class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-outline rounded-xl text-sm font-semibold text-dark-base hover:bg-light-base hover:border-dark-base/20 transition-all duration-200 shadow-sm"
-            >
-              <Plus :size="18" class="text-dark-base" />
-              Tambah Contacts
-            </button>
-          </div>
-          <div class="border border-outline rounded-lg p-4 relative">
-            <div class="flex items-center gap-2 mb-3">
-              <Users :size="16" class="text-sub-text" />
-              <h3 class="text-sm font-semibold text-dark-base">
-                Contacts yang terkait dengan company ini
-              </h3>
-            </div>
-            <div class="flex-1 overflow-y-auto pr-1">
-              <ul v-if="companybyidcontactassociated" class="space-y-2">
-                <li
-                  v-for="data in companybyidcontactassociated"
-                  :key="data.id"
-                  class="px-3 py-2 rounded-lg bg-light-base border border-outline"
-                >
-                  <p class="text-sm font-medium text-dark-base">
-                    {{ data.first_name }} {{ data.last_name }}
-                  </p>
-                  <p class="text-xs text-sub-text">ID: {{ data.id }}</p>
-                  <p v-if="data.email" class="text-xs text-sub-text">
-                    {{ data.email }}
-                  </p>
-                </li>
-              </ul>
-              <div
-                v-else
-                class="text-sm text-sub-text bg-light-base border border-outline rounded-lg px-3 py-2"
-              >
-                Daftar Contact belum tersedia .
-              </div>
-            </div>
-          </div> -->
         </div>
 
         <!-- Deals Tab (History) -->
         <div v-if="activeTab === 'Deals'" class="p-6 h-full flex flex-col">
-          <div class="flex items-center gap-3 mb-8">
+          <DealsSection
+            :deals="companybyiddealsassociated"
+            @remove="(data) => ondealsassocSave('d', data)"
+            @save="(data) => ondealsassocSave('i', data)"
+          />
+          <!-- <div class="flex items-center gap-3 mb-8">
             <button
               type="button"
               @click="$emit('add-note')"
@@ -929,7 +955,9 @@ export default {
                   {{ data.deal_name }}
                 </p>
                 <p class="text-xs text-sub-text">ID: {{ data.id }}</p>
-                 <p class="text-xs text-sub-text">Nilai: {{ data.amount_value }}</p>
+                <p class="text-xs text-sub-text">
+                  Nilai: {{ data.amount_value }}
+                </p>
                 <p v-if="data.pipeline" class="text-xs text-sub-text">
                   {{ data.pipeline }}
                 </p>
@@ -941,7 +969,7 @@ export default {
             >
               Daftar Deals belum tersedia .
             </div>
-          </div>
+          </div> -->
         </div>
 
         <!-- Detail Tab (History) -->

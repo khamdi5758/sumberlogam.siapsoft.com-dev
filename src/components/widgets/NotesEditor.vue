@@ -292,6 +292,7 @@ export default {
 
       return "";
     },
+    
     removePhoto(index) {
       const photo = this.photos[index];
 

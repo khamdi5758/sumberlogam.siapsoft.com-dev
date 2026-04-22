@@ -601,6 +601,57 @@ const actions = {
   setViewMode({ commit }, mode) {
     commit("SET_VIEW_MODE", mode);
   },
+
+  saveContactAssociationCompany(context, payload) {
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        let network = await api.post(
+          "company/inputcontactassoccompanies",
+          payload,
+          {
+            headers: {
+              Authorization: "Bearer " + cookies.get("token"),
+              "Content-Type": "multipart/form-data",
+            },
+          },
+        );
+
+        resolve(network.data);
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    return promise;
+  },
+
+  saveDealAssociationCompany(context, payload) {
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        let network = await api.post(
+          "company/inputdealsassoccompanies",
+          payload,
+          {
+            headers: {
+              Authorization: "Bearer " + cookies.get("token"),
+              "Content-Type": "multipart/form-data",
+            },
+          },
+        );
+
+        resolve(network.data);
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    return promise;
+  },
+
+
+
+
+
 };
 
 const mutations = {
