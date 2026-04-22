@@ -117,6 +117,7 @@ export default {
         photos: [],
         documents: [],
         audioBlob: null,
+        visibility: 0,
       },
       tempDocs: {
         description: "",
@@ -193,6 +194,7 @@ export default {
       saveDealAssociationCompany: "company/saveDealAssociationCompany",
       fetchcompanybyid: "company/fetchcompanybyid",
       saveNote: "history/saveNote",
+      acthistory: "history/acthistory",
     }),
 
     onContactassocSave(action, data) {
@@ -570,6 +572,8 @@ export default {
       fd.append("gps_address", data.gps_address || "");
       fd.append("latitude", data.latitude || "");
       fd.append("longitude", data.longitude || "");
+      fd.append("visibility", data.visibility ?? 0);
+      fd.append("choice", data.choice || "I");
 
       // ─── PHOTOS ─────────────────────────
       (data.photos || []).forEach((p) => {
@@ -605,7 +609,21 @@ export default {
       //   console.log(pair[0], pair[1]);
       // }
 
-      this.saveNote(formData);
+      this.saveNote(formData)
+        .then(() => {
+          alertService.success("Catatan berhasil disimpan");
+          this.isNoteDrawerOpen = false;
+          // Refresh history list
+          this.acthistory({
+            noteable_type: "CM",
+            noteable_id: this.companyid,
+          });
+        })
+        .catch((err) => {
+          alertService.error(
+            err.response?.data?.message || err.message || "Gagal menyimpan catatan",
+          );
+        });
 
       // let formdata = new FormData();
       // formdata.append("noteable_type", "CM");
@@ -978,6 +996,8 @@ export default {
         <div v-if="activeTab === 'detail'" class="p-6 h-full flex flex-col">
           <HistoryDetail
             :items="historyitems"
+            :noteableType="'CM'"
+            :noteableId="companyid"
             @add-note="openNoteDrawer()"
             @add-doc="openDocDrawer()"
             @edit="handleHistoryEdit"

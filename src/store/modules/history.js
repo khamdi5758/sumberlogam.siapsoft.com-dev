@@ -16,7 +16,7 @@ const mutations = {
   setHistory(state, payload) {
     state.history = payload;
   },
- 
+
 };
 
 const actions = {
@@ -38,7 +38,7 @@ const actions = {
       .then((data) => {
         console.log("Data received in acthistory action:", data);
         // context.commit("setHistory", data);
-        context.commit("setHistory", data.data);
+        context.commit("setHistory", data);
       })
       .catch((error) => {
         console.error("Error:", error);

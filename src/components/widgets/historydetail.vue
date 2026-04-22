@@ -8,6 +8,8 @@ import {
   ExternalLink,
   MessageSquare,
 } from "lucide-vue-next";
+import { mapActions, mapGetters } from "vuex";
+
 
 export default {
   name: "HistoryDetail",
@@ -30,12 +32,71 @@ export default {
     isLoading: {
       type: Boolean,
       default: false,
-    }
+    },
+    noteableType: {
+      type: String,
+      default: null,
+    },
+    noteableId: {
+      type: [String, Number],
+      default: null,
+    },
   },
+
 
   emits: ["add-note", "add-doc", "edit", "delete"],
 
+  computed: {
+    ...mapGetters({
+      historyDisplay: "history/history",
+    }),
+    displayItems() {
+      // Prioritize store history if we have noteable identifiers, else fallback to items prop
+      if (this.noteableType && this.noteableId) {
+        return this.historyDisplay || [];
+      }
+      return this.items;
+    },
+  },
+
+  watch: {
+    noteableId: {
+      handler(newVal) {
+        if (newVal && this.noteableType) {
+          this.fetchHistory();
+        }
+      },
+      immediate: true,
+    },
+  },
+
+  mounted() {
+    if (this.noteableId && this.noteableType) {
+      this.fetchHistory();
+    }
+  },
+
   methods: {
+    ...mapActions({
+      acthistory: "history/acthistory",
+    }),
+    async fetchHistory() {
+      if (!this.noteableType || !this.noteableId) {
+        console.warn("fetchHistory skipped: missing type or id", { type: this.noteableType, id: this.noteableId });
+        return;
+      }
+
+      console.log("Fetching history for:", { type: this.noteableType, id: this.noteableId });
+      try {
+        await this.acthistory({
+          noteable_type: this.noteableType,
+          noteable_id: this.noteableId,
+        });
+      } catch (err) {
+
+        console.error("Failed to fetch history:", err);
+      }
+    },
     getIcon(type) {
       if (type === "note") return "StickyNote";
       if (type === "doc") return "FileText";
@@ -56,9 +117,10 @@ export default {
         hour: "2-digit",
         minute: "2-digit",
       });
-    }
-  }
+    },
+  },
 };
+
 </script>
 
 <template>
@@ -72,14 +134,6 @@ export default {
       >
         <Plus :size="18" class="text-dark-base" />
         Tambah Notes
-      </button>
-      <button
-        type="button"
-        @click="$emit('add-doc')"
-        class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-outline rounded-xl text-sm font-semibold text-dark-base hover:bg-light-base hover:border-dark-base/20 transition-all duration-200 shadow-sm"
-      >
-        <Plus :size="18" class="text-dark-base" />
-        Tambah Docs
       </button>
     </div>
 
@@ -107,7 +161,8 @@ export default {
         <!-- Vertical Line -->
         <div class="absolute left-[13px] top-2 bottom-6 w-[0.5px] bg-outline/60"></div>
 
-        <div v-for="(item, index) in items" :key="index" class="relative">
+        <div v-for="(item, index) in displayItems" :key="index" class="relative">
+
           <!-- Dot -->
           <div 
             class="absolute -left-[41px] top-1.5 w-3.5 h-3.5 rounded-full bg-points border-2 border-white shadow-sm z-10"
@@ -156,7 +211,7 @@ export default {
               </h4>
               <div 
                 class="text-[14px] text-dark-base/90 leading-relaxed prose prose-sm max-w-none break-words"
-                v-html="item.body || item.content || item.description"
+                v-html="item.notes || item.body || item.content || item.description"
               ></div>
             </div>
 
