@@ -456,7 +456,7 @@ export default {
           console.log(data.param);
           this.savedCompany = data.param;
           this.showDetailForm = false;
-          // this.$emit("submit", data);
+          this.$emit("submit", data);
           // this.resetForm();
           // this.handleClose();
         })
@@ -567,6 +567,7 @@ export default {
 
     buildFormDatanote(data) {
       const fd = new FormData();
+      const existing = [];
 
       // ─── BASIC FIELD ─────────────────────
       fd.append("noteable_type", data.noteable_type);
@@ -583,6 +584,13 @@ export default {
       (data.photos || []).forEach((p) => {
         if (p.file) {
           fd.append("photos[]", p.file);
+        } else if (typeof p.src === "string") {
+          // Existing photo
+          existing.push({
+            name: p.src.split("/").pop().replace(/^\d+_[^_]+_/, ""),
+            path: p.src,
+            type: "photo",
+          });
         }
       });
 
@@ -590,11 +598,23 @@ export default {
       (data.documents || []).forEach((d) => {
         if (d.file instanceof File) {
           fd.append("documents[]", d.file);
+        } else if (d.url) {
+          // Existing document
+          existing.push({
+            name: d.name,
+            path: d.url,
+            type: "document",
+          });
         }
       });
 
+      if (existing.length > 0) {
+        fd.append("existing_attachments", JSON.stringify(existing));
+      }
+
       return fd;
     },
+
 
     saveNoteFromDrawer() {
       // if (!this.tempNoteData.body && this.tempNoteData.photos.length === 0) {
@@ -675,18 +695,19 @@ export default {
           gps_address:
             item.lat && item.lang ? `${item.lat}, ${item.lang}` : null,
           photos: attachments
-            .filter((a) => a.typefile === "photo")
-            .map((a) => a.fileurl),
+            .filter((a) => a.type === "photo" || a.typefile === "photo")
+            .map((a) => a.path || a.fileurl),
           documents: attachments
-            .filter((a) => a.typefile === "document")
+            .filter((a) => a.type === "document" || a.typefile === "document")
             .map((a) => ({
               id: Math.random(),
-              name: a.fileurl.split("/").pop(),
-              url: a.fileurl,
+              name: a.name || (a.path || a.fileurl).split("/").pop(),
+              url: a.path || a.fileurl,
               file: null,
             })),
           visibility: item.visibility || "0",
         };
+
 
         console.log("Editing note with data:", editData);
 

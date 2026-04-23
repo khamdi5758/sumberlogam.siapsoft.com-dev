@@ -105,9 +105,10 @@ export default {
         return dateB - dateA; // DESC: newest first
       });
 
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      return sorted.slice(start, start + this.itemsPerPage);
+      // 🔥 Remove manual slicing because the server already paginates
+      return sorted;
     },
+
 
     allSelected() {
       const ids = this.companies.map((c) => c.id).filter(Boolean);
@@ -159,7 +160,21 @@ export default {
       if (this.error) return "text-red-600";
       return "text-sub-text";
     },
+
+    companyColumns() {
+      return [
+        { dataField: "Company Name", caption: "Company Name", visible: true },
+        { dataField: "Company_Owner", caption: "Company Owner", visible: true },
+
+        { dataField: "Email", caption: "Email", visible: true },
+        { dataField: "Address", caption: "Address", visible: true },
+      ];
+    },
+
+
+
   },
+
 
   mounted() {
     // this.fetchStatuses();
@@ -552,7 +567,9 @@ export default {
         .then(() => {
           this.selectedIds = [];
           alertService.success("Company berhasil dihapus");
+          this.fetchData(); // 🔥 Refresh data after successful delete
         })
+
         .catch((error) => {
           const status = error?.response?.status;
           const message =
@@ -738,21 +755,21 @@ export default {
       /> -->
 
 
-      <DataGrid 
-        :dataSource="tableCompanies" 
-        :keyExpr="'id'" 
+      <DataGrid
+        :dataSource="tableCompanies"
+        :columns="companyColumns"
+        :keyExpr="'id'"
         :selectedRowKeys="selectedIds"
         :rowRenderingMode="'standard'"
-        @focused-row-changed="handleFocusedRowChanged" 
+        @focused-row-changed="handleFocusedRowChanged"
         @selection-changed="handleSelectionChanged"
         :showActionColumn="false"
-        :disablecol="['tasks','location','pathphoto','id', 'company_name', 'contactassoc', 'dealsassoc', 'type', 'created_at', 'updated_at', 'owner', 'notes', 'task_name', 'desktask', 'statustask', 'assignee', 'due_date', 'task_time', 'prioritytask', 'docs', 'associated_contact', 'contactAssociation', 'contacts_id', 'contact_id', 'contact', 'contact_name', 'deals_id', 'deal_id', 'deal', 'deal_name', 'contact_email', 'contact_phone', 'industry', 'website', 'address', 'city', 'state', 'zip', 'country', 'email', 'phone', 'telephone_1', 'telephone_2', 'telephone_3', 'pos_code', 'province', 'source', 'dealsAssociation','description','file_source','file_url','pathfile','owner','descdocs','pathfile','file_source']"
+        :disablecol="['tasks', 'location', 'pathphoto', 'id', 'contactassoc', 'dealsassoc', 'notes', 'task_name', 'desktask', 'statustask', 'assignee', 'due_date', 'task_time', 'prioritytask', 'docs', 'associated_contact', 'contactAssociation', 'contacts_id', 'contact_id', 'contact', 'contact_name', 'deals_id', 'deal_id', 'deal', 'deal_name', 'contact_email', 'contact_phone', 'industry', 'website', 'state', 'zip', 'country', 'phone', 'telephone_1', 'telephone_2', 'telephone_3', 'pos_code', 'source', 'dealsAssociation', 'description', 'file_source', 'file_url', 'pathfile', 'descdocs','owner','province','city','telephone','type']"
+
       >
-        <DxSelection 
-          mode="multiple" 
-          showCheckBoxesMode="always" 
-        />
+        <DxSelection mode="multiple" showCheckBoxesMode="always" />
       </DataGrid>
+
     </div>
 
     <!-- Add Company Form -->
@@ -764,6 +781,7 @@ export default {
           console.log('Company added:', data);
           showCreateCompanyForm = false;
           showDetailForm = false;
+          fetchData(); // 🔥 Refresh data after submit
         }
       "
     />
@@ -814,8 +832,10 @@ export default {
           console.log('Company added:', data);
           showDetailDataCompany = false;
           showDetailForm = false;
+          fetchData(); // 🔥 Refresh data after submit
         }
       "
+
     />
   </div>
 </template>

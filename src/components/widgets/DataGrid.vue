@@ -31,8 +31,14 @@
         <DxColumn
           v-for="col in computedColumns"
           :key="col.dataField || col.caption"
-          v-bind="col"
+          :data-field="col.dataField"
+          :caption="col.caption"
+          :visible="col.visible"
+          :width="col.width"
+          :alignment="col.alignment"
+          :cell-template="col.cellTemplate"
         />
+
 
         <DxColumnChooser
           :enabled="false"
@@ -862,26 +868,48 @@ export default {
     },
 
     computedColumns() {
-      if (!this.dataSource.length) return [];
-      let cols = Object.keys(this.dataSource[0]).map((key) => {
-        let caption = key;
+      let cols = [];
 
-        if (caption.startsWith("sum") || caption.startsWith("avg")) {
-          caption = caption.substring(3);
-        }
+      if (this.columns && this.columns.length > 0) {
+        // 🔥 Use fixed columns from props if available
+        cols = this.columns.map((col) => ({
+          ...col,
+          visible:
+            col.visible !== undefined
+              ? col.visible
+              : ![...this.disablecol, "id"].includes(col.dataField),
+        }));
+      } else {
+        if (!this.dataSource.length) return [];
 
-        return {
-          dataField: key,
-          caption: caption,
-          // visible: key !== "keyindex" && key !== "PageTotal",
-          visible: ![
-            ...this.disablecol,
-            "keyindex",
-            "PageTotal",
-            "id",
-          ].includes(key),
-        };
-      });
+        // 🔥 Fallback: Scan all items in the current page to gather all available keys
+        const allKeysSet = new Set();
+        this.dataSource.forEach((item) => {
+          if (item && typeof item === "object") {
+            Object.keys(item).forEach((key) => allKeysSet.add(key));
+          }
+        });
+
+        cols = Array.from(allKeysSet).map((key) => {
+          let caption = key;
+          if (caption.startsWith("sum") || caption.startsWith("avg")) {
+            caption = caption.substring(3);
+          }
+
+          return {
+            dataField: key,
+            caption: caption,
+            visible: ![
+              ...this.disablecol,
+              "keyindex",
+              "PageTotal",
+              "id",
+            ].includes(key),
+          };
+        });
+      }
+
+
 
       if (this.showActionColumn) {
         cols.unshift({
