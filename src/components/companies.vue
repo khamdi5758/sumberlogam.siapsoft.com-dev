@@ -364,9 +364,9 @@ export default {
 
   mounted() {
     this.fetchStatuses();
-    this.fetchAllcompany();
-    this.fetchAllContacts();
-    this.fetchAllDeals();
+    if (!this.companies.length){
+      this.fetchAllcompany();
+    }
 
     document.addEventListener("click", this.handleClickOutside);
   },

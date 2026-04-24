@@ -869,8 +869,8 @@ export default {
     document.addEventListener("click", this.handleClickOutside);
     this.fetchStatuses();
     this.fetchData();
-    this.fetchAllcompany();
-    this.fetchAllDeals();
+    // this.fetchAllcompany();
+    // this.fetchAllDeals();
   },
 
   beforeUnmount() {

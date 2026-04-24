@@ -682,8 +682,8 @@ export default {
     // initial fetch
     this.fetchStatuses();
     this.fetchData();
-    this.fetchAllcompany();
-    this.fetchAllDeals();
+    // this.fetchAllcompany();
+    // this.fetchAllDeals();
   },
 
   beforeUnmount() {
