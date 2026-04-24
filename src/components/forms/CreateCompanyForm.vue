@@ -15,6 +15,10 @@ import HistoryDetail from "@/components/widgets/historydetail.vue";
 import { buildFormData } from "@/utils/buildFormData";
 import ContactSection from "./component/ContactSection.vue";
 import DealsSection from "./component/DealsSection.vue";
+import AddContactForm from "./AddContactForm.vue";
+import CreateDealForm from "./CreateDealForm.vue";
+
+
 
 export default {
   name: "CreateCompanyForm",
@@ -36,7 +40,11 @@ export default {
     HistoryDetail,
     ContactSection,
     DealsSection,
+    AddContactForm,
+    CreateDealForm,
   },
+
+
 
   props: {
     isOpen: {
@@ -98,11 +106,15 @@ export default {
         },
       },
 
+      showAddContactForm: false,
+      showCreateDealForm: false,
       showAddDealForm: false,
       showAddContactQuickForm: false,
       showDetailForm: false,
       isSubmitting: false,
       savedCompany: null,
+
+
 
       // History & Drawer States
       historyitems: [],
@@ -594,7 +606,23 @@ export default {
       this.historyitems = [];
     },
 
+    handleContactSubmit(response) {
+      console.log("Contact add success:", response);
+      if (this.companyid) {
+        this.fetchcompanybyid(this.companyid);
+      }
+    },
+
+    handleCreateDealSubmit(response) {
+      console.log("Deal create success:", response);
+      if (this.companyid) {
+        this.fetchcompanybyid(this.companyid);
+      }
+    },
+
     handleDetailSubmit() {},
+
+
 
     // ─── HISTORY & DRAWER METHODS ──────────────────────────────────────────
     openNoteDrawer(editData = null, index = null) {
@@ -931,7 +959,7 @@ export default {
               : 'border-transparent text-sub-text hover:text-dark-base',
           ]"
         >
-          History
+          Notes
         </button>
       </div>
 
@@ -1090,8 +1118,10 @@ export default {
             :contacts="companybyidcontactassociated"
             @remove="(data) => onContactassocSave('d', data)"
             @save="(data) => onContactassocSave('i', data)"
+            @add-new="showAddContactForm = true"
           />
         </div>
+
 
         <!-- Deals Tab (History) -->
         <div v-if="activeTab === 'Deals'" class="p-6 h-full flex flex-col">
@@ -1099,49 +1129,8 @@ export default {
             :deals="companybyiddealsassociated"
             @remove="(data) => ondealsassocSave('d', data)"
             @save="(data) => ondealsassocSave('i', data)"
+            @add-new="showCreateDealForm = true"
           />
-          <!-- <div class="flex items-center gap-3 mb-8">
-            <button
-              type="button"
-              @click="$emit('add-note')"
-              class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-outline rounded-xl text-sm font-semibold text-dark-base hover:bg-light-base hover:border-dark-base/20 transition-all duration-200 shadow-sm"
-            >
-              <Plus :size="18" class="text-dark-base" />
-              Tambah Deals
-            </button>
-          </div>
-          <div class="border border-outline rounded-lg p-4">
-            <div class="flex items-center gap-2 mb-3">
-              <Users :size="16" class="text-sub-text" />
-              <h3 class="text-sm font-semibold text-dark-base">
-                Deals yang terkait dengan company ini
-              </h3>
-            </div>
-            <ul v-if="companybyiddealsassociated" class="space-y-2">
-              <li
-                v-for="data in companybyiddealsassociated"
-                :key="data.id"
-                class="px-3 py-2 rounded-lg bg-light-base border border-outline"
-              >
-                <p class="text-sm font-medium text-dark-base">
-                  {{ data.deal_name }}
-                </p>
-                <p class="text-xs text-sub-text">ID: {{ data.id }}</p>
-                <p class="text-xs text-sub-text">
-                  Nilai: {{ data.amount_value }}
-                </p>
-                <p v-if="data.pipeline" class="text-xs text-sub-text">
-                  {{ data.pipeline }}
-                </p>
-              </li>
-            </ul>
-            <div
-              v-else
-              class="text-sm text-sub-text bg-light-base border border-outline rounded-lg px-3 py-2"
-            >
-              Daftar Deals belum tersedia .
-            </div>
-          </div> -->
         </div>
 
         <!-- History Tab (History) -->
@@ -1205,12 +1194,20 @@ export default {
     @submit="handleDealFormSubmit"
   /> -->
 
-  <!-- Add Contact Quick Form -->
-  <!-- <AddContactQuickForm
-    :isOpen="showAddContactQuickForm"
-    @close="showAddContactQuickForm = false"
-    @submit="handleContactQuickSubmit"
-  /> -->
+  <!-- Add Contact Full Form -->
+  <AddContactForm
+    :isOpen="showAddContactForm"
+    @close="showAddContactForm = false"
+    @submit="handleContactSubmit"
+  />
+
+  <CreateDealForm
+    :isOpen="showCreateDealForm"
+    @close="showCreateDealForm = false"
+    @submit="handleCreateDealSubmit"
+  />
+
+
 
   <!-- <ContactDetailForm
     :isOpen="showDetailForm"

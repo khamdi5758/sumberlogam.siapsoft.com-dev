@@ -4,12 +4,21 @@
     <div class="flex items-center gap-3 mb-4">
       <button
         @click="handletambahdeal"
-        class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-outline rounded-xl text-sm font-semibold hover:bg-light-base shadow-sm"
+        class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-outline rounded-xl text-sm font-semibold hover:bg-light-base shadow-sm font-montserrat"
       >
         <Plus :size="18" />
         Tambah Deals Yang Ada
       </button>
+
+      <button
+        @click="$emit('add-new')"
+        class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-dark-base text-white border border-transparent rounded-xl text-sm font-semibold hover:bg-dark-hover shadow-sm transition-all font-montserrat"
+      >
+        <Plus :size="18" />
+        Tambah Deals Baru
+      </button>
     </div>
+
 
     <!-- CARD -->
     <div class="border border-outline rounded-lg p-4 flex flex-col flex-1">

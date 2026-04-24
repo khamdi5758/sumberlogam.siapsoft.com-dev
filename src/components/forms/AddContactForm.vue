@@ -949,17 +949,6 @@ export default {
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-dark-base mb-2">
-                  Pos Code
-                </label>
-                <input
-                  v-model="formData.pos_code"
-                  type="text"
-                  placeholder="Pos Code"
-                  class="w-full px-3 py-2 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
                   Source
                 </label>
                 <div class="relative">
