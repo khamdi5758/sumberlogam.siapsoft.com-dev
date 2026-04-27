@@ -851,7 +851,6 @@ export default {
         @edit-click="handleRowEdit"
         @delete-click="handleRowDelete"
         :showActionColumn="true"
-        :pinActionColumnRight="true"
         :disablecol="[
           'tasks',
           'location',
