@@ -144,17 +144,16 @@
   </div>
 
   <!-- Create Project Form -->
-  <CreateTaskForm
+  <CreateProjectForm
     :isOpen="showCreateProjectForm"
     @close="showCreateProjectForm = false"
     @submit="handleCreateProject"
   />
 
   <!-- Project Detail Form -->
-  <TaskDetailDataForm
+  <CreateProjectForm
     :isOpen="showProjectDetailForm"
-    :task="selectedProjectDetail"
-    :isSubmitting="isProjectDetailSubmitting"
+    :initialData="selectedProjectDetail"
     @close="closeProjectDetail"
     @submit="handleProjectDetailSubmit"
   />
@@ -175,8 +174,7 @@ import {
   CalendarDays,
   RefreshCw,
 } from "lucide-vue-next";
-import CreateTaskForm from "@/components/forms/CreateTaskForm.vue";
-import TaskDetailDataForm from "@/components/forms/TaskDetailDataForm.vue";
+import CreateProjectForm from "@/components/forms/CreateProjectForm.vue";
 import ProjectList from "./projectlist.vue";
 import ProjectCard from "./projectcard.vue";
 import ProjectCalender from "./projectcalender.vue";
@@ -196,8 +194,7 @@ export default {
     List,
     CalendarDays,
     RefreshCw,
-    CreateTaskForm,
-    TaskDetailDataForm,
+    CreateProjectForm,
     ProjectList,
     ProjectCard,
     ProjectCalender,
@@ -209,7 +206,6 @@ export default {
       showCreateProjectForm: false,
       showProjectDetailForm: false,
       selectedProjectDetail: null,
-      isProjectDetailSubmitting: false,
     };
   },
   computed: {
@@ -304,7 +300,10 @@ export default {
       this.showProjectDetailForm = false;
     },
     async handleProjectDetailSubmit(payload) {
-      const projectId = this.selectedProjectDetail?.id || payload?.id;
+      const projectId =
+        payload?.id ||
+        this.selectedProjectDetail?.id ||
+        this.selectedProjectDetail?.project_id;
 
       if (!projectId) {
         alertService.error(
@@ -318,8 +317,6 @@ export default {
         return;
       }
 
-      this.isProjectDetailSubmitting = true;
-
       try {
         await this.$store.dispatch("project/updateProject", {
           id: projectId,
@@ -327,7 +324,7 @@ export default {
             ...payload,
             project_name: (payload.project_name || payload.task_name).trim(),
             description: payload.description?.trim() || "",
-            assignee: payload.assignee?.trim() || "",
+            assignee: payload.assignee?.trim() || payload.owner?.trim() || "",
           },
         });
 
@@ -341,8 +338,6 @@ export default {
           err?.message ||
           "Gagal update project. Silakan coba lagi.";
         alertService.error(backendMessage);
-      } finally {
-        this.isProjectDetailSubmitting = false;
       }
     },
     handleRouteChange() {

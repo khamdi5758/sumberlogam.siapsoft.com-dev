@@ -59,18 +59,22 @@ export function useStatuses() {
         // Normalize object/array to standard {id, name} objects
         if (Array.isArray(data)) {
           data = data.map((item) => ({
+            ...item,
             id: item.id_status || item.id || item.value,
             name: item.status_name || item.name || item.label || item.status,
+            table_code: item.table_code || item.tableCode || item.table || "",
           }));
         } else if (data && typeof data === "object") {
           data = Object.entries(data).map(([key, val]) => {
             if (typeof val === "object" && val !== null) {
               return {
+                ...val,
                 id: val.id_status || val.id || key,
                 name: val.status_name || val.name || val.label || key,
+                table_code: val.table_code || val.tableCode || val.table || "",
               };
             }
-            return { id: key, name: val };
+            return { id: key, name: val, table_code: "" };
           });
         }
 

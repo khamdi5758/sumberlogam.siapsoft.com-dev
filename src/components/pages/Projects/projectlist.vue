@@ -380,7 +380,7 @@ export default {
         }
 
         await this.$store.dispatch("project/createProject", {
-          projectName,
+          project_name: taskName,
           owner: this.getLoggedInName(),
           dueDate: new Date().toISOString(),
           created_at: new Date().toISOString(),
@@ -421,7 +421,7 @@ export default {
 
     handleFocusedRowChanged(rowData) {
       if (!rowData || !rowData.data) return;
-      const originalTask = this.tasks.find(
+      const originalTask = this.projects.find(
         (task) => task.id === rowData.data.id,
       );
       this.openTaskDetail(originalTask || rowData.data);

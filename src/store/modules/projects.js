@@ -55,13 +55,22 @@ const normalizeProject = (project = {}, index = 0) => {
 };
 
 const mapProjectPayload = (formData = {}) => {
+    const normalizeText = (value) => {
+        if (value === undefined || value === null) return "";
+        if (typeof value === "string") return value.trim();
+        return String(value).trim();
+    };
+
     const projectName =
-        formData.project_name?.trim() || formData.projectName?.trim() || null;
+        normalizeText(formData.project_name) ||
+        normalizeText(formData.projectName) ||
+        null;
     const description =
-        formData.description?.trim() || formData.projectContent?.trim() || null;
-    const assignee = formData.assignee || formData.owner?.trim() || null;
-    const dueDate = formData.due_date || formData.dueDate || null;
-    const projectTime = formData.project_time || formData.time || null;
+        normalizeText(formData.description) ||
+        normalizeText(formData.projectContent) ||
+        null;
+    const assignee =
+        normalizeText(formData.assignee) || normalizeText(formData.owner) || null;
     const now = new Date().toISOString();
     const createdAt = formData.created_at || now;
     const updatedAt = now;
@@ -71,18 +80,32 @@ const mapProjectPayload = (formData = {}) => {
         name: projectName,
         description,
         project_content: description,
-        status: normalizeProjectStatus(formData.status || formData.stage),
-        stage: normalizeProjectStatus(formData.status || formData.stage),
+        status: normalizeProjectStatus(
+            formData.status || formData.stage || formData.project_status,
+        ),
+        stage: normalizeProjectStatus(
+            formData.status || formData.stage || formData.project_status,
+        ),
+        project_status: normalizeText(formData.project_status) || undefined,
         assignee,
         owner: assignee,
-        due_date: dueDate,
-        dueDate: dueDate,
-        date: dueDate,
-        deadline: dueDate,
-        project_time: projectTime,
-        due_time: projectTime,
-        time: projectTime,
+        due_date: formData.due_date || formData.dueDate || null,
+        dueDate: formData.due_date || formData.dueDate || null,
+        date: formData.due_date || formData.dueDate || null,
+        deadline: formData.due_date || formData.dueDate || null,
+        project_time: formData.project_time || formData.time || null,
+        due_time: formData.project_time || formData.time || null,
+        time: formData.project_time || formData.time || null,
         priority: formData.priority || null,
+        deal_id: formData.deal_id ?? formData.deal ?? null,
+        leader_id: formData.leader_id ?? null,
+        address: normalizeText(formData.address) || null,
+        kd_kelurahan:
+            normalizeText(formData.kd_kelurahan) ||
+            normalizeText(formData.kelurahan) ||
+            null,
+        location: normalizeText(formData.location) || null,
+        created_by: formData.created_by ?? null,
         created_at: createdAt,
         updated_at: updatedAt,
     };
@@ -322,6 +345,12 @@ export default {
                 updated_at: now,
             };
 
+            // Keep backend compatibility with payload shape used in company delete/update flow.
+            if (choice === "u") {
+                payload.project_id = formData.id;
+                payload.id_project = formData.id;
+            }
+
             try {
                 const response = await api.post("tasks/input", payload, { headers });
 
@@ -410,6 +439,38 @@ export default {
                     existingProject.time ??
                     "",
                 priority: partialForm.priority ?? existingProject.priority ?? "",
+                deal_id:
+                    partialForm.deal_id ??
+                    existingProject.deal_id ??
+                    existingProject.deal ??
+                    "",
+                leader_id:
+                    partialForm.leader_id ??
+                    existingProject.leader_id ??
+                    "",
+                address:
+                    partialForm.address ??
+                    existingProject.address ??
+                    "",
+                kd_kelurahan:
+                    partialForm.kd_kelurahan ??
+                    existingProject.kd_kelurahan ??
+                    existingProject.kelurahan ??
+                    "",
+                location:
+                    partialForm.location ??
+                    existingProject.location ??
+                    "",
+                project_status:
+                    partialForm.project_status ??
+                    existingProject.project_status ??
+                    existingProject.status ??
+                    existingProject.stage ??
+                    "",
+                created_by:
+                    partialForm.created_by ??
+                    existingProject.created_by ??
+                    "",
             };
 
             return dispatch("createProject", formData);
@@ -442,6 +503,22 @@ export default {
                 id: resolvedId,
                 project_id: resolvedId,
                 id_project: resolvedId,
+                project_name: "",
+                description: "",
+                status: "",
+                stage: "",
+                project_status: "",
+                assignee: "",
+                owner: "",
+                due_date: "",
+                project_time: "",
+                priority: "",
+                deal_id: "",
+                leader_id: "",
+                address: "",
+                kd_kelurahan: "",
+                location: "",
+                created_by: "",
             };
 
             try {
@@ -456,6 +533,7 @@ export default {
                 commit("SET_LOADING", false);
                 return response?.data;
             } catch (error) {
+                await dispatch("fetchAllProjects").catch(() => {});
                 const status = error?.response?.status;
                 const serverMessage = error?.response?.data?.message;
                 commit(

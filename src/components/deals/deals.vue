@@ -101,7 +101,7 @@ export default {
 
     //Current view mode from Vuex store - Synced with route path (dealslist = "list", dealscard = "card")
     activeMode() {
-      return this.$store.getters["deals/currentView"];
+      return this.$store.getters["deals/currentView"] || "card";
     },
 
     downloadLabel() {

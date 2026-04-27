@@ -993,6 +993,7 @@ export default {
     getusers: (state) => state.users,
     getcompany: (state) => state.company,
     getcontact: (state) => state.contact,
+    currentView: (state) => state.viewMode || "card",
     allDeals: (state) => state.deals,
     isLoading: (state) => state.isLoading,
     error: (state) => state.error,

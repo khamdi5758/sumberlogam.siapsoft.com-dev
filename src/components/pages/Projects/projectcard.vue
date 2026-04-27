@@ -220,11 +220,19 @@ export default {
     normalizeProject(project) {
       return {
         id: project.id,
-        title: project.project_name || project.title || project.name || "Untitled Project",
+        title:
+          project.project_name ||
+          project.title ||
+          project.name ||
+          "Untitled Project",
         description: project.description || project.task_content || "-",
         stage: this.normalizeStatus(project.status || project.stage),
         dueDate:
-          project.dueDate || project.due_date || project.date || project.deadline || "-",
+          project.dueDate ||
+          project.due_date ||
+          project.date ||
+          project.deadline ||
+          "-",
         time: project.time || project.project_time || project.due_time || "-",
         associatedWith:
           project.associatedWith ||
@@ -303,7 +311,7 @@ export default {
         });
       } catch (err) {
         movedProject.stage = previousStage;
-        await this.$store.dispatch("projects/fetchAllProjects").catch(() => {});
+        await this.$store.dispatch("project/fetchAllProjects").catch(() => {});
         alertService.error("Gagal pindah stage project. Coba lagi.");
       } finally {
         this.isSyncingStage = false;
@@ -321,9 +329,12 @@ export default {
       if (!confirmed) return;
 
       try {
-        await this.$store.dispatch("projects/deleteProject", project.raw || project);
+        await this.$store.dispatch(
+          "project/deleteProject",
+          project.raw || project,
+        );
         alertService.success("Project berhasil dihapus.");
-        await this.$store.dispatch("projects/fetchAllProjects").catch(() => {});
+        await this.$store.dispatch("project/fetchAllProjects").catch(() => {});
       } catch (err) {
         console.error("Delete project error:", err);
         alertService.error("Gagal menghapus project. Coba lagi.");
@@ -337,7 +348,7 @@ export default {
   },
   mounted() {
     this.rebuildBoards(this.allProjects);
-    this.$store.dispatch("projects/fetchAllProjects").catch(() => {});
+    this.$store.dispatch("project/fetchAllProjects").catch(() => {});
   },
 };
 </script>
