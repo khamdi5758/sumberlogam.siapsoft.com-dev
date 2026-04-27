@@ -86,6 +86,56 @@ export default {
     },
   },
   methods: {
+    resolveDealFromTemplate(templateOptions) {
+      if (!templateOptions) return null;
+      return (
+        templateOptions?.data?.data ||
+        templateOptions?.row?.data ||
+        templateOptions?.data ||
+        templateOptions
+      );
+    },
+
+    handleRowEdit(templateOptions) {
+      const rowDeal = this.resolveDealFromTemplate(templateOptions);
+      if (!rowDeal) return;
+      const originalDeal = this.deals.find((deal) => deal.id === rowDeal.id);
+      this.$emit("viewDetail", originalDeal || rowDeal);
+    },
+
+    async handleRowDelete(templateOptions) {
+      const rowDeal = this.resolveDealFromTemplate(templateOptions);
+      const dealId = rowDeal?.id;
+
+      if (!dealId) {
+        alertService.error("ID deal tidak ditemukan.");
+        return;
+      }
+
+      const dealName = rowDeal?.deal_name || rowDeal?.name || "deal ini";
+      const confirmed = await alertService.confirm(
+        "Hapus Deal?",
+        `${dealName} akan dihapus secara permanen.`,
+      );
+      if (!confirmed) return;
+
+      try {
+        await this.$store.dispatch("deals/deleteDeal", dealId);
+        this.selectedDeals = this.selectedDeals.filter((id) => id !== dealId);
+        alertService.success("Deal berhasil dihapus.");
+        await this.$store.dispatch("deals/fetchAllDeals").catch(() => {});
+      } catch (error) {
+        const status = error?.response?.status;
+        const message =
+          error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message;
+        alertService.error(
+          `Gagal menghapus deal ${status ? `(Status ${status})` : ""}. ${message || ""}`,
+        );
+      }
+    },
+
     // Toggle select semua deals
     toggleSelectAll(forceChecked) {
       const nextChecked =
@@ -186,7 +236,9 @@ export default {
       :selectedRowKeys="selectedDeals"
       @focused-row-changed="handleFocusedRowChanged"
       @selection-changed="handleSelectionChanged"
-      :showActionColumn="false"
+      @edit-click="handleRowEdit"
+      @delete-click="handleRowDelete"
+      :showActionColumn="true"
     />
   </div>
 </template>

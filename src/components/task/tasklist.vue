@@ -150,9 +150,11 @@
         :keyExpr="'id'"
         :showSelection="true"
         :selectedRowKeys="selectedTasks"
-        :showActionColumn="false"
+        :showActionColumn="true"
         @focused-row-changed="handleFocusedRowChanged"
         @selection-changed="handleSelectionChanged"
+        @edit-click="handleRowEdit"
+        @delete-click="handleRowDelete"
       />
     </div>
 
@@ -269,6 +271,61 @@ export default {
     },
   },
   methods: {
+    resolveTaskFromTemplate(templateOptions) {
+      if (!templateOptions) return null;
+      return (
+        templateOptions?.data?.data ||
+        templateOptions?.row?.data ||
+        templateOptions?.data ||
+        templateOptions
+      );
+    },
+
+    handleRowEdit(templateOptions) {
+      const rowTask = this.resolveTaskFromTemplate(templateOptions);
+      if (!rowTask) return;
+      const originalTask = this.tasks.find((task) => task.id === rowTask.id);
+      this.openTaskDetail(originalTask || rowTask);
+    },
+
+    async handleRowDelete(templateOptions) {
+      const rowTask = this.resolveTaskFromTemplate(templateOptions);
+      const taskId = rowTask?.id;
+
+      if (!taskId) {
+        alertService.error("ID task tidak ditemukan.");
+        return;
+      }
+
+      const taskName = rowTask?.["Task Name"] || rowTask?.title || "task ini";
+      const confirmDelete = await alertService.confirm(
+        "Hapus Task?",
+        `${taskName} akan dihapus secara permanen.`,
+      );
+      if (!confirmDelete) return;
+
+      try {
+        const taskItem = this.allTasksData.find(
+          (task) => task.id === taskId,
+        ) || {
+          id: taskId,
+        };
+        await this.$store.dispatch("tasks/deleteTask", taskItem);
+        this.selectedTasks = this.selectedTasks.filter((id) => id !== taskId);
+        this.$emit("taskSelection", this.selectedTasks);
+        alertService.success("Task berhasil dihapus");
+      } catch (error) {
+        const status = error?.response?.status;
+        const backendMessage =
+          error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message;
+        alertService.error(
+          `Gagal menghapus task. ${status ? `Status: ${status}. ` : ""}${backendMessage || "Silakan coba lagi."}`,
+        );
+      }
+    },
+
     getLoggedInName() {
       const user = this.signedInUser || this.authUser || {};
       const fullName =

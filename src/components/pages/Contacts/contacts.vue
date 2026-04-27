@@ -41,29 +41,88 @@
         @open-add-single="openAddSingle"
       /> -->
 
-      <DataGrid 
+      <DataGrid
         ref="contactGrid"
-        :dataSource="tableContacts" 
-        :keyExpr="'id'" 
+        :dataSource="tableContacts"
+        :keyExpr="'id'"
         :selectedRowKeys="selectedIds"
-        @focused-row-changed="handleFocusedRowChanged" 
+        @focused-row-changed="handleFocusedRowChanged"
+        @edit-click="handleRowEdit"
+        @delete-click="handleRowDelete"
         @cell-prepared="handleCellPrepared"
         @contentready="handleContentReady"
         @selection-changed="handleSelectionChanged"
         :rowRenderingMode="'standard'"
-        :showActionColumn="false"
+        :showActionColumn="true"
         :wordwrap="true"
         :columnAutoWidth="false"
         :height="'100%'"
-        :disablecol="['First Name', 'Last Name', 'Email', 'Address', 'Telephone', 'ID', 'statusid', 'taskid', 'tasks', 'location', 'pathphoto', 'deals', 'contact', 'id', 'email', 'phone', 'first_name', 'last_name', 'job_title', 'id_owner', 'telephone_1', 'telephone_2', 'status', 'address', 'country', 'province', 'city', 'pos_code', 'source', 'companyassoc', 'dealsassoc', 'notes', 'created_at', 'updated_at', 'owner_name', 'task_name', 'desktask', 'statustask', 'assignee', 'due_date', 'task_time', 'prioritytask', 'docs', 'associated_contact', 'telephone_3', 'state', 'zip', 'company_id', 'deal_id', 'company_label', 'deal_label', 'level', 'isParent', 'keyindex', 'PageTotal', 'owner', 'descdocs', 'pathfile', 'file_source']"
+        :disablecol="[
+          'First Name',
+          'Last Name',
+          'Email',
+          'Address',
+          'Telephone',
+          'ID',
+          'statusid',
+          'taskid',
+          'tasks',
+          'location',
+          'pathphoto',
+          'deals',
+          'contact',
+          'id',
+          'email',
+          'phone',
+          'first_name',
+          'last_name',
+          'job_title',
+          'id_owner',
+          'telephone_1',
+          'telephone_2',
+          'status',
+          'address',
+          'country',
+          'province',
+          'city',
+          'pos_code',
+          'source',
+          'companyassoc',
+          'dealsassoc',
+          'notes',
+          'created_at',
+          'updated_at',
+          'owner_name',
+          'task_name',
+          'desktask',
+          'statustask',
+          'assignee',
+          'due_date',
+          'task_time',
+          'prioritytask',
+          'docs',
+          'associated_contact',
+          'telephone_3',
+          'state',
+          'zip',
+          'company_id',
+          'deal_id',
+          'company_label',
+          'deal_label',
+          'level',
+          'isParent',
+          'keyindex',
+          'PageTotal',
+          'owner',
+          'descdocs',
+          'pathfile',
+          'file_source',
+        ]"
       >
-        <DxSelection 
-          mode="multiple" 
-          showCheckBoxesMode="always" 
-        />
+        <DxSelection mode="multiple" showCheckBoxesMode="always" />
       </DataGrid>
     </div>
- 
+
     <!-- Add Contact Form -->
     <AddContactForm
       :isOpen="showAddContactForm"
@@ -71,7 +130,7 @@
       @close="closeAddContactForm"
       @submit="fetchData"
     />
- 
+
     <!-- Contact Detail Form -->
     <DetailForm
       :isOpen="showDetailForm"
@@ -83,7 +142,7 @@
       @close="showDetailForm = false"
       @submit="handleDetailFormSubmit"
     />
- 
+
     <!-- Contact Data Detail Form (for row click) -->
     <DetailDataContact
       :isOpen="showDetailDataContact"
@@ -93,7 +152,7 @@
       @back="closeDetailDataContact"
       @submit="handleDetailDataContactSubmit"
     />
- 
+
     <!-- Bulk Add Contact Form -->
     <BulkAddContactForm
       :isOpen="showBulkAddForm"
@@ -107,23 +166,23 @@
     />
   </div>
 </template>
- 
+
 <script>
 import { mapActions, mapGetters } from "vuex";
 import { alertService } from "@/services/alertService";
 import { useStatuses } from "@/composables/useStatuses";
- 
+
 import { DxSelection } from "devextreme-vue/data-grid";
- 
+
 import ContactsHeader from "./ContactsHeader.vue";
 import ContactsFilterBar from "./ContactsFilterBar.vue";
 import ContactsTable from "./ContactsTable.vue";
- 
+
 import AddContactForm from "../../forms/AddContactForm.vue";
 import BulkAddContactForm from "../../forms/BulkAddContactForm.vue";
 import DetailForm from "../../forms/DetailFormDuplicate.vue";
 import DetailDataContact from "../../forms/DetailDataContact.vue";
- 
+
 import {
   getAssociationCandidates,
   resolveAssociationLabels,
@@ -135,12 +194,12 @@ import {
   getDetailSaveAction,
   getUpdateAction,
 } from "@/utils/detailFormPayload";
- 
+
 import DataGrid from "@/components/widgets/DataGrid.vue";
- 
+
 export default {
   name: "Contacts",
- 
+
   components: {
     ContactsHeader,
     ContactsFilterBar,
@@ -152,23 +211,23 @@ export default {
     DataGrid,
     DxSelection,
   },
- 
+
   data() {
     return {
       // server pagination + filters
       currentPage: 1,
       itemsPerPage: 10,
       searchQuery: "",
- 
+
       // statuses mapping
       statuses: [],
- 
+
       // dropdowns & modals
       showAddContactForm: false,
       showBulkAddForm: false,
       showDropdown: false,
       showDownloadDropdown: false,
- 
+
       // selection & detail
       selectedIds: [],
       selectedContact: null,
@@ -180,7 +239,7 @@ export default {
       gridInitialized: false,
     };
   },
- 
+
   computed: {
     ...mapGetters({
       contacts: "contacts/allContacts",
@@ -190,52 +249,52 @@ export default {
       allCompanies: "company/allcompany",
       allDeals: "deals/allDeals",
     }),
- 
+
     totalContacts() {
       return this.pagination?.total || 0;
     },
- 
+
     totalPages() {
       return this.pagination?.last_page || 1;
     },
- 
+
     contactsStatusText() {
       if (this.isLoading) return "Searching contacts...";
       return `${this.totalContacts.toLocaleString()} Total Contacts`;
     },
- 
+
     contactsStatusClass() {
       if (this.isLoading) return "text-blue-600";
       return "text-sub-text";
     },
- 
+
     downloadLabel() {
       return this.selectedIds.length
         ? `Download (${this.selectedIds.length})`
         : "Download";
     },
- 
+
     // untuk checkbox select-all di table
     allSelected() {
       const ids = (this.contacts || []).map((c) => c.id).filter(Boolean);
       if (!ids.length) return false;
       return ids.every((id) => this.selectedIds.includes(id));
     },
- 
+
     // View-model untuk table agar ContactsTable.vue simpel
     tableContacts() {
       const baseContacts = this.contacts || [];
- 
+
       const companyOptions = (this.allCompanies || []).map((company) => ({
         value: company.id,
         label: company.company_name || company.name || "Unknown",
       }));
- 
+
       const dealOptions = (this.allDeals || []).map((deal) => ({
         value: deal.id,
         label: deal.deal_name || deal.name || "Unknown",
       }));
- 
+
       return baseContacts.map((contact) => {
         const companyCandidates = getAssociationCandidates(
           contact?.companyassoc,
@@ -245,7 +304,7 @@ export default {
           contact?.company,
           contact?.company_name,
         );
- 
+
         const dealCandidates = getAssociationCandidates(
           contact?.dealsassoc,
           contact?.dealsAssociation,
@@ -254,7 +313,7 @@ export default {
           contact?.deal,
           contact?.deal_name,
         );
- 
+
         const companyLabels = resolveAssociationLabels(
           companyCandidates,
           companyOptions,
@@ -263,12 +322,12 @@ export default {
           dealCandidates,
           dealOptions,
         );
- 
+
         const companyStr = (companyLabels.length ? companyLabels : ["-"]).join(
           ", ",
         );
         const dealStr = (dealLabels.length ? dealLabels : ["-"]).join(", ");
- 
+
         return {
           ...contact,
           id: contact.id,
@@ -288,7 +347,7 @@ export default {
       });
     },
   },
- 
+
   watch: {
     currentPage() {
       this.fetchData();
@@ -298,8 +357,63 @@ export default {
       this.fetchData();
     },
   },
- 
+
   methods: {
+    resolveContactFromTemplate(templateOptions) {
+      if (!templateOptions) return null;
+      return (
+        templateOptions?.data?.data ||
+        templateOptions?.row?.data ||
+        templateOptions?.data ||
+        templateOptions
+      );
+    },
+
+    handleRowEdit(templateOptions) {
+      const contact = this.resolveContactFromTemplate(templateOptions);
+      if (!contact) return;
+      this.openContactDetail(contact);
+    },
+
+    async handleRowDelete(templateOptions) {
+      const contact = this.resolveContactFromTemplate(templateOptions);
+      const contactId = contact?.id;
+
+      if (!contactId) {
+        alertService.error("ID contact tidak ditemukan.");
+        return;
+      }
+
+      const contactName =
+        contact?.["Contact Name"] ||
+        [contact?.first_name, contact?.last_name].filter(Boolean).join(" ") ||
+        contact?.email ||
+        "contact ini";
+
+      const confirmDelete = await alertService.confirm(
+        "Hapus Contact?",
+        `${contactName} akan dihapus secara permanen.`,
+      );
+
+      if (!confirmDelete) return;
+
+      try {
+        await this.deleteContact(contactId);
+        this.selectedIds = this.selectedIds.filter((id) => id !== contactId);
+        alertService.success("Contact berhasil dihapus");
+        this.fetchData();
+      } catch (err) {
+        const status = err?.response?.status;
+        const message =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message;
+        alertService.error(
+          `Gagal menghapus contact ${status ? `(Status ${status})` : ""}. ${message || ""}`,
+        );
+      }
+    },
+
     handleFocusedRowChanged(e) {
       const contact = e?.data;
       if (contact) {
@@ -309,7 +423,7 @@ export default {
     handleContentReady(e) {
       if (!this.gridInitialized && e.component) {
         const instance = e.component;
- 
+
         // Define widths
         instance.columnOption("Contact Name", "width", 250);
         instance.columnOption("Contact Info", "width", 240);
@@ -317,7 +431,7 @@ export default {
         instance.columnOption("Status", "width", 130);
         instance.columnOption("Created/Update", "width", 180);
         instance.columnOption("Owner", "width", 180);
- 
+
         // Define robust stacked templates
         instance.columnOption(
           "Contact Name",
@@ -327,7 +441,7 @@ export default {
             container.innerHTML = `<div style="font-weight: bold; color: #1e293b;">${val}</div>`;
           },
         );
- 
+
         instance.columnOption(
           "Contact Info",
           "cellTemplate",
@@ -343,19 +457,27 @@ export default {
           },
         );
 
-        instance.columnOption("Associated with", "cellTemplate", (container, options) => {
-          const val = options.displayValue || "-";
-          const parts = val.split("\n");
-          container.innerHTML = `
+        instance.columnOption(
+          "Associated with",
+          "cellTemplate",
+          (container, options) => {
+            const val = options.displayValue || "-";
+            const parts = val.split("\n");
+            container.innerHTML = `
             <div style="display: block; width: 100%;">
-              ${parts.map((text, idx) => `
+              ${parts
+                .map(
+                  (text, idx) => `
                 <div style="color: ${idx === 0 ? "#1e293b" : "#64748b"}; font-size: ${idx === 0 ? "13px" : "12px"}; margin-top: ${idx > 0 ? "2px" : "0"}; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                   ${text}
                 </div>
-              `).join("")}
+              `,
+                )
+                .join("")}
             </div>
           `;
-        });
+          },
+        );
 
         this.gridInitialized = true;
       }

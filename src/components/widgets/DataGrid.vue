@@ -37,8 +37,9 @@
           :width="col.width"
           :alignment="col.alignment"
           :cell-template="col.cellTemplate"
+          :fixed="col.fixed"
+          :fixed-position="col.fixedPosition"
         />
-
 
         <DxColumnChooser
           :enabled="false"
@@ -239,7 +240,7 @@
           <div class="flex gap-2 justify-center items-center">
             <button
               v-if="showEditAction"
-              @click="handleEdit(templateOptions)"
+              @click.stop.prevent="handleEdit(templateOptions)"
               class="inline-flex items-center justify-center w-8 h-8 text-blue-500 hover:text-blue-700 transition-colors duration-200"
               :title="editActionTitle"
             >
@@ -260,7 +261,7 @@
             </button>
             <button
               v-if="showDeleteAction"
-              @click="handleDelete(templateOptions)"
+              @click.stop.prevent="handleDelete(templateOptions)"
               class="inline-flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-700 transition-colors duration-200"
               :title="deleteActionTitle"
             >
@@ -282,7 +283,7 @@
             <button
               v-for="(action, index) in customActions"
               :key="`action-${index}`"
-              @click="action.handler(templateOptions)"
+              @click.stop.prevent="action.handler(templateOptions)"
               :class="
                 action.class ||
                 'inline-flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-700 transition-colors duration-200'
@@ -628,7 +629,16 @@ export default {
     },
     actionColumnWidth: {
       type: Number,
-      default: 100,
+      default: 110,
+    },
+    actionColumnPosition: {
+      type: String,
+      default: "right",
+      validator: (value) => ["left", "right"].includes(value),
+    },
+    pinActionColumnRight: {
+      type: Boolean,
+      default: false,
     },
     showEditAction: {
       type: Boolean,
@@ -909,18 +919,24 @@ export default {
         });
       }
 
-
-
       if (this.showActionColumn) {
-        cols.unshift({
+        const actionColumn = {
           caption: "Actions",
-          width: 120,
+          width: this.actionColumnWidth,
           allowSorting: false,
           allowFiltering: false,
           allowReordering: false,
           alignment: "center",
           cellTemplate: "action-cell-template",
-        });
+          fixed: this.pinActionColumnRight,
+          fixedPosition: this.pinActionColumnRight ? "right" : undefined,
+        };
+
+        if (this.actionColumnPosition === "left") {
+          cols.unshift(actionColumn);
+        } else {
+          cols.push(actionColumn);
+        }
       }
 
       if (this.groupFields && this.groupFields.length > 0) {

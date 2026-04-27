@@ -18,9 +18,7 @@ const emit = defineEmits([
 </script>
 
 <template>
-  <div
-    class="px-6 py-4 flex items-center justify-between border-b border-gray-100"
-  >
+  <div class="px-6 py-4 flex items-center justify-between">
     <!-- LEFT: Selection & Bulk Actions -->
     <div class="flex items-center gap-4">
       <label
@@ -35,7 +33,7 @@ const emit = defineEmits([
         <span>Select all filtered result</span>
       </label>
 
-      <!-- Delete Selected -->
+      <!-- Delete Selected 
       <button
         type="button"
         @click="emit('delete')"

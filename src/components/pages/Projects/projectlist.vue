@@ -152,8 +152,10 @@
         class="mt-0!"
         :dataSource="tableProjects"
         :keyExpr="'id'"
-        :showActionColumn="false"
+        :showActionColumn="true"
         @focused-row-changed="handleFocusedRowChanged"
+        @edit-click="handleRowEdit"
+        @delete-click="handleRowDelete"
       />
     </div>
 
@@ -260,7 +262,8 @@ export default {
     },
     tableProjects() {
       return this.paginatedProjects.map((project) => ({
-        "Project Name": project.project_name || project.title || project.name || "-",
+        "Project Name":
+          project.project_name || project.title || project.name || "-",
         Stage: this.getStageLabel(project.status || project.stage),
         "Due Date / Time": project.dueDate || project.time || "-",
         "Created / Updated": project.created_at || project.createdAt || "-",
@@ -270,6 +273,69 @@ export default {
     },
   },
   methods: {
+    resolveProjectFromTemplate(templateOptions) {
+      if (!templateOptions) return null;
+      return (
+        templateOptions?.data?.data ||
+        templateOptions?.row?.data ||
+        templateOptions?.data ||
+        templateOptions
+      );
+    },
+
+    handleRowEdit(templateOptions) {
+      const rowProject = this.resolveProjectFromTemplate(templateOptions);
+      if (!rowProject) return;
+      const originalProject = this.projects.find(
+        (project) => project.id === rowProject.id,
+      );
+      this.openTaskDetail(originalProject || rowProject);
+    },
+
+    async handleRowDelete(templateOptions) {
+      const rowProject = this.resolveProjectFromTemplate(templateOptions);
+      const projectId = rowProject?.id;
+
+      if (!projectId) {
+        alertService.error("ID project tidak ditemukan.");
+        return;
+      }
+
+      const projectName =
+        rowProject?.["Project Name"] ||
+        rowProject?.project_name ||
+        "project ini";
+
+      const confirmDelete = await alertService.confirm(
+        "Hapus Project?",
+        `${projectName} akan dihapus secara permanen.`,
+      );
+      if (!confirmDelete) return;
+
+      try {
+        const projectItem = this.allProjectsData.find(
+          (project) => project.id === projectId,
+        ) || {
+          id: projectId,
+        };
+        await this.$store.dispatch("project/deleteProject", projectItem);
+        this.selectedProjects = this.selectedProjects.filter(
+          (id) => id !== projectId,
+        );
+        this.$emit("taskSelection", this.selectedProjects);
+        alertService.success("Project berhasil dihapus");
+      } catch (error) {
+        const status = error?.response?.status;
+        const backendMessage =
+          error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message;
+        alertService.error(
+          `Gagal menghapus project. ${status ? `Status: ${status}. ` : ""}${backendMessage || "Silakan coba lagi."}`,
+        );
+      }
+    },
+
     getLoggedInName() {
       const user = this.signedInUser || this.authUser || {};
       const fullName =
