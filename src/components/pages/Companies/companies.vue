@@ -1,5 +1,5 @@
 <script>
-import { mapState, mapGetters, mapActions } from "vuex";
+import { mapState, mapGetters, mapActions,mapMutations } from "vuex";
 import { useCookies } from "vue3-cookies";
 import api from "@/api";
 
@@ -62,7 +62,6 @@ export default {
         this.$store.dispatch("company/setSearchQuery", value);
       },
     },
-
     currentPage: {
       get() {
         return this.$store.getters["company/currentPage"];
@@ -79,7 +78,6 @@ export default {
         this.$store.dispatch("company/setItemsPerPage", value);
       },
     },
-
     ...mapGetters({
       companies: "company/companyList",
       getrescompany: "company/getrescompany",
@@ -88,16 +86,13 @@ export default {
       allContacts: "contacts/allContacts",
       allDeals: "deals/allDeals",
     }),
-
     totalCompanies() {
       return this.companies.length;
     },
-
     totalPages() {
       return this.getrescompany.last_page || 0;
       // return Math.max(1, Math.ceil(this.totalCompanies / this.itemsPerPage));
     },
-
     paginatedCompanies() {
       // Sort by updated_at DESC (newest first)
       const sorted = [...this.companies].sort((a, b) => {
@@ -109,13 +104,11 @@ export default {
       // 🔥 Remove manual slicing because the server already paginates
       return sorted;
     },
-
     allSelected() {
       const ids = this.companies.map((c) => c.id).filter(Boolean);
       if (!ids.length) return false;
       return ids.every((id) => this.selectedIds.includes(id));
     },
-
     tableCompanies() {
       // console.log("Computing tableCompanies with companies:", this.companies);
       return this.companies;
@@ -142,7 +135,6 @@ export default {
         };
       });
     },
-
     downloadLabel() {
       return this.selectedIds.length
         ? `Download (${this.selectedIds.length})`
@@ -208,6 +200,9 @@ export default {
     ]),
     ...mapActions("contacts", ["fetchAllContacts"]),
     ...mapActions("deals", ["fetchAllDeals"]),
+     ...mapMutations({
+      setclearcompanybyid: "company/setclearcompanybyid",
+    }),
 
     getDisplayNameFromContact(contact) {
       return (

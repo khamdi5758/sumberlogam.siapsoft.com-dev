@@ -148,7 +148,7 @@ export default {
         "Hapus User?",
       );
 
-      if (!confirmDelete?.isConfirmed) return;
+      if (!confirmDelete) return;
 
       try {
         const idsToDelete = [...this.selectedIds];

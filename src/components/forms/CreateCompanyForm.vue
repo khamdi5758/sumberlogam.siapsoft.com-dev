@@ -1,5 +1,5 @@
 <script>
-import { mapActions, mapGetters } from "vuex";
+import { mapActions, mapGetters, mapMutations } from "vuex";
 import { X, Plus, ChevronDown } from "lucide-vue-next";
 import AddDealForm from "./AddDealForm.vue";
 import AddContactQuickForm from "./AddContactQuickForm.vue";
@@ -11,12 +11,13 @@ import { alertService } from "@/services/alertService";
 import NotesEditor from "@/components/widgets/NotesEditor.vue";
 import TaskEditor from "@/components/widgets/TaskEditor.vue";
 import DocsEditor from "@/components/widgets/DocsEditor.vue";
-import HistoryDetail from "@/components/widgets/historydetail.vue";
+import HistoryDetail from "@/components/widgets/historydetail2.vue";
 import { buildFormData } from "@/utils/buildFormData";
 import ContactSection from "./component/ContactSection.vue";
 import DealsSection from "./component/DealsSection.vue";
 import AddContactForm from "./AddContactForm.vue";
 import CreateDealForm from "./CreateDealForm.vue";
+import { toast } from "vue3-toastify";
 
 export default {
   name: "CreateCompanyForm",
@@ -235,6 +236,8 @@ export default {
       actkelurahan: "lokasi/actkelurahan",
       actkodepos: "lokasi/actkodepos",
     }),
+
+    ...mapMutations({setclearcompanybyid : "company/setclearcompanybyid"}),
 
     onContactassocSave(action, data) {
       let formdata = new FormData();
@@ -529,7 +532,9 @@ export default {
           audioBlob: null,
           visibility: 0,
         }),
+        
         this.$emit("close"));
+        this.setclearcompanybyid();
     },
 
     handleSave() {
@@ -550,26 +555,32 @@ export default {
           const message = this.isEditMode
             ? "Company berhasil diperbarui!"
             : "Company berhasil ditambahkan!";
-          alertService.success(message);
+          // alertService.success(message);
+           toast.success(message);
           console.log(data.param);
           if (this.hasCompanyId) {
             this.$emit("submit", data);
+            this.setclearcompanybyid();
           }
           this.savedCompany = data.param;
           this.showDetailForm = false;
+          this.activeTab = "Contacts";
           // this.resetForm();
           // this.handleClose();
         })
         .catch((error) => {
-          alertService.error(
+          // alertService.error(
+          //   error.response?.data?.message ||
+          //     error.message ||
+          //     "Gagal menyimpan company.",
+          // );
+           toast.error(
             error.response?.data?.message ||
               error.message ||
-              "Gagal menyimpan company.",
-          );
+              "Gagal menyimpan company.");
         })
         .finally(() => {
           this.isSubmitting = false;
-          this.activeTab = "master";
         });
     },
 
@@ -648,6 +659,8 @@ export default {
       if (this.companyid) {
         this.fetchcompanybyid(this.companyid);
       }
+
+      this.showAddContactForm = false
     },
 
     handleCreateDealSubmit(response) {
@@ -851,7 +864,7 @@ export default {
         },
       );
 
-      if (result.isConfirmed) {
+      if (result) {
         const formData = new FormData();
         formData.append("choice", "D");
         formData.append("idnote", item.id);
@@ -886,7 +899,7 @@ export default {
         },
       );
 
-      if (!confirm?.isConfirmed) return;
+      if (!confirm) return;
 
       // Filter out ID from formData
       this.formData.contactassoc = this.formData.contactassoc.filter(
@@ -1237,6 +1250,7 @@ export default {
     :isOpen="showAddContactForm"
     :companys_id="this.companyid"
     :hideDetailTab="true"
+    :frompage = "'company'"
     @close="showAddContactForm = false"
     @submit="handleContactSubmit"
   />

@@ -365,7 +365,7 @@ export default {
   mounted() {
     this.fetchStatuses();
     if (!this.companies.length){
-      this.fetchAllcompany();
+      this.fetchAllcompany({});
     }
 
     document.addEventListener("click", this.handleClickOutside);

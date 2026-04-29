@@ -168,7 +168,7 @@ export default {
         },
       );
 
-      if (!confirmDelete?.isConfirmed) return;
+      if (!confirmDelete) return;
 
       try {
         await this.deleteUser(user.id);

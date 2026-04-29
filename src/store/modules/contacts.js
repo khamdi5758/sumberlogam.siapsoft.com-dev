@@ -7,6 +7,7 @@ const { cookies } = useCookies();
 
 const state = {
   contacts: [],
+  company: [],
   sources: [],
   status: [],
   pagination: {
@@ -23,10 +24,11 @@ const state = {
 const getters = {
   currentView: (state) => state.viewMode,
   allContacts: (state) => state.contacts,
+  getcompany: (state) => state.company,
   pagination: (state) => state.pagination,
   isLoading: (state) => state.isLoading,
   error: (state) => state.error,
-  getsources: (state) => state.sources, 
+  getsources: (state) => state.sources,
   getstatus: (state) => state.status,
 };
 
@@ -43,6 +45,9 @@ const normalizeContactData = (contact) => {
 };
 
 const mutations = {
+  setcompany(state, payload) {
+    state.company = payload;
+  },
   setsources(state, mode) {
     state.sources = mode;
   },
@@ -82,6 +87,36 @@ const mutations = {
 };
 
 const actions = {
+  fetchcompany(context) {
+    context.commit("SET_LOADING", true);
+    context.commit("SET_ERROR", null);
+
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const response = await api.get("contact/company", {
+          headers: {
+            Authorization: "Bearer " + cookies.get("token"),
+          },
+        });
+        resolve(response.data);
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    promise
+      .then((data) => {
+        context.commit("setcompany", data);
+        context.commit("SET_LOADING", false);
+      })
+      .catch((error) => {
+        context.commit("SET_ERROR", error.message);
+        context.commit("SET_LOADING", false);
+      });
+
+    return promise;
+  },
+
   fetchAllContacts({ commit }, params = { page: 1, per_page: 10 }) {
     commit("SET_LOADING", true);
     commit("SET_ERROR", null);
@@ -179,7 +214,7 @@ const actions = {
     for (const endpoint of endpoints) {
       try {
         const response = await api.post(endpoint, detailPayload, { headers });
-        await dispatch("fetchAllContacts").catch(() => {});
+        await dispatch("fetchAllContacts").catch(() => { });
         return response.data;
       } catch (error) {
         const status = error?.response?.status;

@@ -164,20 +164,18 @@ export default {
       this.openModal = true;
     },
     confirmRemove(data) {
-      alertService
-        .confirm(
-          "Data contact ini hanya akan dihapus dari daftar hubungan company ini, namun tetap akan tersedia di modul Contacts sebagai arsip.",
-          "Hapus Hubungan Contact?",
-          {
-            confirmButtonText: "Ya, Hapus",
-            cancelButtonText: "Kembali",
-          },
-        )
-        .then((result) => {
-          if (result.isConfirmed) {
-            this.$emit("remove", { contactassoc: [data.id] });
-          }
-        });
+      alertService.confirm(
+        "Data contact ini hanya akan dihapus dari daftar hubungan company ini, namun tetap akan tersedia di modul Contacts sebagai arsip.",
+        "Hapus Hubungan Contact?",
+        {
+          confirmButtonText: "Ya, Hapus",
+          cancelButtonText: "Kembali",
+        }
+      ).then((result) => {
+        if (result.isConfirmed) {
+          this.$emit("remove", { contactassoc: [data.id] });
+        }
+      });
     },
   },
 

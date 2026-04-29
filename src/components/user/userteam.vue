@@ -138,7 +138,7 @@ export default {
       const confirm = await alertService.confirmDelete(
         `${this.selectedTeam.length} tim`,
       );
-      if (!confirm.isConfirmed) return;
+      if (!confirm) return;
 
       try {
         // Use sequential deletion to avoid 429 and DB locks

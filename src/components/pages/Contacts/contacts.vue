@@ -57,7 +57,9 @@
         :wordwrap="true"
         :columnAutoWidth="false"
         :height="'100%'"
-        :disablecol="[
+        :columns="contactColumns"
+
+        <!----> :disablecol="[
           'First Name',
           'Last Name',
           'Email',
@@ -117,7 +119,7 @@
           'descdocs',
           'pathfile',
           'file_source',
-        ]"
+        ]" -->
       >
         <DxSelection mode="multiple" showCheckBoxesMode="always" />
       </DataGrid>
@@ -126,12 +128,11 @@
     <!-- Add Contact Form -->
     <AddContactForm
       :isOpen="showAddContactForm"
-      :contactData="selectedContact"
       @close="closeAddContactForm"
-      @submit="fetchData"
+      @submit="handleContactSubmit"
     />
 
-    <!-- Contact Detail Form -->
+    <!-- Contact Detail Form
     <DetailForm
       :isOpen="showDetailForm"
       title="Add Contact / Details"
@@ -141,17 +142,29 @@
       :isSaving="isDetailFormSubmitting"
       @close="showDetailForm = false"
       @submit="handleDetailFormSubmit"
-    />
+    /> -->
 
     <!-- Contact Data Detail Form (for row click) -->
     <DetailDataContact
       :isOpen="showDetailDataContact"
-      :contact="selectedContact"
-      :isSubmitting="isDetailDataSubmitting"
+      :contactData="selectedContact"
       @close="closeDetailDataContact"
-      @back="closeDetailDataContact"
-      @submit="handleDetailDataContactSubmit"
-    />
+      @submit="
+        (data) => {
+          showDetailDataContact = false;
+          showDetailForm = false;
+          fetchData(); // 🔥 Refresh data after submit
+        }
+      "
+
+
+      />
+<!--       
+            :contact="selectedContact"
+            :isSubmitting="isDetailDataSubmitting"
+            @close="closeDetailDataContact"
+            @back="closeDetailDataContact"
+            @submit="handleDetailDataContactSubmit" -->
 
     <!-- Bulk Add Contact Form -->
     <BulkAddContactForm
@@ -179,9 +192,10 @@ import ContactsFilterBar from "./ContactsFilterBar.vue";
 import ContactsTable from "./ContactsTable.vue";
 
 import AddContactForm from "../../forms/AddContactForm.vue";
+import DetailDataContact from "../../forms/AddContactForm.vue";
+
 import BulkAddContactForm from "../../forms/BulkAddContactForm.vue";
 import DetailForm from "../../forms/DetailFormDuplicate.vue";
-import DetailDataContact from "../../forms/DetailDataContact.vue";
 
 import {
   getAssociationCandidates,
@@ -249,6 +263,14 @@ export default {
       allCompanies: "company/allcompany",
       allDeals: "deals/allDeals",
     }),
+
+    contactColumns() {
+      return [
+        { dataField: "Contact Name", caption: "Contact Name", visible: true },
+        { dataField: "Contact Info", caption: "Contact Info", visible: true },
+        { dataField: "statusname", caption: "Status", visible: true },
+      ];
+    },
 
     totalContacts() {
       return this.pagination?.total || 0;
@@ -339,10 +361,10 @@ export default {
           "Contact Info": `${contact.email || "-"}\n${contact.telephone_1 || "-"}`,
           "Associated with": `${companyStr}\n${dealStr}`,
           Status: this.getStatusName(contact.status),
-          "Created/Update": this.formatDate(
+          /*"Created/Update": this.formatDate(
             contact.updated_at || contact.created_at,
           ),
-          Owner: contact.owner_name || contact.owner || "-",
+          Owner: contact.owner_name || contact.owner || "-",*/
         };
       });
     },
@@ -359,6 +381,10 @@ export default {
   },
 
   methods: {
+    handleContactSubmit(data) {
+  this.fetchData(); // async
+  this.showAddContactForm = false;
+},
     resolveContactFromTemplate(templateOptions) {
       if (!templateOptions) return null;
       return (
@@ -425,12 +451,12 @@ export default {
         const instance = e.component;
 
         // Define widths
-        instance.columnOption("Contact Name", "width", 250);
-        instance.columnOption("Contact Info", "width", 240);
-        instance.columnOption("Associated with", "width", 240);
-        instance.columnOption("Status", "width", 130);
-        instance.columnOption("Created/Update", "width", 180);
-        instance.columnOption("Owner", "width", 180);
+        //instance.columnOption("Contact Name", "width", 250);
+        //instance.columnOption("Contact Info", "width", 240);
+        //instance.columnOption("Associated with", "width", 240);
+        instance.columnOption("Status", "width", 150);
+        //instance.columnOption("Created/Update", "width", 180);
+        //instance.columnOption("Owner", "width", 180);
 
         // Define robust stacked templates
         instance.columnOption(
@@ -568,11 +594,16 @@ export default {
     // ========================
     openContactDetail(contact) {
       this.selectedContact = { ...contact };
-      this.showAddContactForm = true;
+      this.showDetailDataContact = true;
     },
 
     closeAddContactForm() {
       this.showAddContactForm = false;
+      this.selectedContact = null;
+    },
+
+    closeDetailDataContact() {
+      this.showDetailDataContact = false;
       this.selectedContact = null;
     },
 
@@ -772,37 +803,37 @@ export default {
       return status ? status.name : "-";
     },
 
-    async fetchStatuses() {
-      try {
-        const { cookies } = await import("vue3-cookies");
-        const api = (await import("@/api")).default;
-        const response = await api.get("statuses", {
-          headers: {
-            Authorization: "Bearer " + cookies.get("token"),
-          },
-        });
-        this.statuses = response.data || [];
-      } catch (error) {
-        console.error("Failed to fetch statuses:", error);
-        // Fallback
-        this.statuses = [
-          { id: 1, name: "Competitor" },
-          { id: 2, name: "Customer" },
-          { id: 3, name: "Ex Customer" },
-          { id: 4, name: "Lead" },
-          { id: 5, name: "Opportunity" },
-          { id: 6, name: "Partner" },
-          { id: 7, name: "Qualified" },
-        ];
-      }
-    },
+    // async fetchStatuses() {
+    //   try {
+    //     const { cookies } = await import("vue3-cookies");
+    //     const api = (await import("@/api")).default;
+    //     const response = await api.get("statuses", {
+    //       headers: {
+    //         Authorization: "Bearer " + cookies.get("token"),
+    //       },
+    //     });
+    //     this.statuses = response.data || [];
+    //   } catch (error) {
+    //     console.error("Failed to fetch statuses:", error);
+    //     // Fallback
+    //     this.statuses = [
+    //       { id: 1, name: "Competitor" },
+    //       { id: 2, name: "Customer" },
+    //       { id: 3, name: "Ex Customer" },
+    //       { id: 4, name: "Lead" },
+    //       { id: 5, name: "Opportunity" },
+    //       { id: 6, name: "Partner" },
+    //       { id: 7, name: "Qualified" },
+    //     ];
+    //   }
+    // },
   },
 
   mounted() {
     document.addEventListener("click", this.handleClickOutside);
 
     // initial fetch
-    this.fetchStatuses();
+    // this.fetchStatuses();
     this.fetchData();
     // this.fetchAllcompany();
     // this.fetchAllDeals();

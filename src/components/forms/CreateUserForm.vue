@@ -298,7 +298,7 @@ export default {
         "Hapus User?",
       );
 
-      if (!confirmDelete?.isConfirmed) return;
+      if (!confirmDelete) return;
 
       this.isSaving = true;
       this.errorMsg = "";

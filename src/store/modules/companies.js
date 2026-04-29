@@ -165,6 +165,7 @@ const getters = {
   },
   currentPage: (state) => state.currentPage,
   itemsPerPage: (state) => state.itemsPerPage,
+
 };
 
 const actions = {
@@ -266,7 +267,7 @@ const actions = {
     return promise;
   },
 
-  getcompanyignin({ commit }) {
+  tcompanyignin({ commit }) {
     const promise = new Promise(async (resolve, reject) => {
       try {
         let network = await api.get("company/", {
@@ -433,7 +434,7 @@ const actions = {
     const response = await api.post("company/input", requestPayload, {
       headers,
     });
-    await context.dispatch("fetchAllcompany").catch(() => {});
+    await context.dispatch("fetchAllcompany").catch(() => { });
     return response.data;
   },
 
@@ -658,7 +659,7 @@ const actions = {
 
 
 
-  
+
 
 
 
@@ -725,6 +726,11 @@ const mutations = {
   settype(state, type) {
     state.type = type;
   },
+
+
+  setclearcompanybyid(state) {
+    state.companybyid = [];
+  }
 };
 
 export default {

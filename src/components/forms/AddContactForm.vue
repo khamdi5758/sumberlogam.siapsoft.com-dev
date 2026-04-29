@@ -2,7 +2,7 @@
 import { mapActions, mapGetters } from "vuex";
 import { X, Plus, ChevronDown, Loader2 } from "lucide-vue-next";
 import { toast } from "vue3-toastify";
-import { useStatuses } from "@/composables/useStatuses";
+// import { useStatuses } from "@/composables/useStatuses";
 import AddCompanyForm from "./AddCompanyForm.vue";
 import AddDealForm from "./AddDealForm.vue";
 import ContactDetailForm from "./DetailForm.vue";
@@ -12,7 +12,7 @@ import TaskSection from "@/components/widgets/TaskEditor.vue";
 import LocationSelector from "@/components/forms/component/LocationSelector.vue";
 import DealAssociationForm from "./assoc/deals.vue";
 import CompaniesAssociationForm from "./assoc/companies.vue";
-import HistoryDetail from "@/components/widgets/historydetail.vue";
+import HistoryDetail from "@/components/widgets/historydetail2.vue";
 
 import api from "@/api"; // Pastikan path ini benar sesuai struktur proyek Anda
 
@@ -53,38 +53,39 @@ export default {
       type: Object,
       default: () => ({}),
     },
-    companys_id: {
-      type: Number,
-      default: null,
+    companys_id:{
+      type:Number,
+      default:null,
     },
     hideDetailTab: {
       type: Boolean,
       default: false,
-    },
+    }
+
   },
 
   emits: ["close", "submit"],
 
   setup() {
-    const { statuses: statusList, fetchStatuses } = useStatuses();
-    return { statusList, fetchStatuses };
+    // const { statuses: statusList, fetchStatuses } = useStatuses();
+    // return { statusList, fetchStatuses };
   },
 
   mounted() {
-    this.fetchStatuses();
+    // this.fetchStatuses();
     this.$store.dispatch("users/getusersignin");
     this.$store.dispatch("users/fetchAllusers");
     this.$store.dispatch("company/fetchAllcompany");
     this.$store.dispatch("deals/fetchAllDeals");
     this.applyDefaultOwner();
 
-    if (!this.getsources || this.getsources.length === 0) {
+    if(!this.getsources || this.getsources.length === 0) {
       this.fetchsources({});
-    }
+    };
 
-    if (!this.getstatus || this.getstatus.length === 0) {
+    if(!this.getstatus || this.getstatus.length === 0) {
       this.fetchstatus({});
-    }
+    };
 
     // Add click outside handler
     document.addEventListener("click", this.handleClickOutside);
@@ -95,26 +96,43 @@ export default {
   },
 
   watch: {
-    isOpen(newVal) {
+    async isOpen(newVal) {
       if (newVal) {
         Promise.allSettled([
           this.$store.dispatch("users/getusersignin"),
           this.$store.dispatch("users/fetchAllusers"),
-          this.$store.dispatch("company/fetchAllcompany"),
+          this.$store.dispatch("contacts/fetchcompany"),
           this.$store.dispatch("deals/fetchAllDeals"),
         ]).finally(() => this.applyDefaultOwner());
+
+        if (this.contactData) {
+          await this.actkotakabupaten({ id: this.contactData.province });
+          await this.actkecamatan({ id: this.contactData.city });
+          await this.actkelurahan({ id: this.contactData.kecamatan });
+          this.setFormData(this.contactData);
+        } else {
+          this.handleReset();
+        }
       }
     },
     contactData: {
       handler(newVal) {
         if (newVal && Object.keys(newVal).length > 0) {
-          this.populateForm(newVal);
+          // this.populateForm(newVal);
         } else {
           this.handleReset();
         }
       },
       immediate: true,
       deep: true,
+    },
+
+    hascontactId(e) {
+      console.log("handlecontactID", e);
+    },
+
+    contactid(e) {
+      console.log("contactID", e);
     },
   },
 
@@ -140,31 +158,32 @@ export default {
         email: "",
         telephone_1: "",
         telephone_2: "",
-        status: "",
         address: "",
         country: "",
         province: "",
         city: "",
+        kecamatan: "",
+        kelurahan: "",
         pos_code: "",
         source: "",
-        companiesAssociation: "",
-        dealsAssociation: "",
         created_at: "",
         updated_at: "",
-        companiesSearch: "",
         dealsSearch: "",
+
+        company_id: null,
         selectedCompanies: [],
         selectedDeals: [],
+        status: "",
       },
 
-      task: {
+      /*task: {
         name: "",
         content: "",
         status: "",
         dueDate: "",
         time: "",
         priority: "",
-      },
+      },*/
 
       statusOptions: [
         { value: "not_started", label: "Not Started" },
@@ -178,7 +197,7 @@ export default {
         { value: "high", label: "High" },
       ],
 
-      docs: {
+      /*docs: {
         description: "",
         fileSource: "",
         fileUrl: "",
@@ -192,26 +211,28 @@ export default {
         longitude: null,
         photos: [],
         audioBlob: null,
-      },
+      },*/
 
       isSubmitting: false,
       companySearch: "",
       activeTab: "master",
       isCompanyDropdownOpen: false,
       isDealDropdownOpen: false,
+      savedContact: null,
 
       showAddCompanyForm: false,
       showAddDealForm: false,
       showDetailForm: false,
       showCompaniesDropdown: false,
       showDealsDropdown: false,
+      isSaved: false,
 
       // History & Drawer States
       historyitems: [],
       isNoteDrawerOpen: false,
       isDocDrawerOpen: false,
       editingItemIndex: null,
-      tempNoteData: {
+      /*tempNoteData: {
         body: "",
         gps_address: null,
         latitude: null,
@@ -223,14 +244,14 @@ export default {
         description: "",
         fileSource: "",
         files: [],
-      },
+      },*/
     };
   },
 
   computed: {
     ...mapGetters({
       isLoading: "contacts/isLoading",
-      allCompaniesData: "company/allcompany", // Ambil dari store
+      allCompaniesData: "contacts/getcompany",
       allDealsData: "deals/allDeals", // Ambil dari store
       getsources: "contacts/getsources",
       getstatus: "contacts/getstatus",
@@ -276,23 +297,13 @@ export default {
 
       return signedInUser?.name || signedInUser?.username || fullName || "";
     },
-    filteredCompanies() {
-      if (!this.formData.companiesSearch) return this.allCompanies || [];
-      return (this.allCompanies || []).filter((company) => {
-        const companyName = company.company_name || company.name || "";
-        return companyName
-          .toLowerCase()
-          .includes(this.formData.companiesSearch.toLowerCase());
-      });
+
+    hascontactId() {
+      return !!(this.formData?.id || this.savedContact?.id);
     },
-    filteredDeals() {
-      if (!this.formData.dealsSearch) return this.allDeals || [];
-      return (this.allDeals || []).filter((deal) => {
-        const dealName = deal.deal_name || deal.name || "";
-        return dealName
-          .toLowerCase()
-          .includes(this.formData.dealsSearch.toLowerCase());
-      });
+
+    contactid() {
+      return this.formData?.id || this.savedContact?.id || null;
     },
   },
 
@@ -301,239 +312,272 @@ export default {
       saveContact: "contacts/createContact",
       fetchsources: "contacts/fetchsources",
       fetchstatus: "contacts/fetchstatus",
+      actprovinsi: "lokasi/actprovinsi",
+      actkotakabupaten: "lokasi/actkotakabupaten",
+      actkecamatan: "lokasi/actkecamatan",
+      actkelurahan: "lokasi/actkelurahan",
+      actkodepos: "lokasi/actkodepos",
     }),
     applyDefaultOwner() {
       if (!this.formData.id_owner && this.currentUserId) {
         this.formData.id_owner = this.currentUserId;
       }
     },
-    populateForm(data) {
-      if (!data) return;
-
-      // Extract raw data from possible nested contacts array (backward compatibility)
-      const rawData =
-        data && data.contacts && data.contacts.length > 0
-          ? data.contacts[0]
-          : data;
-
-      // Association Candidates Logic (similar to DetailDataContact)
-      const getCandidates = (value) => {
-        if (!value) return [];
-        if (Array.isArray(value))
-          return value
-            .map((v) =>
-              typeof v === "object" && v !== null
-                ? (v.id ??
-                  v.deal_id ??
-                  v.company_id ??
-                  v.id_deal ??
-                  v.id_company ??
-                  v.value)
-                : v,
-            )
-            .filter(Boolean);
-        if (typeof value === "string")
-          return value
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        return [value];
-      };
-
-      const companyIds = getCandidates(
-        rawData.companyassoc ||
-          rawData.companiesAssociation ||
-          rawData.company_id ||
-          rawData.id_company,
-      );
-      const dealIds = getCandidates(
-        rawData.dealsassoc ||
-          rawData.dealsAssociation ||
-          rawData.deal_id ||
-          rawData.id_deal,
-      );
-
-      const selectedCompanies = companyIds.map((id) => {
-        const found = this.allCompanies.find(
-          (c) => String(c.id) === String(id),
-        );
-        return found || { id };
-      });
-      const selectedDeals = dealIds.map((id) => {
-        const found = this.allDeals.find((d) => String(d.id) === String(id));
-        return found || { id };
-      });
-
+    setFormData(data) {
+      console.log("Setting form data with:", data);
       this.formData = {
-        id: rawData.id,
-        first_name: rawData.first_name || rawData.firstname || "",
-        last_name: rawData.last_name || rawData.lastname || "",
-        job_title: rawData.job_title || rawData.jobTitle || "",
+        id: data.id,
+        first_name: data.first_name || data.firstname || "",
+        last_name: data.last_name || data.lastname || "",
+        job_title: data.job_title || data.jobTitle || "",
         id_owner: "", // set below
-        email: rawData.email || "",
-        telephone_1:
-          rawData.telephone_1 || rawData.phone || rawData.telephone1 || "",
-        telephone_2: rawData.telephone_2 || rawData.telephone2 || "",
-        status: "", // set below
-        address: rawData.address || rawData.address_1 || "",
-        country: rawData.country || "",
-        province: rawData.province || rawData.state || "",
-        city: rawData.city || "",
-        pos_code: rawData.pos_code || rawData.zip || rawData.posCode || "",
-        source: rawData.source || "",
-        selectedCompanies: selectedCompanies,
-        selectedDeals: selectedDeals,
+        email: data.email || "",
+        telephone_1: data.telephone_1 || data.phone || data.telephone1 || "",
+        telephone_2: data.telephone_2 || data.telephone2 || "",
+        status: data.status || "", // set below
+        address: data.address || data.address_1 || "",
+        country: data.country || "",
+        province: data.province || data.state || "",
+        city: data.city || "",
+        kecamatan: data.kecamatan || "",
+        kelurahan: data.kelurahan || "",
+        pos_code: data.pos_code || data.zip || data.posCode || "",
+        source: data.source || "",
+        company_id: data.company_id || "",
       };
-
-      // Robust Owner Resolution
-      const rawOwner = rawData.id_owner || rawData.owner_id || rawData.owner;
-      if (rawOwner) {
-        const matchingOwner = this.ownerOptions.find(
-          (o) =>
-            String(o.value) === String(rawOwner) ||
-            o.label.toLowerCase() === String(rawOwner).toLowerCase(),
-        );
-        this.formData.id_owner = matchingOwner ? matchingOwner.value : rawOwner;
-      }
-
-      // Robust Status Resolution
-      if (rawData.status) {
-        // If it looks like a number, keep as ID
-        if (!isNaN(rawData.status) && rawData.status !== "") {
-          this.formData.status = Number(rawData.status);
-        } else {
-          // If it's a name, we might need a statusList search
-          const matchingStatus = (this.statusList || []).find(
-            (s) =>
-              s.name.toLowerCase() === String(rawData.status).toLowerCase(),
-          );
-          if (matchingStatus) this.formData.status = matchingStatus.id;
-        }
-      }
-
-      // ─── MAP HISTORY (Notes & Docs) ──────────────────────────────────
-      let historyItems = [];
-
-      // Helper to extract body from various fields
-      const getBody = (item) => {
-        return (
-          item.notes ||
-          item.body ||
-          item.descdocs ||
-          item.description ||
-          item.content ||
-          ""
-        );
-      };
-
-      // Process Notes
-      let rawNotes = rawData.notes || rawData.note;
-      if (typeof rawNotes === "string" && rawNotes.startsWith("[")) {
-        try {
-          rawNotes = JSON.parse(rawNotes);
-        } catch (e) {}
-      }
-
-      if (Array.isArray(rawNotes)) {
-        rawNotes.forEach((n) => {
-          let location = { address: null, latitude: null, longitude: null };
-          try {
-            if (n.location) {
-              location =
-                typeof n.location === "string"
-                  ? JSON.parse(n.location)
-                  : n.location;
-            }
-          } catch (e) {}
-
-          let photos = [];
-          try {
-            if (n.pathphoto) {
-              const parsed =
-                typeof n.pathphoto === "string"
-                  ? JSON.parse(n.pathphoto)
-                  : n.pathphoto;
-              if (Array.isArray(parsed)) {
-                photos = parsed.map((p) => p.path || p);
-              }
-            }
-          } catch (e) {}
-
-          historyItems.push({
-            type: "note",
-            id: n.id,
-            timestamp: n.created_at || n.update_at,
-            body: getBody(n),
-            gps_address: location.address,
-            latitude: location.latitude,
-            longitude: location.longitude,
-            photos: photos,
-          });
-        });
-      } else if (rawNotes && typeof rawNotes === "string") {
-        // Handle single note as string if applicable
-        historyItems.push({
-          type: "note",
-          body: rawNotes,
-          timestamp: rawData.created_at || rawData.updated_at,
-        });
-      }
-
-      // Process Docs
-      let rawDocs = rawData.docs || rawData.docs_list || rawData.files;
-      if (typeof rawDocs === "string" && rawDocs.startsWith("[")) {
-        try {
-          rawDocs = JSON.parse(rawDocs);
-        } catch (e) {}
-      }
-
-      if (Array.isArray(rawDocs)) {
-        rawDocs.forEach((d) => {
-          if (d.pathfile || d.descdocs || d.body || d.description) {
-            historyItems.push({
-              type: "doc",
-              id: d.id,
-              timestamp: d.created_at || d.update_at,
-              body: getBody(d),
-              fileSource: d.file_source || "local",
-              files: d.pathfile
-                ? [{ name: d.pathfile.split("/").pop(), path: d.pathfile }]
-                : [],
-            });
-          }
-        });
-      }
-
-      // Sort by timestamp descending
-      this.historyitems = historyItems.sort((a, b) => {
-        const dateA = new Date(a.timestamp || 0);
-        const dateB = new Date(b.timestamp || 0);
-        return dateB - dateA;
-      });
-
-      // Sync latest for backward compatibility / master view
-      const latestNote = this.historyitems.find((h) => h.type === "note");
-      if (latestNote) {
-        this.noteData = {
-          body: latestNote.body,
-          gps_address: latestNote.gps_address,
-          latitude: latestNote.latitude,
-          longitude: latestNote.longitude,
-          photos: latestNote.photos,
-          audioBlob: null,
-        };
-      }
-
-      const latestDoc = this.historyitems.find((h) => h.type === "doc");
-      if (latestDoc) {
-        this.docs = {
-          description: latestDoc.body,
-          fileSource: latestDoc.fileSource,
-          files: latestDoc.files,
-        };
-      }
     },
+
+    // populateForm(data) {
+    //   if (!data) return;
+    //   this.activeTab = "master";
+
+    //   // Extract raw data from possible nested contacts array (backward compatibility)
+    //   const rawData =
+    //     data && data.contacts && data.contacts.length > 0
+    //       ? data.contacts[0]
+    //       : data;
+
+    //   // Association Candidates Logic (similar to DetailDataContact)
+    //   const getCandidates = (value) => {
+    //     if (!value) return [];
+    //     if (Array.isArray(value))
+    //       return value
+    //         .map((v) =>
+    //           typeof v === "object" && v !== null
+    //             ? (v.id ??
+    //               v.deal_id ??
+    //               v.company_id ??
+    //               v.id_deal ??
+    //               v.id_company ??
+    //               v.value)
+    //             : v,
+    //         )
+    //         .filter(Boolean);
+    //     if (typeof value === "string")
+    //       return value
+    //         .split(",")
+    //         .map((s) => s.trim())
+    //         .filter(Boolean);
+    //     return [value];
+    //   };
+
+    //   const companyIds = getCandidates(
+    //     rawData.companyassoc ||
+    //       rawData.companiesAssociation ||
+    //       rawData.company_id ||
+    //       rawData.id_company,
+    //   );
+    //   const dealIds = getCandidates(
+    //     rawData.dealsassoc ||
+    //       rawData.dealsAssociation ||
+    //       rawData.deal_id ||
+    //       rawData.id_deal,
+    //   );
+
+    //   const selectedCompanies = companyIds.map((id) => {
+    //     const found = this.allCompanies.find(
+    //       (c) => String(c.id) === String(id),
+    //     );
+    //     return found || { id };
+    //   });
+    //   const selectedDeals = dealIds.map((id) => {
+    //     const found = this.allDeals.find((d) => String(d.id) === String(id));
+    //     return found || { id };
+    //   });
+
+    //   this.formData = {
+    //     id: rawData.id,
+    //     first_name: rawData.first_name || rawData.firstname || "",
+    //     last_name: rawData.last_name || rawData.lastname || "",
+    //     job_title: rawData.job_title || rawData.jobTitle || "",
+    //     id_owner: "", // set below
+    //     email: rawData.email || "",
+    //     telephone_1:
+    //       rawData.telephone_1 || rawData.phone || rawData.telephone1 || "",
+    //     telephone_2: rawData.telephone_2 || rawData.telephone2 || "",
+    //     status: "", // set below
+    //     address: rawData.address || rawData.address_1 || "",
+    //     country: rawData.country || "",
+    //     province: rawData.province || rawData.state || "",
+    //     city: rawData.city || "",
+    //     pos_code: rawData.pos_code || rawData.zip || rawData.posCode || "",
+    //     source: rawData.source || "",
+    //     company_id:
+    //       selectedCompanies.length > 0 ? selectedCompanies[0].id : null,
+    //     selectedCompanies: selectedCompanies,
+    //     selectedDeals: selectedDeals,
+    //   };
+
+    //   // Robust Owner Resolution
+    //   const rawOwner = rawData.id_owner || rawData.owner_id || rawData.owner;
+    //   if (rawOwner) {
+    //     const matchingOwner = this.ownerOptions.find(
+    //       (o) =>
+    //         String(o.value) === String(rawOwner) ||
+    //         o.label.toLowerCase() === String(rawOwner).toLowerCase(),
+    //     );
+    //     this.formData.id_owner = matchingOwner ? matchingOwner.value : rawOwner;
+    //   }
+
+    //   // Robust Status Resolution
+    //   if (rawData.status) {
+    //     // If it looks like a number, keep as ID
+    //     if (!isNaN(rawData.status) && rawData.status !== "") {
+    //       this.formData.status = Number(rawData.status);
+    //     } else {
+    //       // If it's a name, we might need a statusList search
+    //       const matchingStatus = (this.statusList || []).find(
+    //         (s) =>
+    //           s.name.toLowerCase() === String(rawData.status).toLowerCase(),
+    //       );
+    //       if (matchingStatus) this.formData.status = matchingStatus.id;
+    //     }
+    //   }
+
+    //   // ─── MAP HISTORY (Notes & Docs) ──────────────────────────────────
+    //   let historyItems = [];
+
+    //   // Helper to extract body from various fields
+    //   const getBody = (item) => {
+    //     return (
+    //       item.notes ||
+    //       item.body ||
+    //       item.descdocs ||
+    //       item.description ||
+    //       item.content ||
+    //       ""
+    //     );
+    //   };
+
+    //   // Process Notes
+    //   let rawNotes = rawData.notes || rawData.note;
+    //   if (typeof rawNotes === "string" && rawNotes.startsWith("[")) {
+    //     try {
+    //       rawNotes = JSON.parse(rawNotes);
+    //     } catch (e) {}
+    //   }
+
+    //   if (Array.isArray(rawNotes)) {
+    //     rawNotes.forEach((n) => {
+    //       let location = { address: null, latitude: null, longitude: null };
+    //       try {
+    //         if (n.location) {
+    //           location =
+    //             typeof n.location === "string"
+    //               ? JSON.parse(n.location)
+    //               : n.location;
+    //         }
+    //       } catch (e) {}
+
+    //       let photos = [];
+    //       try {
+    //         if (n.pathphoto) {
+    //           const parsed =
+    //             typeof n.pathphoto === "string"
+    //               ? JSON.parse(n.pathphoto)
+    //               : n.pathphoto;
+    //           if (Array.isArray(parsed)) {
+    //             photos = parsed.map((p) => p.path || p);
+    //           }
+    //         }
+    //       } catch (e) {}
+
+    //       historyItems.push({
+    //         type: "note",
+    //         id: n.id,
+    //         timestamp: n.created_at || n.update_at,
+    //         body: getBody(n),
+    //         gps_address: location.address,
+    //         latitude: location.latitude,
+    //         longitude: location.longitude,
+    //         photos: photos,
+    //       });
+    //     });
+    //   } else if (rawNotes && typeof rawNotes === "string") {
+    //     // Handle single note as string if applicable
+    //     historyItems.push({
+    //       type: "note",
+    //       body: rawNotes,
+    //       timestamp: rawData.created_at || rawData.updated_at,
+    //     });
+    //   }
+
+    //   // Process Docs
+    //   let rawDocs = rawData.docs || rawData.docs_list || rawData.files;
+    //   if (typeof rawDocs === "string" && rawDocs.startsWith("[")) {
+    //     try {
+    //       rawDocs = JSON.parse(rawDocs);
+    //     } catch (e) {}
+    //   }
+
+    //   if (Array.isArray(rawDocs)) {
+    //     rawDocs.forEach((d) => {
+    //       if (d.pathfile || d.descdocs || d.body || d.description) {
+    //         historyItems.push({
+    //           type: "doc",
+    //           id: d.id,
+    //           timestamp: d.created_at || d.update_at,
+    //           body: getBody(d),
+    //           fileSource: d.file_source || "local",
+    //           files: d.pathfile
+    //             ? [{ name: d.pathfile.split("/").pop(), path: d.pathfile }]
+    //             : [],
+    //         });
+    //       }
+    //     });
+    //   }
+
+    //   // Sort by timestamp descending
+    //   this.historyitems = historyItems.sort((a, b) => {
+    //     const dateA = new Date(a.timestamp || 0);
+    //     const dateB = new Date(b.timestamp || 0);
+    //     return dateB - dateA;
+    //   });
+
+    //   // Sync latest for backward compatibility / master view
+    //   /*const latestNote = this.historyitems.find((h) => h.type === "note");
+    //   if (latestNote) {
+    //     this.noteData = {
+    //       body: latestNote.body,
+    //       gps_address: latestNote.gps_address,
+    //       latitude: latestNote.latitude,
+    //       longitude: latestNote.longitude,
+    //       photos: latestNote.photos,
+    //       audioBlob: null,
+    //     };
+    //   }
+
+    //   const latestDoc = this.historyitems.find((h) => h.type === "doc");
+    //   if (latestDoc) {
+    //     this.docs = {
+    //       description: latestDoc.body,
+    //       fileSource: latestDoc.fileSource,
+    //       files: latestDoc.files,
+    //     };
+    //   }*/
+    // },
     handleClose() {
+      this.handleReset();
       this.$emit("close");
     },
     validateForm() {
@@ -561,56 +605,60 @@ export default {
       return true;
     },
     handleSaveAll() {
-      if (!this.validateForm()) {
-        return;
-      }
-
       this.isSubmitting = true;
-      try {
-        // Gabungkan data master (formData) dan detail (noteContent, task, docs)
-        const now = new Date().toISOString();
-        const dataToSubmit = {
-          ...this.formData,
-          company_id: this.companys_id,
-          note: this.noteData?.body || "",
-          notes: this.noteData?.body || "",
-          noteData: this.noteData,
-          task: this.task,
-          docs: this.docs,
-          id_owner: this.formData.id_owner || this.currentUserId || "",
-          companyassoc: (this.formData.selectedCompanies || [])
-            .map((c) => c.id)
-            .join(","),
-          dealsassoc: (this.formData.selectedDeals || [])
-            .map((d) => d.id)
-            .join(","),
-          created_at: now,
-          updated_at: now,
-        };
-        this.saveContact(dataToSubmit)
-          .then((response) => {
-            const msg = dataToSubmit.id
-              ? "Contact berhasil diperbarui!"
-              : "Contact berhasil ditambahkan!";
-            toast.success(msg);
-            this.handleReset();
-            this.activeTab = "master";
+
+      // Gabungkan data master (formData) dan detail (noteContent, task, docs)
+      const now = new Date().toISOString();
+      const dataToSubmit = {
+        ...this.formData,
+        company_id: this.formData.company_id || this.companys_id,
+        choice: this.hascontactId ? "u" : "i",
+        id: this.contactid,
+        //note: this.noteData?.body || "",
+        //notes: this.noteData?.body || "",
+        //noteData: this.noteData,
+        //task: this.task,
+        //docs: this.docs,
+        id_owner: this.formData.id_owner || this.currentUserId || "",
+        created_at: now,
+        updated_at: now,
+      };
+      console.log(dataToSubmit);
+
+      this.saveContact(dataToSubmit)
+        .then((response) => {
+          const msg = dataToSubmit.id
+            ? "Contact berhasil diperbarui!"
+            : "Contact berhasil ditambahkan!";
+          toast.success(msg);
+
+          this.isSaved = true;
+
+          if (!this.hideDetailTab) {
+            this.activeTab = "detail";
+          }
+
+          if (this.frompage || this.hascontactId) {
             this.$emit("submit", response);
-            this.handleClose();
-          })
-          .catch((error) => {
-            toast.error(error?.message || "Gagal menambah contact.");
-          })
-          .finally(() => {
-            this.isSubmitting = false;
-          });
-      } catch (error) {
-        toast.error(error?.message || "Gagal menambah contact.");
-        this.isSubmitting = false;
-      }
+            this.handleReset();
+          }
+
+          this.savedContact = response.param;
+        })
+        .catch((error) => {
+          toast.error(
+            error.response?.data?.message ||
+              error.message ||
+              "Gagal menyimpan contact.");
+        })
+        .finally(() => {
+          this.isSubmitting = false;
+        });
     },
     handleReset() {
+      this.activeTab = "master";
       this.formData = {
+        id: "",
         first_name: "",
         last_name: "",
         job_title: "",
@@ -623,19 +671,24 @@ export default {
         country: "",
         province: "",
         city: "",
+        kecamatan: "",
+        kelurahan: "",
         pos_code: "",
         source: "",
-        companiesAssociation: "",
         dealsAssociation: "",
         created_at: "",
         updated_at: "",
         companiesSearch: "",
         dealsSearch: "",
+        company_id: null,
         selectedCompanies: [],
         selectedDeals: [],
       };
 
-      this.task = {
+      this.isSaved = false;
+      this.savedContact = null;
+
+      /*this.task = {
         name: "",
         content: "",
         status: "",
@@ -657,7 +710,7 @@ export default {
         longitude: null,
         photos: [],
         audioBlob: null,
-      };
+      };*/
 
       this.historyitems = [];
     },
@@ -857,7 +910,7 @@ export default {
         </button>
 
         <button
-          v-if="!hideDetailTab"
+          v-if="hascontactId"
           type="button"
           @click="activeTab = 'detail'"
           :class="[
@@ -867,7 +920,7 @@ export default {
               : 'border-transparent text-sub-text hover:text-dark-base',
           ]"
         >
-          Detail
+          Notes
         </button>
       </div>
 
@@ -986,6 +1039,23 @@ export default {
 
             <!-- Address & City | Province & Country -->
             <LocationSelector v-model="formData" />
+
+            <!-- Company -->
+            <div v-if="!companys_id">
+              <label class="block text-sm font-medium text-dark-base mb-2">
+                Company
+              </label>
+              <div class="relative">
+                <v-select
+                  v-model="formData.company_id"
+                  :options="allCompanies"
+                  :label="label"
+                  :reduce="(opt) => opt.value"
+                  placeholder="Select Company"
+                  class="bg-white rounded-lg"
+                />
+              </div>
+            </div>
 
             <!-- Pos Code & Source -->
             <div class="grid grid-cols-2 gap-4">
@@ -1110,6 +1180,8 @@ export default {
         <div v-if="activeTab === 'detail'" class="p-6 h-full flex flex-col">
           <HistoryDetail
             :items="historyitems"
+            :noteableType="'CT'"
+            :noteableId="contactid"
             @add-note="openNoteDrawer()"
             @add-doc="openDocDrawer()"
             @edit="handleHistoryEdit"

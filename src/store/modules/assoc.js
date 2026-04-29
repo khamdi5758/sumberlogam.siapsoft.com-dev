@@ -42,6 +42,10 @@ const mutations = {
   setdeals(state, payload) {
     state.deals = payload;
   },
+
+  resetContacts(state) {
+    state.contacts = [];
+  },
 };
 
 const actions = {

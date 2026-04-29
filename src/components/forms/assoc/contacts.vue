@@ -4,7 +4,7 @@
       Contact Association
     </label>
     <div
-      @click="isContactDropdownOpen = !isContactDropdownOpen"
+      @click="handledropdown"
       class="w-full px-3 py-2 border border-outline rounded-lg flex flex-wrap gap-2 items-center cursor-pointer min-h-10.5 bg-white transition focus-within:ring-1 focus-within:ring-sub-text"
     >
       <div v-if="contactassoc.length === 0" class="text-gray-400 text-sm">
@@ -194,8 +194,16 @@ export default {
     }),
 
     ...mapMutations({
-      resetContacts: "assoc/RESET_CONTACTS",
+      resetContacts: "assoc/resetContacts",
     }),
+    handledropdown() {
+      if (!this.isContactDropdownOpen) {
+        // hanya saat mau buka
+        this.resetContacts();
+      }
+
+      this.isContactDropdownOpen = !this.isContactDropdownOpen;
+    },
 
     async fetchContacts() {
       if (!this.hasMore || this.isLoading) return;

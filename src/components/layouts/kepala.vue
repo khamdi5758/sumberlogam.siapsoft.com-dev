@@ -173,7 +173,7 @@ export default {
 
     async logout() {
       const result = await alertService.confirmLogout();
-      if (result.isConfirmed) {
+      if (result) {
         this.authlogout()
           .then((data) => {
             alertService.success(data.msg || "");
