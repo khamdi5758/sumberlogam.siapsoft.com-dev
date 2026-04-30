@@ -55,18 +55,16 @@ export default {
       default: null,
     },
     contact_id: {
-      type: Number,
+      type: [Number, String],
+      default: null,
+    },
+    fromPage: {
+      type: String,
       default: null,
     },
     hideDetailTab: {
       type: Boolean,
       default: false,
-    },
-
-    computed: {
-      isEditMode() {
-        return !!this.initialData;
-      },
     },
   },
   emits: ["close", "submit", "back"],
@@ -229,6 +227,24 @@ export default {
     },
 
     hascompanycontact() {},
+
+    tempCompanyAssoc: {
+      get() {
+        return this.formData.companyassoc || [];
+      },
+      set(val) {
+        this.formData.companyassoc = val;
+      },
+    },
+
+    tempContactAssoc: {
+      get() {
+        return this.formData.contactassoc || [];
+      },
+      set(val) {
+        this.formData.contactassoc = val;
+      },
+    },
   },
   watch: {
     // isOpen: {
@@ -1053,7 +1069,13 @@ export default {
           response?.msg || "Deal berhasil disimpan",
         );
         this.$emit("saved", response);
-        // Keep the drawer open and switch to Projects tab; show Notes/Projects
+        
+        if (this.fromPage === "company") {
+          this.handleClose();
+          return;
+        }
+
+        // Keep the drawer open and switch to Projects tab
         this.forceShowDetails = true;
         this.activeTab = "projects";
         // Try to fetch full detail for the created deal and populate form
@@ -1300,6 +1322,12 @@ export default {
           response?.msg || "Deal saved successfully",
         );
         this.$emit("saved", response);
+
+        if (this.fromPage === "company") {
+          this.handleClose();
+          return;
+        }
+
         this.forceShowDetails = true;
         this.activeTab = "projects";
         try {
@@ -1382,6 +1410,7 @@ export default {
       this.isCompanyDropdownOpen = false;
       this.isDocDropdownOpen = false;
       this.activeTab = "master";
+      this.forceShowDetails = false;
     },
   },
 };
@@ -1512,7 +1541,7 @@ export default {
           </div>
 
           <!-- Company & Contact -->
-          <div class="grid grid-cols-2 gap-4">
+          <div v-if="fromPage !== 'company'" class="grid grid-cols-2 gap-4">
             <CompaniesAssociationForm
               ref="companiesAssociationForm"
               v-model="tempCompanyAssoc"

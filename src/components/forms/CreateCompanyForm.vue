@@ -1250,7 +1250,7 @@ export default {
     :isOpen="showAddContactForm"
     :companys_id="this.companyid"
     :hideDetailTab="true"
-    :frompage = "'company'"
+    fromPage="company"
     @close="showAddContactForm = false"
     @submit="handleContactSubmit"
   />
@@ -1259,8 +1259,9 @@ export default {
     :isOpen="showCreateDealForm"
     :companys_id="this.companyid"
     :hideDetailTab="true"
+    fromPage="company"
     @close="showCreateDealForm = false"
-    @submit="handleCreateDealSubmit"
+    @saved="handleCreateDealSubmit"
   />
 
   <!-- <ContactDetailForm
