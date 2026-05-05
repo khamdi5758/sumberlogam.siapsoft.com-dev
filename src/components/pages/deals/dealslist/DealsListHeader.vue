@@ -19,7 +19,7 @@ const isPipelineOpen = ref(false);
 </script>
 
 <template>
-  <div class="pt-4 px-4">
+  <div class="pt-3 pb-2 px-4">
     <!-- Mobile layout -->
     <div class="flex flex-col gap-3 md:hidden">
       <div class="flex items-center gap-2 w-full">

@@ -1,5 +1,6 @@
 <script setup>
 import { defineProps, defineEmits } from "vue";
+import { ChevronDown } from "lucide-vue-next";
 
 const props = defineProps({
   deal: {
@@ -12,7 +13,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["viewDetail", "delete"]);
+const emit = defineEmits(["viewDetail", "delete", "stageChange"]);
 
 const stageClass = (stage) => {
   const s = String(stage || "")
@@ -73,17 +74,36 @@ const handleDelete = (e) => {
     </p>
 
     <div class="mt-2">
+      <!-- Jika closed, tampilkan dropdown untuk pilih Won/Lost -->
+      <template v-if="deal.stage.toLowerCase().includes('won') || deal.stage.toLowerCase().includes('lost')">
+        <div class="relative inline-flex items-center">
+          <select
+            :value="deal.stage.toLowerCase().includes('won') ? 'close_won' : 'close_lost'"
+            @change="(e) => emit('stageChange', deal, e.target.value)"
+            @click.stop
+            class="pl-2 pr-5 py-0.5 rounded-full text-[11px] font-bold outline-none cursor-pointer appearance-none border-none transition-all"
+            :class="deal.stage.toLowerCase().includes('won') 
+              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
+              : 'bg-red-100 text-red-700 hover:bg-red-200'"
+          >
+            <option value="close_won">Won</option>
+            <option value="close_lost">Lost</option>
+          </select>
+          <ChevronDown 
+            class="absolute right-1.5 pointer-events-none" 
+            :size="10" 
+            :class="deal.stage.toLowerCase().includes('won') ? 'text-emerald-700' : 'text-red-700'"
+          />
+        </div>
+      </template>
+      
+      <!-- Selain itu, tampilkan badge biasa -->
       <span
-        class="px-2 py-0.5 rounded-full text-[11px] font-medium capitalize"
+        v-else
+        class="px-2 py-0.5 rounded-full text-[11px] font-bold capitalize"
         :class="stageClass(deal.stage)"
       >
-        {{
-          deal.stage === "close_won"
-            ? "Won"
-            : deal.stage === "close_lost"
-              ? "Lost"
-              : boardTitle
-        }}
+        {{ boardTitle }}
       </span>
     </div>
 

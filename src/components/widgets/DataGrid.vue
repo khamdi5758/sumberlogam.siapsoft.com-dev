@@ -37,6 +37,8 @@
           :width="col.width"
           :alignment="col.alignment"
           :cell-template="col.cellTemplate"
+          :format="col.format"
+          :data-type="col.dataType"
           :fixed="col.fixed"
           :fixed-position="col.fixedPosition"
         />
@@ -102,6 +104,7 @@
           :showScrollbar="showScrollbar"
           :columnRenderingMode="columnRenderingMode"
           :rowRenderingMode="rowRenderingMode"
+          :useNative="false"
         />
         <DxExport :enabled="false" :allowExportSelectedData="false" />
         <DxPaging v-if="useBuiltInPager" :pageSize="pageSize" />
@@ -139,6 +142,7 @@
           :showDragIcons="false"
           :onReorder="onRowReorder"
         />
+        <DxColumnFixing :enabled="false" />
         <DxHeaderFilter :visible="filterSettings.showHeaderFilter" />
 
         <DxGrouping
@@ -540,7 +544,7 @@ export default {
     },
     rowRenderingMode: {
       type: String,
-      default: "virtual",
+      default: "standard",
     },
     showToolbar: {
       type: Boolean,

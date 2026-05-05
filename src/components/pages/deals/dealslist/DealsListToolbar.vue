@@ -11,7 +11,7 @@ const emit = defineEmits(["page", "update:itemsPerPage"]);
 </script>
 
 <template>
-  <div class="px-4 py-4 md:px-6">
+  <div class="px-4 py-2 md:px-6 border-b border-outline bg-slate-50/50">
     <div class="flex items-center justify-between gap-3 md:hidden">
       <div class="flex items-center gap-2 min-w-0 shrink-0">
         <span class="text-sm text-sub-text whitespace-nowrap">Show</span>

@@ -1132,13 +1132,15 @@ export default {
           if (found) {
             const name = String(found.pipeline_name || found.label || "").toLowerCase();
             normalizedStage = (name.includes("won") || name.includes("lost") || name.includes("close"))
-              ? (name.includes("won") ? "close_won" : "close_lost")
-              : name.trim();
+              ? (name.includes("won") ? "Close Won" : "Close Lost")
+              : name.trim().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
           } else {
-            normalizedStage = normalizeStage(rawStage); // Use helper for basic strings like "prospect"
+            const staticStage = normalizeStage(rawStage);
+            normalizedStage = staticStage.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
           }
         } else {
-          normalizedStage = normalizeStage(rawStage);
+          const staticStage = normalizeStage(rawStage);
+          normalizedStage = staticStage.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
         }
 
         return {

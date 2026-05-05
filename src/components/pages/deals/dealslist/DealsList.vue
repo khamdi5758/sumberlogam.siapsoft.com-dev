@@ -26,14 +26,45 @@ export default {
   emits: ["viewDetail", "update:currentPage", "update:itemsPerPage"],
   data() {
     return {
-      // Pilih kolom mana saja yang ingin ditampilkan
-      visibleColumns: [
-        "deal_name", // Nama Deal
-        "stage", // Stage/Status
-        "amount", // Jumlah/Amount
-        "associated_contact", // Associated Contact
-        "owner", // Owner
-        "updated_at", // Last Updated
+      // Konfigurasi Kolom untuk DataGrid
+      columns: [
+        {
+          dataField: "deal_name",
+          caption: "Deal Name",
+          width: 250,
+        },
+        {
+          dataField: "stage",
+          caption: "Stage",
+          alignment: "center",
+          width: 130,
+        },
+        {
+          dataField: "amount",
+          caption: "Amount",
+          alignment: "right",
+          width: 150,
+          format: "#,##0.00",
+        },
+        {
+          dataField: "associated_contact",
+          caption: "Associated Contact",
+          width: 200,
+        },
+        {
+          dataField: "owner",
+          caption: "Owner",
+          alignment: "center",
+          width: 150,
+        },
+        {
+          dataField: "updated_at",
+          caption: "Updated At",
+          alignment: "center",
+          width: 180,
+          dataType: "datetime",
+          format: "dd/MM/yyyy HH:mm",
+        },
       ],
       selectedDeals: [],
     };
@@ -49,17 +80,9 @@ export default {
       return this.$store.getters["deals/pagination"] || {};
     },
 
-    // Filter tableDeals untuk hanya include kolom yang dipilih
+    // Kirim semua data deal (normalized), DataGrid akan memfilter berdasarkan :columns
     tableDeals() {
-      return this.deals.map((deal) => {
-        const filtered = {};
-        this.visibleColumns.forEach((col) => {
-          filtered[col] = deal[col];
-        });
-        // Selalu include ID untuk keyExpr
-        filtered.id = deal.id;
-        return filtered;
-      });
+      return this.deals;
     },
 
     // Cek apakah semua deals terseleksi
@@ -231,6 +254,7 @@ export default {
     <!-- Table Container -->
     <DataGrid
       :dataSource="tableDeals"
+      :columns="columns"
       :keyExpr="'id'"
       :showSelection="true"
       :selectedRowKeys="selectedDeals"
@@ -239,6 +263,8 @@ export default {
       @edit-click="handleRowEdit"
       @delete-click="handleRowDelete"
       :showActionColumn="true"
+      :actionColumnWidth="100"
+      height="100%"
     />
   </div>
 </template>

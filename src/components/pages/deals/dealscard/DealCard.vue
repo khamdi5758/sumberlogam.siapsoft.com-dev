@@ -125,10 +125,7 @@ const normalizeStage = (rawStage) => {
   if (stage === "2" || stage.includes("qual")) return "qualified";
   if (stage === "3" || stage.includes("prop") || stage.includes("offer") || stage.includes("payment")) return "proposal";
   if (stage === "4" || stage.includes("negot") || stage.includes("adv")) return "negotiation";
-  if (stage === "5" || stage.includes("won") || stage.includes("close_won") || stage.includes("close won")) return "close_won";
-  if (stage === "6" || stage.includes("lost") || stage.includes("close_lost") || stage.includes("close lost") || stage.includes("closed_los")) return "close_lost";
-
-  if (stage.includes("closed")) return "close_won";
+  if (stage === "5" || stage === "6" || stage.includes("won") || stage.includes("lost") || stage.includes("close")) return "closed";
 
   return "new";
 };
@@ -315,6 +312,46 @@ const handleViewDetail = (deal) => {
   emit("viewDetail", deal);
 };
 
+const handleStageChange = async (deal, newStage) => {
+  try {
+    // Sync-lock
+    isSyncingStage.value = true;
+    
+    // Cari pipeline ID dari store
+    const pipelines = store.getters["deals/getpipelines"] || [];
+    const searchStr = newStage.toLowerCase().includes("won") ? "won" : "lost";
+    const targetPipeline = pipelines.find(p => 
+      String(p.pipeline_name || p.label || "").toLowerCase().includes(searchStr)
+    );
+
+    if (!targetPipeline) {
+      alertService.error("Pipeline stage not found.");
+      return;
+    }
+
+    // Optimistic update
+    deal.stage = newStage.includes("won") ? "Close Won" : "Close Lost";
+    
+    await store.dispatch("deals/updateDealStage", {
+      dealId: deal.id,
+      newStage: targetPipeline.pipeline_name || targetPipeline.label, // This matches what updateDealStage expects
+      stageId: targetPipeline.id_pipeline || targetPipeline.value,
+      stageName: targetPipeline.pipeline_name || targetPipeline.label
+    });
+    
+    alertService.success(`Status updated to ${newStage.includes("won") ? 'Won' : 'Lost'}`);
+  } catch (error) {
+    console.error("Failed to update stage:", error);
+    alertService.error("Failed to update deal status.");
+    // Revert local if needed
+    rebuildBoards(store.getters["deals/uiDeals"]);
+  } finally {
+    isSyncingStage.value = false;
+    // Final sync with store data
+    rebuildBoards(store.getters["deals/uiDeals"]);
+  }
+};
+
 /**
  * LIFECYCLE & WATCHERS
  */
@@ -414,6 +451,7 @@ onBeforeUnmount(() => {
                   :boardTitle="board.title"
                   @viewDetail="handleViewDetail"
                   @delete="deleteDeal"
+                  @stageChange="handleStageChange"
                 />
               </template>
             </draggable>

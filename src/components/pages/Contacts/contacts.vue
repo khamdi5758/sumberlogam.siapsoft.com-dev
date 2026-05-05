@@ -55,7 +55,7 @@
         :rowRenderingMode="'standard'"
         :showActionColumn="true"
         :wordwrap="true"
-        :columnAutoWidth="false"
+        :columnAutoWidth="isDesktop"
         :columnHidingEnabled="false"
         :height="'100%'"
         :columns="contactColumns"
@@ -252,6 +252,8 @@ export default {
       isDetailFormSubmitting: false,
       detailFormEntityId: null,
       gridInitialized: false,
+      // responsive flag: true when desktop viewport
+      isDesktop: true,
     };
   },
 
@@ -266,28 +268,24 @@ export default {
     }),
 
     contactColumns() {
+      const desktop = this.isDesktop;
+
+      const makeCol = (opts) => {
+        const col = {
+          dataField: opts.dataField,
+          caption: opts.caption,
+          visible: opts.visible !== false,
+          allowHiding: opts.allowHiding === true,
+          allowResizing: true,
+        };
+        if (!desktop && opts.width) col.width = opts.width;
+        return col;
+      };
+
       return [
-        {
-          dataField: "Contact Name",
-          caption: "Contact Name",
-          visible: true,
-          width: 240,
-          allowHiding: false,
-        },
-        {
-          dataField: "Contact Info",
-          caption: "Contact Info",
-          visible: true,
-          width: 280,
-          allowHiding: false,
-        },
-        {
-          dataField: "Status",
-          caption: "Status",
-          visible: true,
-          width: 150,
-          allowHiding: false,
-        },
+        makeCol({ dataField: "Contact Name", caption: "Contact Name", width: 240, allowHiding: false }),
+        makeCol({ dataField: "Contact Info", caption: "Contact Info", width: 280, allowHiding: false }),
+        makeCol({ dataField: "Status", caption: "Status", width: 150, allowHiding: false }),
       ];
     },
 
@@ -486,11 +484,13 @@ export default {
       if (!this.gridInitialized && e.component) {
         const instance = e.component;
 
-        // Define widths
+        // Define widths (only when mobile / not desktop)
         //instance.columnOption("Contact Name", "width", 250);
         //instance.columnOption("Contact Info", "width", 240);
         //instance.columnOption("Associated with", "width", 240);
-        instance.columnOption("Status", "width", 150);
+        if (!this.isDesktop) {
+          instance.columnOption("Status", "width", 150);
+        }
         //instance.columnOption("Created/Update", "width", 180);
         //instance.columnOption("Owner", "width", 180);
 
@@ -826,6 +826,10 @@ export default {
       }
     },
 
+    updateIsDesktop() {
+      this.isDesktop = window.innerWidth >= 1024;
+    },
+
     formatDate(dateString) {
       if (!dateString) return "-";
       const date = new Date(dateString);
@@ -887,6 +891,10 @@ export default {
   mounted() {
     document.addEventListener("click", this.handleClickOutside);
 
+    // responsive setup
+    this.updateIsDesktop();
+    window.addEventListener('resize', this.updateIsDesktop);
+
     // Load statuses first so grid can render status names instead of ids
     try {
       const statusUtil = useStatuses();
@@ -911,6 +919,7 @@ export default {
 
   beforeUnmount() {
     document.removeEventListener("click", this.handleClickOutside);
+    window.removeEventListener('resize', this.updateIsDesktop);
   },
 };
 </script>
