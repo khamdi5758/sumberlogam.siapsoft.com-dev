@@ -135,7 +135,7 @@
         />
 
         <DxRowDragging
-          :allowReordering="true"
+          :allowReordering="false"
           :showDragIcons="false"
           :onReorder="onRowReorder"
         />
