@@ -192,8 +192,8 @@ const mapCreateDealPayload = (formData = {}) => {
     priority: formData.priority || null,
     source: formData.source || null,
     // Associations
-    contactassoc: formatAssoc(formData.contactassoc || formData.contacts_id),
-    companyassoc: formatAssoc(formData.companyassoc || formData.companies_id),
+    contactassoc: formatAssoc(formData.contactassoc || formData.contacts_id || formData.contact_id),
+    companyassoc: formatAssoc(formData.companyassoc || formData.companies_id || formData.company_id),
     // Notes, Tasks, & Docs - penting: backend expect lowercase singular keys
     // Support both 'notes' dan 'note' untuk backward compatibility
     note:
@@ -282,10 +282,10 @@ export default {
     setpipelines(state, pipelines) {
       state.pipelines = Array.isArray(pipelines)
         ? pipelines.map((p) => ({
-            ...p,
-            label: p.pipeline_name || p.name || p.label,
-            value: p.id_pipeline || p.id || p.value,
-          }))
+          ...p,
+          label: p.pipeline_name || p.name || p.label,
+          value: p.id_pipeline || p.id || p.value,
+        }))
         : [];
     },
     setpriority(state, priority) {
@@ -299,6 +299,9 @@ export default {
     },
     setcontact(state, contact) {
       state.contact = contact;
+    },
+    RESET_CONTACTS(state) {
+      state.contact = null;
     },
     SET_VIEW_MODE(state, mode) {
       state.viewMode = mode;
@@ -964,13 +967,14 @@ export default {
       return promise;
     },
 
-    fetchcontact(context, data) {
+    fetchcontact(context, params = {}) {
       context.commit("SET_LOADING", true);
       context.commit("SET_ERROR", null);
 
       const promise = new Promise(async (resolve, reject) => {
         try {
           const response = await api.get(`deals/contact`, {
+            params: params,
             headers: {
               Authorization: "Bearer " + cookies.get("token"),
             },
@@ -1119,13 +1123,13 @@ export default {
           deal.pipelinenm ||
           deal.id_pipeline ||
           deal.pipeline_id;
-        
+
         let normalizedStage = "new";
         const stageStr = String(rawStage || "new").toLowerCase().trim();
 
         // Dynamic check
         if (state.pipelines && state.pipelines.length > 0) {
-          const found = state.pipelines.find(p => 
+          const found = state.pipelines.find(p =>
             String(p.id_pipeline || p.value || "").toLowerCase() === stageStr ||
             String(p.pipeline_name || p.label || "").toLowerCase().trim() === stageStr
           );

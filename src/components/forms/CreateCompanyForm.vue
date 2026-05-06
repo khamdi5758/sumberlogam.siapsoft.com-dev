@@ -264,24 +264,34 @@ export default {
       // console.log(action,data,'=>',this.companyid);
     },
 
-    ondealsassocSave(action, data) {
+    async ondealsassocSave(action, data) {
+      if (action === "d") {
+        const confirm = await alertService.confirm(
+          "Apakah Anda yakin ingin menghapus hubungan deal ini?",
+          "Hapus Hubungan Deal",
+          {
+            confirmButtonText: "Ya, Hapus",
+            cancelButtonText: "Kembali",
+          },
+        );
+        if (!confirm) return;
+      }
+
       let formdata = new FormData();
       formdata.append("action", action);
       formdata.append("company_id", this.companyid);
       formdata.append("deal_ids", data.dealassoc);
-      console.log(data);
+
       this.saveDealAssociationCompany(formdata)
         .then((res) => {
-          alertService.success(
-            res.message || "Hubungan contact berhasil disimpan",
-          );
+          toast.success(res.message || "Hubungan deal berhasil diproses");
           this.fetchcompanybyid(this.companyid);
         })
         .catch((err) => {
-          alertService.error(
+          toast.error(
             err.response?.data?.message ||
               err.message ||
-              "Gagal menyimpan hubungan contact",
+              "Gagal memproses hubungan deal",
           );
         });
     },

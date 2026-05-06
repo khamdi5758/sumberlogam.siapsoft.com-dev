@@ -69,6 +69,18 @@ const mapProjectPayload = (formData = {}) => {
         return String(value).trim();
     };
 
+    const taskPayload = formData.task && Object.keys(formData.task).length > 0 ? formData.task : null;
+    const noteBody = normalizeText(
+        formData.note || formData.notes || formData.noteData?.body,
+    );
+    const notePayload = formData.noteData && Object.keys(formData.noteData).length > 0
+        ? formData.noteData
+        : null;
+    const locationPayload = formData.locationData || null;
+    const historyPayload = Array.isArray(formData.historyitems)
+        ? formData.historyitems
+        : [];
+
     return {
         project_name: formData.project_name || formData.projectName || "",
         deal_id: formData.deal_id || formData.deal || null,
@@ -76,8 +88,18 @@ const mapProjectPayload = (formData = {}) => {
         description: formData.description || "",
         address: formData.address || "",
         kd_kelurahan: formData.kd_kelurahan || formData.kelurahan || "",
+        location: formData.location || "",
+        locationData: locationPayload,
         status_id: formData.status_id || formData.status || formData.project_status || null,
         created_by: formData.created_by || null,
+        task: taskPayload,
+        task_json: taskPayload ? JSON.stringify(taskPayload) : null,
+        note: noteBody || null,
+        notes: noteBody || null,
+        noteData: notePayload,
+        note_json: notePayload ? JSON.stringify(notePayload) : null,
+        historyitems: historyPayload,
+        history_json: historyPayload.length > 0 ? JSON.stringify(historyPayload) : null,
     };
 };
 

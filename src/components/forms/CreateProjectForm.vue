@@ -45,30 +45,33 @@
         >
           Master
         </button>
-        <button
-          type="button"
-          @click="activeTab = 'tasks'"
-          :class="[
-            'px-4 py-2 text-sm font-medium border-b-2 transition',
-            activeTab === 'tasks'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
-          ]"
-        >
-          Tasks
-        </button>
-        <button
-          type="button"
-          @click="activeTab = 'notes'"
-          :class="[
-            'px-4 py-2 text-sm font-medium border-b-2 transition',
-            activeTab === 'notes'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
-          ]"
-        >
-          Notes
-        </button>
+        <!-- Tab Tasks & Notes hanya muncul jika edit mode atau sudah sukses simpan pertama kali -->
+        <template v-if="isEditMode || showTabsAfterSave">
+          <button
+            type="button"
+            @click="activeTab = 'tasks'"
+            :class="[
+              'px-4 py-2 text-sm font-medium border-b-2 transition',
+              activeTab === 'tasks'
+                ? 'border-dark-base text-dark-base'
+                : 'border-transparent text-sub-text hover:text-dark-base',
+            ]"
+          >
+            Tasks
+          </button>
+          <button
+            type="button"
+            @click="activeTab = 'notes'"
+            :class="[
+              'px-4 py-2 text-sm font-medium border-b-2 transition',
+              activeTab === 'notes'
+                ? 'border-dark-base text-dark-base'
+                : 'border-transparent text-sub-text hover:text-dark-base',
+            ]"
+          >
+            Notes
+          </button>
+        </template>
       </div>
 
       <!-- Area konten yang bisa di-scroll -->
@@ -101,7 +104,7 @@
                 <v-select
                   v-model="formData.deal_id"
                   :options="dealOptions"
-                  :reduce="option => option.value"
+                  :reduce="(option) => option.value"
                   label="label"
                   placeholder="Select Deal"
                   class="custom-v-select"
@@ -117,7 +120,7 @@
                 <v-select
                   v-model="formData.leader_id"
                   :options="leaderOptions"
-                  :reduce="option => option.value"
+                  :reduce="(option) => option.value"
                   label="label"
                   placeholder="Select Leader"
                   class="custom-v-select"
@@ -163,7 +166,7 @@
                 <v-select
                   v-model="formData.status_id"
                   :options="projectStatusOptions"
-                  :reduce="option => option.value"
+                  :reduce="(option) => option.value"
                   label="label"
                   placeholder="Select Project Status"
                   class="custom-v-select"
@@ -221,7 +224,7 @@
           </div>
           <div v-else class="space-y-3 overflow-y-auto">
             <div
-              v-for="(item, index) in historyitems.filter(
+              v-for="(item, index) in allHistory.filter(
                 (i) => i.type === 'task',
               )"
               :key="index"
@@ -246,7 +249,7 @@
                     @click="
                       handleHistoryEdit({
                         item,
-                        index: historyitems.indexOf(item),
+                        index: allHistory.indexOf(item),
                       })
                     "
                     class="p-1 hover:bg-light-base rounded text-sub-text hover:text-dark-base"
@@ -266,7 +269,7 @@
                   </button>
                   <button
                     type="button"
-                    @click="handleHistoryDelete(historyitems.indexOf(item))"
+                    @click="handleHistoryDelete(allHistory.indexOf(item))"
                     class="p-1 hover:bg-light-base rounded text-sub-text hover:text-red"
                   >
                     <svg
@@ -314,7 +317,7 @@
           class="p-6 pb-24 h-full flex flex-col"
         >
           <HistoryDetail
-            :items="historyitems.filter((i) => i.type === 'note')"
+            :items="allHistory.filter((i) => i.type === 'note')"
             @add-note="openNoteDrawer()"
             @edit="handleHistoryEdit"
             @delete="handleHistoryDelete"
@@ -391,7 +394,7 @@
         </button>
         <button
           @click="saveNoteFromDrawer"
-          class="px-6 py-2 bg-dark-base text-white rounded-lg text-sm font-medium hover:bg-dark-hover"
+          class="px-6 py-2 bg-dark-base text-white rounded-lg text-sm font-medium cursor-pointer hover:bg-dark-hover"
         >
           Simpan
         </button>
@@ -461,6 +464,7 @@ import LocationSelector from "./component/LocationSelector.vue";
 import NotesSection from "@/components/widgets/NotesEditor.vue";
 import TaskSection from "@/components/widgets/TaskEditor.vue";
 import HistoryDetail from "@/components/widgets/historydetail.vue";
+import { mapActions } from "vuex";
 
 const { cookies } = useCookies();
 
@@ -484,11 +488,16 @@ export default {
       type: Object,
       default: null,
     },
+    fromPage: {
+      type: String,
+      default: "projects", // 'projects' or 'deals'
+    },
   },
   data() {
     return {
       isSubmitting: false,
       activeTab: "master",
+      showTabsAfterSave: false,
       statuses: [],
       isNoteDrawerOpen: false,
       isTaskDrawerOpen: false,
@@ -600,6 +609,29 @@ export default {
         label: s.label || "Unknown",
       }));
     },
+    // Gabungkan history dari store dan lokal
+    historyFromStore() {
+      return this.$store.getters["history/history"] || [];
+    },
+    allHistory() {
+      // Prioritaskan history dari store jika ada (karena lebih akurat/terbaru dari BE)
+      if (this.historyFromStore && this.historyFromStore.length > 0) {
+        return this.historyFromStore.map((h) => {
+          // Deteksi tipe: Jika ada 'notes' atau 'parent_type', kemungkinan besar ini note
+          const isNote = h.notes !== undefined || h.idnote !== undefined || h.type === 'note';
+          
+          return {
+            ...h,
+            type: h.type || (isNote ? "note" : "task"),
+            // Fallback body agar seragam di UI
+            body: h.notes || h.body || h.task_name || h.name || "",
+            content: h.desktask || h.content || "",
+            timestamp: h.created_at || h.update_at || h.timestamp,
+          };
+        });
+      }
+      return this.historyitems;
+    },
   },
   watch: {
     locationData: {
@@ -620,6 +652,7 @@ export default {
             this.setFormData(this.initialData);
           } else {
             this.resetForm();
+            this.showTabsAfterSave = false;
           }
           this.applyDefaultCreator();
           this.activeTab = "master";
@@ -656,6 +689,11 @@ export default {
     window.removeEventListener("keydown", this.handleEscKey);
   },
   methods: {
+    ...mapActions({
+      saveNote: "history/saveNote",
+      acthistory: "history/acthistory",
+    }),
+
     handleEscKey(e) {
       if (e.key === "Escape") {
         if (this.isNoteDrawerOpen) {
@@ -688,6 +726,49 @@ export default {
         this.statuses = [];
       }
     },
+
+    buildFormDatanote(data) {
+      const fd = new FormData();
+      const existing = [];
+
+      fd.append("noteable_type", data.noteable_type);
+      fd.append("noteable_id", data.noteable_id);
+      fd.append("body", data.body || "");
+      fd.append("gps_address", data.gps_address || "");
+      fd.append("latitude", data.latitude || "");
+      fd.append("longitude", data.longitude || "");
+      fd.append("visibility", data.visibility ?? 0);
+      fd.append("choice", data.choice || "I");
+      fd.append("idnote", data.idnote ?? null);
+
+      (data.photos || []).forEach((p) => {
+        if (p.file) {
+          fd.append("photos[]", p.file);
+        } else if (typeof p.src === "string") {
+          existing.push({
+            type: "photo",
+            src: p.src,
+          });
+        }
+      });
+
+      (data.documents || []).forEach((d) => {
+        if (d.file instanceof File) {
+          fd.append("documents[]", d.file);
+        } else if (d.url) {
+          existing.push({
+            type: "document",
+            url: d.url,
+          });
+        }
+      });
+
+      if (existing.length > 0) {
+        fd.append("existing_attachments", JSON.stringify(existing));
+      }
+
+      return fd;
+    },
     applyDefaultCreator() {
       if (!this.formData.created_by && this.currentUserId) {
         this.formData.created_by = this.currentUserId;
@@ -699,6 +780,15 @@ export default {
     setFormData(data) {
       if (!data) return;
 
+      // Panggil history dari BE jika ada ID
+      const pid = data.id ?? data.project_id ?? data.id_project;
+      if (pid) {
+        this.acthistory({
+          noteable_type: "PR",
+          noteable_id: pid,
+        });
+      }
+
       this.formData = {
         id: data.id ?? data.project_id ?? data.id_project ?? null,
         project_name:
@@ -708,7 +798,12 @@ export default {
           data.name ||
           "",
         deal_id: data.deal_id ?? data.deal ?? data.id_deals ?? "",
-        leader_id: data.leader_id ?? data.id_leader ?? data.assignee_id ?? data.id_user ?? "",
+        leader_id:
+          data.leader_id ??
+          data.id_leader ??
+          data.assignee_id ??
+          data.id_user ??
+          "",
         description: data.description || data.project_content || "",
         location: data.location || "",
         kd_kelurahan: data.kd_kelurahan || data.kelurahan || "",
@@ -932,30 +1027,53 @@ export default {
       this.isTaskDrawerOpen = true;
     },
     saveNoteFromDrawer() {
-      if (!this.tempNoteData.body && this.tempNoteData.photos.length === 0) {
+      if (
+        !this.tempNoteData.body &&
+        (this.tempNoteData.photos || []).length === 0
+      ) {
         alertService.toastWarn("Catatan masih kosong");
         return;
       }
 
+      const isUpdate = !!this.tempNoteData.idnote;
+
       const item = {
-        type: "note",
-        timestamp: new Date().toISOString(),
+        noteable_type: "PR",
+        noteable_id: this.formData.id || this.formData.project_id || null,
         ...this.tempNoteData,
+        choice: isUpdate ? "U" : "I",
       };
 
-      if (this.editingItemIndex !== null) {
-        this.historyitems[this.editingItemIndex] = item;
-      } else {
-        this.historyitems.unshift(item);
-      }
+      const formData = this.buildFormDatanote(item);
 
-      const latestNote = this.historyitems.find((h) => h.type === "note");
-      if (latestNote) {
-        this.formData.noteData = { ...latestNote };
-      }
-
-      this.isNoteDrawerOpen = false;
-      alertService.toastSuccess("Catatan ditambahkan");
+      this.saveNote(formData)
+        .then(() => {
+          alertService.toastSuccess("Catatan berhasil disimpan", 3000);
+          this.isNoteDrawerOpen = false;
+          this.editingItemIndex = null;
+          this.tempNoteData = {
+            body: "",
+            gps_address: null,
+            latitude: null,
+            longitude: null,
+            photos: [],
+            audioBlob: null,
+          };
+          if (item.noteable_id) {
+            this.acthistory({
+              noteable_type: "PR",
+              noteable_id: item.noteable_id,
+            });
+          }
+        })
+        .catch((err) => {
+          alertService.toastError(
+            err.response?.data?.message ||
+              err.message ||
+              "Gagal menyimpan catatan",
+            3000,
+          );
+        });
     },
     saveTaskFromDrawer() {
       if (!this.tempTaskData.name && !this.tempTaskData.content) {
@@ -1029,6 +1147,7 @@ export default {
             this.locationData.kelurahan || this.formData.kd_kelurahan || "",
           location:
             this.formData.location.trim() || JSON.stringify(this.locationData),
+          locationData: { ...this.locationData },
           status_id: this.formData.status_id,
           created_at: this.formData.created_at || new Date().toISOString(),
           created_by:
@@ -1038,11 +1157,27 @@ export default {
             "",
           task: { ...this.formData.task },
           noteData: { ...this.formData.noteData },
+          historyitems: this.historyitems.map((item) => ({ ...item })),
         };
 
-        this.$emit("submit", payload);
-        this.resetForm();
-        this.$emit("close");
+        // Handle flow after submit
+        if (this.fromPage === "projects" && !this.isEditMode) {
+          // Jika dari halaman project, jangan tutup, tapi pindah ke tab tasks
+          this.showTabsAfterSave = true;
+          this.activeTab = "tasks";
+          alertService.toastSuccess(
+            "Project saved. You can now add tasks and notes.",
+          );
+          this.$emit("submit", payload); // Tetap emit agar list di background refresh
+        } else {
+          // Jika dari deals atau edit mode, tutup seperti biasa
+          this.$emit("submit", payload);
+          this.resetForm();
+          this.$emit("close");
+        }
+      } catch (error) {
+        console.error("Submit error:", error);
+        alertService.error("Gagal menyimpan project.");
       } finally {
         this.isSubmitting = false;
       }

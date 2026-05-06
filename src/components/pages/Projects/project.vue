@@ -146,6 +146,7 @@
   <!-- Create Project Form -->
   <CreateProjectForm
     :isOpen="showCreateProjectForm"
+    fromPage="projects"
     @close="showCreateProjectForm = false"
     @submit="handleCreateProject"
   />
@@ -153,6 +154,7 @@
   <!-- Project Detail Form -->
   <CreateProjectForm
     :isOpen="showProjectDetailForm"
+    fromPage="projects"
     :initialData="selectedProjectDetail"
     @close="closeProjectDetail"
     @submit="handleProjectDetailSubmit"
@@ -286,7 +288,7 @@ export default {
     async handleCreateProject(formData) {
       try {
         await this.$store.dispatch("project/createProject", formData);
-        this.showCreateProjectForm = false;
+        // Biarkan form anak yang menentukan kapan harus close via emit('close')
       } catch (err) {
         console.error("Failed to create project:", err);
       }

@@ -244,48 +244,36 @@ export default {
     },
 
     tempCompanyObjects() {
+      // Prioritaskan data asosiasi lengkap jika ada
       const deal = this.initialData?.deals?.[0] || this.initialData || {};
-      const res = [];
-      const id =
-        deal.company ||
-        deal.company_id ||
-        deal.id_company ||
-        deal.companies_id ||
-        deal.companyassoc;
-      const name =
-        deal.companynm ||
-        deal.company_name ||
-        deal.associated_company ||
-        deal.companies_name;
-
-      if (id && name) {
-        res.push({ id: id, company_name: name });
+      const rawAssoc = this.initialData?.companyassoc || this.initialData?.companiesassoc || deal.companyassoc || deal.companiesassoc;
+      
+      if (rawAssoc) {
+        return this.normalizeAssocObjects(rawAssoc, 'company');
       }
-      return res;
+
+      // Fallback untuk single company (backward compatibility)
+      const id = deal.company_id || deal.id_company || deal.companies_id || deal.company;
+      const name = deal.companynm || deal.company_name || deal.associated_company || deal.companies_name;
+      if (id && name && !Array.isArray(id)) return [{ id: String(id), company_name: name }];
+      
+      return [];
     },
     tempContactObjects() {
+      // Prioritaskan data asosiasi lengkap jika ada
       const deal = this.initialData?.deals?.[0] || this.initialData || {};
-      const res = [];
-      const id =
-        deal.contact ||
-        deal.contact_id ||
-        deal.id_contact ||
-        deal.contacts_id ||
-        deal.contactassoc;
-      const name =
-        deal.contactnm ||
-        deal.contact_name ||
-        deal.associated_contact ||
-        deal.contact_name;
+      const rawAssoc = this.initialData?.contactassoc || this.initialData?.contactsassoc || deal.contactassoc || deal.contactsassoc;
 
-      if (id && name) {
-        res.push({
-          id: id,
-          first_name: name,
-          last_name: "",
-        });
+      if (rawAssoc) {
+        return this.normalizeAssocObjects(rawAssoc, 'contact');
       }
-      return res;
+
+      // Fallback untuk single contact (backward compatibility)
+      const id = deal.contact_id || deal.id_contact || deal.contacts_id || deal.contact;
+      const name = deal.contactnm || deal.contact_name || deal.associated_contact || deal.contact_name;
+      if (id && name && !Array.isArray(id)) return [{ id: String(id), first_name: name, last_name: "" }];
+
+      return [];
     },
     tempContactAssoc: {
       get() {
@@ -347,16 +335,21 @@ export default {
       immediate: true,
       handler(val) {
         // Jangan override kalau sedang edit mode
-        if (!this.isEditMode && val !== undefined) {
-          this.formData.company_id = val ?? null;
+        if (!this.isEditMode && val !== undefined && val !== null) {
+          const sid = String(val).trim();
+          this.formData.company_id = sid;
+          // Pastikan juga masuk ke list asosiasi agar terkirim ke BE
+          this.formData.companyassoc = [sid];
         }
       },
     },
     contact_id: {
       immediate: true,
       handler(val) {
-        if (!this.isEditMode && val !== undefined) {
-          this.formData.contact_id = val ?? null;
+        if (!this.isEditMode && val !== undefined && val !== null) {
+          const sid = String(val).trim();
+          this.formData.contact_id = sid;
+          this.formData.contactassoc = [sid];
         }
       },
     },
@@ -417,13 +410,54 @@ export default {
 
     // Helper untuk mengekstrak array of IDs dari association array of objects
     extractIdsFromAssoc(assocArray) {
-      if (!Array.isArray(assocArray)) return [];
+      if (!Array.isArray(assocArray)) {
+        if (assocArray && (typeof assocArray === "string" || typeof assocArray === "number")) {
+           return [String(assocArray).trim()];
+        }
+        return [];
+      }
       return assocArray
         .map((item) => {
-          if (item && typeof item === "object") return item.id;
+          if (item && typeof item === "object") return item.id || item.contact_id || item.company_id || item.id_contact || item.id_company || item.value;
           return item;
         })
-        .filter((item) => item !== undefined && item !== null && item !== "");
+        .filter((item) => item !== undefined && item !== null && item !== "")
+        .map(id => String(id).trim()); // Selalu pastikan ID adalah string bersih
+    },
+
+    // Helper untuk normalisasi objek untuk form asosiasi
+    normalizeAssocObjects(value, type) {
+      // Jika value adalah string tunggal (bukan array/objek), kita kemas jadi array
+      if (value && typeof value !== 'object') {
+        const sid = String(value).trim();
+        return type === 'company' 
+          ? [{ id: sid, company_name: `Company ${sid}` }]
+          : [{ id: sid, first_name: `Contact ${sid}`, last_name: "" }];
+      }
+
+      const arr = this.normalizeAssocInput(value);
+      return arr.filter(item => item !== null && item !== undefined).map(item => {
+        if (typeof item !== 'object') {
+          return type === 'company' 
+            ? { id: String(item), company_name: `Company ${item}` }
+            : { id: String(item), first_name: `Contact ${item}`, last_name: "" };
+        }
+        
+        const id = item.id || item.contact_id || item.id_contact || item.company_id || item.id_company || item.company || item.contact || item.value;
+        if (type === 'company') {
+          return {
+            id: String(id),
+            company_name: item.company_name || item.companynm || item.name || item.label || `Company ${id}`
+          };
+        } else {
+          const firstName = item.first_name || item.firstname || item.contact_name || item.contactnm || item.label || `Contact ${id}`;
+          return {
+            id: String(id),
+            first_name: firstName,
+            last_name: item.last_name || item.lastname || ""
+          };
+        }
+      });
     },
 
     getDealIdFromResponse(response) {
@@ -563,40 +597,37 @@ export default {
           data.companyassoc ||
           dealData.companiesassoc ||
           dealData.companyassoc ||
-          dealData.associated_company ||
-          dealData.company ||
+          dealData.companies_id ||
           dealData.company_id ||
           dealData.id_company ||
-          dealData.companies_id ||
+          dealData.company ||
           [];
+
         contactsAssoc =
           data.contactsassoc ||
           data.contactassoc ||
           dealData.contactsassoc ||
           dealData.contactassoc ||
-          dealData.associated_contact ||
-          dealData.contact ||
+          dealData.contacts_id ||
           dealData.contact_id ||
           dealData.id_contact ||
-          dealData.contacts_id ||
+          dealData.contact ||
           [];
       } else {
         // Fallback: mungkin data langsung object deal
         companiesAssoc =
           data.companyassoc ||
           data.companiesassoc ||
-          dealData.companyassoc ||
-          dealData.company ||
-          dealData.company_id ||
-          dealData.id_company ||
+          data.company ||
+          data.id_company ||
+          data.company_id ||
           [];
         contactsAssoc =
           data.contactassoc ||
-          dealData.contactsassoc ||
-          dealData.contactassoc ||
-          dealData.contact ||
-          dealData.contact_id ||
-          dealData.id_contact ||
+          data.contactsassoc ||
+          data.contact ||
+          data.id_contact ||
+          data.contact_id ||
           [];
       }
 
@@ -1013,7 +1044,7 @@ export default {
           null;
         if (dealId && !formData.deal_id) formData.deal_id = dealId;
         await this.$store.dispatch("project/createProject", formData);
-        this.showCreateProjectForm = false;
+        // showCreateProjectForm = false dihapus agar form anak yang mengontrol penutupan via emit('close')
         await alertService.toastSuccess("Project berhasil dibuat");
       } catch (err) {
         console.error(err);
@@ -1657,10 +1688,13 @@ export default {
               v-model="tempCompanyAssoc"
               :initial-data="tempCompanyObjects"
             />
+
             <ContactAssociationForm
               ref="contactAssociationForm"
               v-model="tempContactAssoc"
               :initial-data="tempContactObjects"
+              :company-id="tempCompanyAssoc"
+              :filter-by-company="true"
             />
           </div>
 
@@ -1919,6 +1953,7 @@ export default {
 
   <CreateProjectForm
     :isOpen="showCreateProjectForm"
+    fromPage="deals"
     @close="showCreateProjectForm = false"
     @submit="handleCreateProject"
   />

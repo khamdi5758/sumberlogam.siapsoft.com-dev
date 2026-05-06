@@ -1,8 +1,32 @@
 <template>
   <div class="relative" ref="contactDropdownRef">
-    <label class="block text-sm font-medium text-dark-base mb-2">
-      Contact Association
-    </label>
+    <div class="flex items-center gap-1.5 mb-2">
+      <label class="block text-sm font-medium text-dark-base">
+        Contact Association
+      </label>
+      <div v-if="filterByCompany" class="relative group flex items-center">
+        <Info
+          :size="14"
+          class="text-gray-400 cursor-help hover:text-gray-600 transition-colors"
+        />
+        <!-- Info Tooltip (Menggunakan Warna dari welcome.css) -->
+        <div
+          class="absolute right-0 top-6 w-44 p-2.5 text-white text-[10px] leading-snug rounded shadow-2xl z-[70] border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none"
+          style="background-color: var(--color-waiting-color, #404460);"
+        >
+          <div class="flex items-start gap-1.5">
+            <Info :size="10" class="mt-0.5 shrink-0 text-blue-300" />
+            <p>Kontak difilter berdasarkan perusahaan terpilih.</p>
+          </div>
+          <!-- Arrow Tooltip -->
+          <div 
+            class="absolute -top-1 right-1.5 w-2 h-2 rotate-45 border-t border-l border-white/10"
+            style="background-color: var(--color-waiting-color, #404460);"
+          ></div>
+        </div>
+      </div>
+    </div>
+
     <div
       @click="handledropdown"
       class="w-full px-3 py-2 border border-outline rounded-lg flex flex-wrap gap-2 items-center cursor-pointer min-h-10.5 bg-white transition focus-within:ring-1 focus-within:ring-sub-text"
@@ -61,7 +85,7 @@
             <span class="font-medium text-dark-base">{{
               getDisplayNameFromContact(contact)
             }}</span>
-            <span class="text-xs text-sub-text">{{ contact.email }}</span>
+            <span class="text-xs text-sub-text">{{ contact.email || "" }}</span>
           </div>
           <div
             v-if="isContactSelected(contact.id)"
@@ -80,24 +104,16 @@
     </div>
   </div>
 
-  <!-- <button
-    type="button"
-    @click="showAddContactQuickForm = true"
-    class="mt-2 text-sm text-sub-text hover:text-dark-base font-medium flex items-center gap-1"
-  >
-    <Plus :size="14" />
-    Create Contact
-  </button> -->
-
   <AddContactQuickForm
     :isOpen="showAddContactQuickForm"
     @close="showAddContactQuickForm = false"
     @submit="handleContactQuickSubmit"
   />
 </template>
+
 <script>
 import { mapActions, mapGetters, mapMutations } from "vuex";
-import { X, ChevronDown, Search, Check, Plus } from "lucide-vue-next";
+import { X, ChevronDown, Search, Check, Plus, Info } from "lucide-vue-next";
 import AddContactQuickForm from "@/components/forms/AddContactQuickForm.vue";
 
 export default {
@@ -109,6 +125,7 @@ export default {
     Search,
     Check,
     Plus,
+    Info,
     AddContactQuickForm,
   },
 
@@ -120,6 +137,14 @@ export default {
     contacts: {
       type: Array,
       default: () => [],
+    },
+    companyId: {
+      type: [String, Number, Array],
+      default: () => [],
+    },
+    filterByCompany: {
+      type: Boolean,
+      default: false,
     },
   },
 
@@ -138,6 +163,7 @@ export default {
   computed: {
     ...mapGetters({
       allContacts: "assoc/allContacts",
+      dealsContacts: "deals/getcontact",
     }),
 
     contactassoc: {
@@ -149,19 +175,29 @@ export default {
       },
     },
 
-    // 🔥 deduplicate
     contactOptions() {
       let data = [];
 
       if (Array.isArray(this.contacts) && this.contacts.length > 0) {
         data = this.contacts;
       } else {
-        data = this.allContacts || [];
+        data = (this.filterByCompany ? this.dealsContacts : this.allContacts) || [];
+        if (data && data.data && Array.isArray(data.data)) data = data.data;
       }
+
+      if (!Array.isArray(data)) data = [];
 
       const map = new Map();
       data.forEach((item) => {
-        map.set(item.id, item);
+        const id = item.value || item.id;
+        if (id) {
+          map.set(String(id), {
+            ...item,
+            id: String(id),
+            first_name: item.label || item.first_name,
+            last_name: item.label ? "" : item.last_name
+          });
+        }
       });
 
       return Array.from(map.values());
@@ -173,15 +209,18 @@ export default {
 
     selectedContacts() {
       if (!this.contactassoc.length) return [];
-
       return this.contactOptions.filter((contact) =>
-        this.contactassoc.includes(String(contact.id)),
-          );
+        this.contactassoc.includes(String(contact.id))
+      );
     },
   },
 
   mounted() {
     document.addEventListener("click", this.handleClickOutside);
+    if (this.filterByCompany) {
+      this.resetDealsContacts();
+      this.fetchContacts();
+    }
   },
 
   unmounted() {
@@ -191,17 +230,24 @@ export default {
   methods: {
     ...mapActions({
       getcontacts: "assoc/getcontacts",
+      dealsFetchContact: "deals/fetchcontact",
     }),
 
     ...mapMutations({
-      resetContacts: "assoc/resetContacts",
+      resetAssocContacts: "assoc/resetContacts",
+      resetDealsContacts: "deals/RESET_CONTACTS",
     }),
+
     handledropdown() {
       if (!this.isContactDropdownOpen) {
-        // hanya saat mau buka
-        this.resetContacts();
+        if (this.filterByCompany) {
+          this.resetDealsContacts();
+        } else {
+          this.resetAssocContacts();
+        }
+        this.page = 1;
+        this.hasMore = true;
       }
-
       this.isContactDropdownOpen = !this.isContactDropdownOpen;
     },
 
@@ -209,44 +255,60 @@ export default {
       if (!this.hasMore || this.isLoading) return;
 
       this.isLoading = true;
-
-      const res = await this.getcontacts({
+      const params = {
         page: this.page,
         search: this.contactSearch,
-      });
+      };
 
-      this.hasMore = res.next_page_url !== null;
+      try {
+        if (this.filterByCompany) {
+          let cid = null;
+          if (Array.isArray(this.companyId) && this.companyId.length > 0) {
+            cid = this.companyId[0];
+          } else if (this.companyId && !Array.isArray(this.companyId)) {
+            cid = this.companyId;
+          }
 
-      if (this.hasMore) {
-        this.page++;
+          if (!cid) {
+            console.log("fetchContacts: No companyId available, clearing list");
+            this.resetDealsContacts();
+            this.isLoading = false;
+            this.hasMore = false;
+            return;
+          }
+
+          params.companyid = cid;
+          const res = await this.dealsFetchContact(params);
+          this.hasMore = (res && typeof res === 'object' && res.next_page_url) ? true : false;
+        } else {
+          const res = await this.getcontacts(params);
+          this.hasMore = (res && typeof res === 'object' && res.next_page_url) ? true : false;
+          if (this.hasMore) this.page++;
+        }
+      } catch (e) {
+        this.hasMore = false;
+      } finally {
+        this.isLoading = false;
       }
-
-      this.isLoading = false;
     },
 
     handleScroll() {
       const el = this.$refs.scrollContainer;
       if (!el || this.isLoading || !this.hasMore) return;
-
       const bottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 10;
-
       if (bottom) {
         this.fetchContacts();
       }
     },
 
-    // 🔥 FIXED
     toggleContact(contact) {
       const contactId = String(contact.id);
-
       let newValue;
-
       if (this.contactassoc.includes(contactId)) {
         newValue = this.contactassoc.filter((id) => id !== contactId);
       } else {
         newValue = [...this.contactassoc, contactId];
       }
-
       this.contactassoc = newValue;
       this.isContactDropdownOpen = false;
     },
@@ -256,7 +318,8 @@ export default {
     },
 
     getDisplayNameFromContact(contact) {
-      return `${contact.first_name || ""} ${contact.last_name || ""}`.trim();
+      if (contact.label) return contact.label;
+      return `${contact.first_name || ""} ${contact.last_name || ""}`.trim() || "Unknown Contact";
     },
 
     handleClickOutside(e) {
@@ -265,19 +328,9 @@ export default {
       }
     },
 
-    closeTopLayer() {
-      if (this.showAddContactQuickForm) {
-        this.showAddContactQuickForm = false;
-        return true;
-      }
-
-      if (this.isContactDropdownOpen) {
-        this.isContactDropdownOpen = false;
-        return true;
-      }
-
-      return false;
-    },
+    handleContactQuickSubmit(e) {
+      console.log("New contact created", e);
+    }
   },
 
   watch: {
@@ -286,226 +339,38 @@ export default {
         this.contactSearch = "";
         this.page = 1;
         this.hasMore = true;
-      }
-
-      if (val && this.contactOptions.length === 0) {
+      } else if (this.contactOptions.length === 0) {
         this.fetchContacts();
       }
     },
 
     contactSearch() {
       clearTimeout(this.debounceTimer);
-
       this.debounceTimer = setTimeout(() => {
         this.page = 1;
         this.hasMore = true;
-
-        // 🔥 RESET DATA BIAR TIDAK DUPLIKAT
-        this.resetContacts();
-
+        if (this.filterByCompany) {
+          this.resetDealsContacts();
+        } else {
+          this.resetAssocContacts();
+        }
         this.fetchContacts();
       }, 300);
+    },
+
+    companyId: {
+      deep: true,
+      handler(newVal) {
+        if (this.filterByCompany) {
+          console.log("Company changed, resetting list");
+          this.contactassoc = [];
+          this.resetDealsContacts();
+          this.page = 1;
+          this.hasMore = true;
+          this.fetchContacts();
+        }
+      }
     },
   },
 };
 </script>
-
-<!-- 
-ditutup karena salah file, ini untuk referensi saja, jangan disarankan untuk dikembalikan ke codebase
-
-<script>
-import { mapActions, mapGetters } from "vuex";
-import { X, ChevronDown, Search, Check, Plus } from "lucide-vue-next";
-import AddContactQuickForm from "@/components/forms/AddContactQuickForm.vue";
-
-export default {
-  name: "ContactAssociationForm",
-
-  components: {
-    X,
-    ChevronDown,
-    Search,
-    Check,
-    Plus,
-    AddContactQuickForm,
-  },
-
-  props: {
-    modelValue: {
-      type: Array,
-      default: () => [],
-    },
-    contacts: {
-      type: Array,
-      default: () => [],
-    },
-  },
-
-  data() {
-    return {
-      isContactDropdownOpen: false,
-      contactSearch: "",
-      showAddContactQuickForm: false,
-      page: 1,
-      debounceTimer: null,
-      hasMore: false,
-    };
-  },
-
-  computed: {
-    ...mapGetters({
-      allContacts: "assoc/allContacts",
-    }),
-
-    contactassoc: {
-      get() {
-        return this.modelValue || [];
-      },
-      set(value) {
-        this.$emit("update:modelValue", value);
-      },
-    },
-
-    filteredContacts() {
-      if (!this.contactSearch) return this.contactOptions;
-
-      return this.contactOptions;
-
-      // return (this.allContacts || []).filter((c) => {
-      //   const name = `${c.first_name || ""} ${c.last_name || ""}`
-      //     .toLowerCase()
-      //     .trim();
-      //   const email = (c.email || "").toLowerCase();
-      //   const search = this.contactSearch.toLowerCase();
-
-      //   return name.includes(search) || email.includes(search);
-      // });
-    },
-
-    contactOptions() {
-      if (Array.isArray(this.contacts) && this.contacts.length > 0) {
-        return this.contacts;
-      }
-      return this.allContacts || [];
-    },
-
-    selectedContacts() {
-      if (!Array.isArray(this.contactassoc) || this.contactassoc.length === 0) {
-        return [];
-      }
-
-      return this.contactOptions.filter((contact) =>
-        this.contactassoc.some(
-          (id) => String(id).trim() === String(contact.id).trim(),
-        ),
-      );
-    },
-  },
-
-  mounted() {
-    document.addEventListener("click", this.handleClickOutside);
-  },
-
-  destroyed() {
-    document.removeEventListener("click", this.handleClickOutside);
-  },
-
-  methods: {
-    ...mapActions({
-      getcontacts: "assoc/getcontacts",
-    }),
-
-    async fetchContacts() {
-      const res = await this.getcontacts({
-        page: this.page,
-        search: this.contactSearch,
-      });
-
-      this.hasMore = res.next_page_url !== null;
-      if (this.hasMore) {
-        this.page++;
-      }
-
-      // console.log("Fetched contacts:", this.hasMore);
-      // console.log("Fetched contacts:", res);
-      // console.log("page:", this.page);
-    },
-
-    handleContactQuickSubmit(e) {
-      console.log("New contact created", e);
-    },
-
-    handleScroll() {
-      const el = this.$refs.scrollContainer;
-
-      if (!el) return;
-
-      const bottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 10;
-      if (bottom) {
-        this.fetchContacts();
-      }
-    },
-
-    toggleContact(contact) {
-      const contactId = String(contact.id).trim();
-      const index = this.contactassoc.findIndex(
-        (id) => String(id).trim() === contactId,
-      );
-
-      let newValue;
-      if (index === -1) {
-        newValue = [...this.contactassoc, contactId];
-      } else {
-        newValue = this.contactassoc.filter((id, i) => i !== index);
-      }
-
-      console.log("Toggling contact:", newValue);
-      // this.contactassoc = newValue;
-    },
-
-    isContactSelected(id) {
-      const contactId = String(id).trim();
-      return this.contactassoc.some((cid) => String(cid).trim() === contactId);
-    },
-
-    getDisplayNameFromContact(contact) {
-      return `${contact.first_name || ""} ${contact.last_name || ""}`.trim();
-    },
-
-    handleClickOutside(e) {
-      if (!this.$refs.contactDropdownRef?.contains(e.target)) {
-        this.isContactDropdownOpen = false;
-      }
-    },
-  },
-
-  watch: {
-    isContactDropdownOpen(e) {
-      console.log("Dropdown open changed:", e);
-      if (e == false) {
-        this.contactSearch = "";
-        this.page = 1;
-        // this.hasMore = false;
-        // this.selectedContactsCache = (this.allContacts || []).filter((c) =>
-        //   this.contactassoc.some((id) => String(id).trim() === String(c.id).trim()),
-        // );
-      }
-
-      if (e && (!this.contactOptions || this.contactOptions.length === 0)) {
-        this.fetchContacts();
-      }
-    },
-
-    contactSearch(e) {
-      clearTimeout(this.debounceTimer);
-      this.debounceTimer = setTimeout(() => {
-        this.page = 1; // reset page
-        this.fetchContacts();
-      }, 300);
-    },
-    selectedContacts(newVal) {
-      console.log("Selected contacts changed:", newVal);
-    }
-  },
-};
-</script> -->

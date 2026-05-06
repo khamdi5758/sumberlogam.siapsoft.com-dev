@@ -41,7 +41,9 @@ const isPipelineOpen = ref(false);
 const isDragging = ref(false);
 const isSyncingStage = ref(false);
 
-const storePipelines = computed(() => store.getters["deals/getpipelines"] || []);
+const storePipelines = computed(
+  () => store.getters["deals/getpipelines"] || [],
+);
 
 const boardMeta = computed(() => {
   if (!storePipelines.value || storePipelines.value.length === 0) {
@@ -64,12 +66,18 @@ const boardMeta = computed(() => {
     const name = String(p.pipeline_name || p.label || "").toLowerCase();
     const id = p.id_pipeline || p.value || p.id;
 
-    if (name.includes("won") || name.includes("lost") || name.includes("close")) {
+    if (
+      name.includes("won") ||
+      name.includes("lost") ||
+      name.includes("close")
+    ) {
       closedItems.push(p);
     } else {
       boards.push({
         id: id,
-        key: String(p.pipeline_name || p.label || "").toLowerCase().trim(),
+        key: String(p.pipeline_name || p.label || "")
+          .toLowerCase()
+          .trim(),
         title: p.pipeline_name || p.label,
       });
     }
@@ -106,14 +114,23 @@ const normalizeStage = (rawStage) => {
   // 1. Cek dynamic mapping dari store pipelines jika ada
   const pipelines = storePipelines.value;
   if (pipelines && pipelines.length > 0) {
-    const found = pipelines.find(p => 
-      String(p.id_pipeline || p.value || "").toLowerCase() === stage ||
-      String(p.pipeline_name || p.label || "").toLowerCase().trim() === stage
+    const found = pipelines.find(
+      (p) =>
+        String(p.id_pipeline || p.value || "").toLowerCase() === stage ||
+        String(p.pipeline_name || p.label || "")
+          .toLowerCase()
+          .trim() === stage,
     );
     if (found) {
       // Jika ini won/lost, return key khusus agar dikelompokkan ke "closed"
-      const name = String(found.pipeline_name || found.label || "").toLowerCase();
-      if (name.includes("won") || name.includes("lost") || name.includes("close")) {
+      const name = String(
+        found.pipeline_name || found.label || "",
+      ).toLowerCase();
+      if (
+        name.includes("won") ||
+        name.includes("lost") ||
+        name.includes("close")
+      ) {
         return name.includes("won") ? "close_won" : "close_lost";
       }
       return name.trim();
@@ -123,9 +140,23 @@ const normalizeStage = (rawStage) => {
   // 2. Fallback static mapping
   if (stage === "1" || stage === "new" || stage === "prospect") return "new";
   if (stage === "2" || stage.includes("qual")) return "qualified";
-  if (stage === "3" || stage.includes("prop") || stage.includes("offer") || stage.includes("payment")) return "proposal";
-  if (stage === "4" || stage.includes("negot") || stage.includes("adv")) return "negotiation";
-  if (stage === "5" || stage === "6" || stage.includes("won") || stage.includes("lost") || stage.includes("close")) return "closed";
+  if (
+    stage === "3" ||
+    stage.includes("prop") ||
+    stage.includes("offer") ||
+    stage.includes("payment")
+  )
+    return "proposal";
+  if (stage === "4" || stage.includes("negot") || stage.includes("adv"))
+    return "negotiation";
+  if (
+    stage === "5" ||
+    stage === "6" ||
+    stage.includes("won") ||
+    stage.includes("lost") ||
+    stage.includes("close")
+  )
+    return "closed";
 
   return "new";
 };
@@ -135,10 +166,10 @@ const normalizeDeal = (deal) => ({
   name: deal.name || deal.dealName || deal.deal_name || "Untitled Deal",
   stage: normalizeStage(
     deal.stage ||
-    deal.pipeline ||
-    deal.pipelinenm ||
-    deal.id_pipeline ||
-    deal.pipeline_id
+      deal.pipeline ||
+      deal.pipelinenm ||
+      deal.id_pipeline ||
+      deal.pipeline_id,
   ),
   jumlah: deal.jumlah || deal.amount_value || deal.amount || "-",
   tertanggal:
@@ -158,14 +189,16 @@ const rebuildBoards = (rawDeals) => {
 
   const currentMeta = boardMeta.value;
   const grouped = {};
-  
+
   currentMeta.forEach((m) => {
     grouped[m.key] = [];
   });
 
   const normalized = rawDeals.map(normalizeDeal);
   normalized.forEach((deal) => {
-    const stageKey = String(deal.stage || "").toLowerCase().trim();
+    const stageKey = String(deal.stage || "")
+      .toLowerCase()
+      .trim();
 
     // Grouping logic: anything related to closing goes to "closed" column if it exists
     if (
@@ -177,7 +210,9 @@ const rebuildBoards = (rawDeals) => {
       if (grouped.hasOwnProperty("closed")) {
         grouped.closed.push(deal);
       } else {
-        const closedCol = currentMeta.find(m => m.key.includes('close') || m.key.includes('won'));
+        const closedCol = currentMeta.find(
+          (m) => m.key.includes("close") || m.key.includes("won"),
+        );
         if (closedCol) {
           grouped[closedCol.key].push(deal);
         } else {
@@ -188,8 +223,10 @@ const rebuildBoards = (rawDeals) => {
       grouped[stageKey].push(deal);
     } else {
       // Log for debugging why it went to New
-      if (stageKey !== (currentMeta[0]?.key || 'new')) {
-        console.warn(`[DealCard] Deal ${deal.id} stage '${stageKey}' not found in boardMeta keys. Defaulting to first column.`);
+      if (stageKey !== (currentMeta[0]?.key || "new")) {
+        console.warn(
+          `[DealCard] Deal ${deal.id} stage '${stageKey}' not found in boardMeta keys. Defaulting to first column.`,
+        );
       }
       const firstKey = currentMeta[0]?.key || "new";
       if (grouped[firstKey]) {
@@ -236,19 +273,44 @@ const handleBoardChange = async (event, targetBoard) => {
 
   if (previousStage === nextStage) return;
 
+  // Cari stage label dari boardMeta untuk ditampilkan di konfirmasi
+  const currentStageMeta = boardMeta.value.find((b) => b.key === previousStage);
+  const targetStageMeta = boardMeta.value.find((b) => b.key === nextStage);
+  const currentStageTitle = currentStageMeta?.title || previousStage;
+  const targetStageTitle = targetStageMeta?.title || nextStage;
+
+  // Confirmation dialog untuk stage change
+  const confirmResult = await Swal.fire({
+    title: "Konfirmasi Perubahan Stage",
+    html: `<p>Pindahkan deal <strong>"${movedDeal.name}"</strong></p>
+           <p>dari <strong>${currentStageTitle}</strong> ke <strong>${targetStageTitle}</strong>?</p>`,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#3b82f6",
+    cancelButtonColor: "#ef4444",
+    cancelButtonText: "Batal",
+    confirmButtonText: "Ya",
+  });
+
+  if (!confirmResult.isConfirmed) {
+    // Revert drag jika user batal
+    rebuildBoards(allDeals.value);
+    return;
+  }
+
   let finalStage = nextStage;
 
   // Jika drag ke "closed" board, minta user pilih status
   if (nextStage === "closed") {
     await Swal.fire({
-      title: "Closed Status",
+      title: "Status Deal Ditutup",
       text: "Pilih status deal yang ditutup:",
       icon: "question",
       html: `
         <div class="flex flex-col gap-2">
           <button id="btn-won" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">✓ Won</button>
           <button id="btn-lost" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">✗ Lost</button>
-          <button id="btn-cancel-status" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">⊘ Cancel</button>
+          <button id="btn-cancel-status" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">⊘ Batal</button>
         </div>
       `,
       showConfirmButton: false,
@@ -271,12 +333,15 @@ const handleBoardChange = async (event, targetBoard) => {
       },
     });
 
-    if (!window.closedChoice) return;
+    if (!window.closedChoice || window.closedChoice === "cancel") {
+      // Revert drag jika user batal
+      rebuildBoards(allDeals.value);
+      return;
+    }
 
     const statusMap = {
       won: "close_won",
       lost: "close_lost",
-      cancel: "close_lost", // fallback to lost for cancel in this board
     };
     finalStage = statusMap[window.closedChoice];
     window.closedChoice = null;
@@ -316,12 +381,14 @@ const handleStageChange = async (deal, newStage) => {
   try {
     // Sync-lock
     isSyncingStage.value = true;
-    
+
     // Cari pipeline ID dari store
     const pipelines = store.getters["deals/getpipelines"] || [];
     const searchStr = newStage.toLowerCase().includes("won") ? "won" : "lost";
-    const targetPipeline = pipelines.find(p => 
-      String(p.pipeline_name || p.label || "").toLowerCase().includes(searchStr)
+    const targetPipeline = pipelines.find((p) =>
+      String(p.pipeline_name || p.label || "")
+        .toLowerCase()
+        .includes(searchStr),
     );
 
     if (!targetPipeline) {
@@ -331,15 +398,17 @@ const handleStageChange = async (deal, newStage) => {
 
     // Optimistic update
     deal.stage = newStage.includes("won") ? "Close Won" : "Close Lost";
-    
+
     await store.dispatch("deals/updateDealStage", {
       dealId: deal.id,
       newStage: targetPipeline.pipeline_name || targetPipeline.label, // This matches what updateDealStage expects
       stageId: targetPipeline.id_pipeline || targetPipeline.value,
-      stageName: targetPipeline.pipeline_name || targetPipeline.label
+      stageName: targetPipeline.pipeline_name || targetPipeline.label,
     });
-    
-    alertService.success(`Status updated to ${newStage.includes("won") ? 'Won' : 'Lost'}`);
+
+    alertService.success(
+      `Status updated to ${newStage.includes("won") ? "Won" : "Lost"}`,
+    );
   } catch (error) {
     console.error("Failed to update stage:", error);
     alertService.error("Failed to update deal status.");
@@ -357,8 +426,11 @@ const handleStageChange = async (deal, newStage) => {
  */
 onMounted(async () => {
   // Pastikan pipeline data sudah ter-fetch agar mapping board meta akurat
-  if (!store.state.deals.pipelines || store.state.deals.pipelines.length === 0) {
-    await store.dispatch("deals/fetchpipelines").catch(err => {
+  if (
+    !store.state.deals.pipelines ||
+    store.state.deals.pipelines.length === 0
+  ) {
+    await store.dispatch("deals/fetchpipelines").catch((err) => {
       console.error("[DealCard] Failed to fetch pipelines:", err);
     });
   }
