@@ -1442,7 +1442,7 @@ export default {
 
 /* Focused row */
 :deep(.dx-datagrid-rowsview .dx-row.dx-state-focused td) {
-  background-color: #bae0ff !important;
+  background-color: #acb3b9 !important;
 }
 
 /* new style */
@@ -1511,10 +1511,19 @@ export default {
   border-left: none !important;
 }
 
-/* Focused row */
-/* :deep(.dx-datagrid-rowsview .dx-row.dx-state-focused td) {
-  background-color: #eff6ff !important;
-} */
+/* Mengurangi tinggi baris agar lebih rapat */
+:deep(.dx-datagrid-rowsview .dx-data-row td) {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+/* Focused & Selected row color override to #acb3b9 */
+:deep(.dx-datagrid-rowsview .dx-selection.dx-row:not(.dx-row-focused) > td),
+:deep(.dx-datagrid-rowsview .dx-selection.dx-row:not(.dx-row-focused):hover > td),
+:deep(.dx-datagrid-rowsview .dx-row-focused.dx-data-row > td) {
+  background-color: #acb3b9 !important;
+  color: white !important;
+}
 
 /* Hilangkan border luar grid */
 :deep(.dx-datagrid-borders > .dx-datagrid-headers),

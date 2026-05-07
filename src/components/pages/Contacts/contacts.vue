@@ -416,9 +416,8 @@ export default {
 
   methods: {
     handleContactSubmit(data) {
-  this.fetchData(); // async
-  this.showAddContactForm = false;
-},
+      this.fetchData();
+    },
     resolveContactFromTemplate(templateOptions) {
       if (!templateOptions) return null;
       return (
@@ -500,7 +499,7 @@ export default {
           "cellTemplate",
           (container, options) => {
             const val = options.displayValue || "-";
-            container.innerHTML = `<div style="font-weight: bold; color: #1e293b;">${val}</div>`;
+            container.innerHTML = `<div style="font-weight: normal; color: #1e293b;">${val}</div>`;
           },
         );
 
@@ -908,12 +907,16 @@ export default {
         })
         .finally(() => {
           // Fetch contacts after statuses are loaded (or fallback applied)
-          this.fetchData();
+          if (!this.contacts || this.contacts.length === 0) {
+            this.fetchData();
+          }
         });
     } catch (e) {
       // If composable fails for any reason, still fetch contacts
       console.warn("useStatuses failed:", e);
-      this.fetchData();
+      if (!this.contacts || this.contacts.length === 0) {
+        this.fetchData();
+      }
     }
   },
 

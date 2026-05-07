@@ -66,9 +66,9 @@
               <p class="text-sm font-medium text-dark-base">
                 {{ data.deal_name }}
               </p>
-              <p class="text-xs text-sub-text">ID: {{ data.id }}</p>
+              <p class="text-xs text-sub-text">Due Date: {{ data.due_date }}</p>
               <p class="text-xs text-sub-text">
-                Nilai: {{ data.amount_value }}
+                Priority: {{ getPriorityLabel(data.priority) }}
               </p>
               <p v-if="data.pipeline" class="text-xs text-sub-text">
                 {{ data.pipeline }}
@@ -188,6 +188,14 @@ export default {
     },
     async handletambahdeal() {
       this.openModal = true;
+    },
+    getPriorityLabel(priority) {
+      const mapping = {
+        1: "Low",
+        2: "Medium",
+        3: "High",
+      };
+      return mapping[priority] || priority || "-";
     },
   },
 

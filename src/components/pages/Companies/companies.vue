@@ -170,7 +170,9 @@ export default {
 
   mounted() {
     // this.fetchStatuses();
-    this.fetchData();
+    if (!this.companies || this.companies.length === 0) {
+      this.fetchData();
+    }
     // this.fetchAllContacts();
     // this.fetchAllDeals();companyColumns
 
@@ -792,8 +794,23 @@ export default {
 <template>
   <div class="flex flex-col h-full">
     <div
-      class="bg-white rounded-lg shadow-sm p-4 border border-outline flex flex-col min-h-0 flex-1"
+      class="bg-white rounded-lg shadow-sm p-4 border border-outline flex flex-col min-h-0 flex-1 relative"
     >
+      <!-- Loading Overlay -->
+      <div
+        v-if="isLoading && !companies.length"
+        class="absolute inset-0 z-10 bg-white/60 backdrop-blur-[1px] flex items-center justify-center rounded-lg"
+      >
+        <div class="flex flex-col items-center">
+          <div
+            class="animate-spin rounded-full h-10 w-10 border-b-2 border-dark-base"
+          ></div>
+          <p class="mt-4 text-sm font-medium text-dark-base animate-pulse">
+            Memuat data perusahaan...
+          </p>
+        </div>
+      </div>
+
       <CompaniesHeader
         :isLoading="isLoading"
         :companiesStatusText="companiesStatusText"

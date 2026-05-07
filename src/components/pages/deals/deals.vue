@@ -183,7 +183,9 @@ export default {
     },
   },
   mounted() {
-    this.fetchData();
+    if (!this.allDeals || this.allDeals.length === 0) {
+      this.fetchData();
+    }
   },
   beforeUnmount() {
     if (this.searchDebounceTimeout) {
@@ -195,9 +197,14 @@ export default {
     // Fetch deals data with current pagination and search filters
     async fetchData() {
       try {
-        // Fetch pipelines first to ensure normalization works correctly
-        await this.$store.dispatch("deals/fetchpipelines").catch(() => {});
-        
+        // Optimization: Only fetch pipelines if they don't exist in store
+        const currentPipelines = this.$store.getters["deals/getpipelines"];
+        if (!currentPipelines || currentPipelines.length === 0) {
+          await this.$store.dispatch("deals/fetchpipelines").catch(() => {});
+        }
+
+        // Optimization: Only fetch all deals if they don't exist in store
+        // or if it's a fresh search/page change (handled by watchers)
         await this.$store.dispatch("deals/fetchAllDeals", {
           page: this.currentPage,
           per_page: this.itemsPerPage,

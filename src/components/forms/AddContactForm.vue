@@ -100,23 +100,22 @@ export default {
   },
 
   watch: {
-    async isOpen(newVal) {
+    isOpen(newVal) {
       if (newVal) {
+        // Langsung isi data agar UI (Tab Notes) muncul instan
+        if (this.contactData && Object.keys(this.contactData).length > 0) {
+          this.setFormData(this.contactData);
+        } else {
+          this.handleReset();
+        }
+
+        // Jalankan proses background tanpa memblokir inisialisasi UI
         Promise.allSettled([
           this.$store.dispatch("users/getusersignin"),
           this.$store.dispatch("users/fetchAllusers"),
           this.$store.dispatch("contacts/fetchcompany"),
           this.$store.dispatch("deals/fetchAllDeals"),
         ]).finally(() => this.applyDefaultOwner());
-
-        if (this.contactData) {
-          await this.actkotakabupaten({ id: this.contactData.province });
-          await this.actkecamatan({ id: this.contactData.city });
-          await this.actkelurahan({ id: this.contactData.kecamatan });
-          this.setFormData(this.contactData);
-        } else {
-          this.handleReset();
-        }
       }
     },
     contactData: {
@@ -636,18 +635,21 @@ export default {
             : "Contact berhasil ditambahkan!";
           toast.success(msg);
 
+          const isNew = !this.contactid;
           this.isSaved = true;
+          this.savedContact = response.param;
+
+          if (this.frompage || !isNew) {
+            this.$emit("submit", response);
+            this.handleClose();
+            return;
+          }
 
           if (!this.hideDetailTab) {
             this.activeTab = "detail";
           }
 
-          if (this.frompage || this.hascontactId) {
-            this.$emit("submit", response);
-            this.handleReset();
-          }
-
-          this.savedContact = response.param;
+          this.$emit("submit", response);
         })
         .catch((error) => {
           toast.error(
@@ -718,6 +720,7 @@ export default {
       };*/
 
       this.historyitems = [];
+      this.$store.commit("history/setHistory", []);
     },
     toggleCompaniesDropdown() {
       this.showCompaniesDropdown = !this.showCompaniesDropdown;
@@ -1182,7 +1185,7 @@ export default {
           </div>
         </form>
         <!-- Detail Tab -->
-        <div v-if="activeTab === 'detail'" class="p-6 h-full flex flex-col">
+        <div v-show="activeTab === 'detail'" class="p-6 h-full flex flex-col">
           <HistoryDetail
             :items="historyitems"
             :noteableType="'CT'"

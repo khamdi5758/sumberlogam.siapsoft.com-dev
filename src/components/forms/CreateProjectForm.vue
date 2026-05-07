@@ -95,8 +95,8 @@
             />
           </div>
 
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
+          <div :class="['grid grid-cols-1 gap-4', fromPage === 'deals' ? '' : 'sm:grid-cols-2']">
+            <div v-if="fromPage !== 'deals'">
               <label class="mb-2 block text-sm font-medium text-dark-base">
                 Deal <span class="text-red-600">*</span>
               </label>
@@ -831,6 +831,12 @@ export default {
           audioBlob: data.noteData?.audioBlob || null,
         },
       };
+
+      // If we are coming from deals page and it's a new project, 
+      // ensure deal_id is set from initialData if formData.deal_id is empty
+      if (this.fromPage === 'deals' && !this.formData.deal_id && data.deal_id) {
+        this.formData.deal_id = data.deal_id;
+      }
 
       // Workaround: If leader_id is missing but leader_name exists, try to find ID from options
       if (!this.formData.leader_id && data.leader_name) {

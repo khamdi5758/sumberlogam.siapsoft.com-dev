@@ -191,6 +191,8 @@ const mapCreateDealPayload = (formData = {}) => {
     owner_id: formData.owner_id || formData.id_owner || formData.id_user || null,
     priority: formData.priority || null,
     source: formData.source || null,
+    probability: formData.probability || null,
+    status: formData.status ?? 1,
     // Associations
     contactassoc: formatAssoc(formData.contactassoc || formData.contacts_id || formData.contact_id),
     companyassoc: formatAssoc(formData.companyassoc || formData.companies_id || formData.company_id),
@@ -465,6 +467,21 @@ export default {
         });
 
       return promise;
+    },
+
+    fetchProjectsByDeal({ commit }, id) {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const response = await api.get(`deals/project?dealid=${id}`, {
+            headers: {
+              Authorization: "Bearer " + cookies.get("token"),
+            },
+          });
+          resolve(response.data?.projects || response.data?.data || response.data || []);
+        } catch (error) {
+          reject(error);
+        }
+      });
     },
 
     async updateDealStage({ commit, state, dispatch }, payload) {

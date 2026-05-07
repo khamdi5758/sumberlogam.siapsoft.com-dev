@@ -41,7 +41,7 @@
               <p class="text-sm font-medium truncate">
                 {{ data.first_name }} {{ data.last_name }}
               </p>
-              <p class="text-xs text-sub-text">ID: {{ data.id }}</p>
+              <p class="text-xs text-sub-text">{{ data.telephone_1 || "-" }}</p>
               <p v-if="data.email" class="text-xs text-sub-text truncate">
                 {{ data.email }}
               </p>

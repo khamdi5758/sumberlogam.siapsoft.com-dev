@@ -176,26 +176,26 @@ export default {
     },
 
     contactOptions() {
-      let data = [];
+      let storeData =
+        (this.filterByCompany ? this.dealsContacts : this.allContacts) || [];
+      if (storeData && storeData.data && Array.isArray(storeData.data))
+        storeData = storeData.data;
 
-      if (Array.isArray(this.contacts) && this.contacts.length > 0) {
-        data = this.contacts;
-      } else {
-        data = (this.filterByCompany ? this.dealsContacts : this.allContacts) || [];
-        if (data && data.data && Array.isArray(data.data)) data = data.data;
-      }
-
-      if (!Array.isArray(data)) data = [];
+      // Gabungkan data awal (prop contacts) dengan data dari store
+      const combined = [
+        ...(this.contacts || []),
+        ...(Array.isArray(storeData) ? storeData : []),
+      ];
 
       const map = new Map();
-      data.forEach((item) => {
+      combined.forEach((item) => {
         const id = item.value || item.id;
         if (id) {
           map.set(String(id), {
             ...item,
             id: String(id),
             first_name: item.label || item.first_name,
-            last_name: item.label ? "" : item.last_name
+            last_name: item.label ? "" : item.last_name,
           });
         }
       });
@@ -360,16 +360,23 @@ export default {
 
     companyId: {
       deep: true,
-      handler(newVal) {
+      handler(newVal, oldVal) {
         if (this.filterByCompany) {
-          console.log("Company changed, resetting list");
-          this.contactassoc = [];
+          const newId = Array.isArray(newVal) ? newVal[0] : newVal;
+          const oldId = Array.isArray(oldVal) ? oldVal[0] : oldVal;
+
+          // Hanya reset jika ID perusahaan benar-benar berubah (bukan inisialisasi pertama)
+          if (oldId && newId != oldId) {
+            console.log("Company changed, resetting list");
+            this.contactassoc = [];
+          }
+
           this.resetDealsContacts();
           this.page = 1;
           this.hasMore = true;
           this.fetchContacts();
         }
-      }
+      },
     },
   },
 };

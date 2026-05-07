@@ -8,6 +8,8 @@ import {
   Search,
   Check,
   PackageIcon,
+  User,
+  CalendarDays,
 } from "lucide-vue-next";
 import AddCompanyForm from "./AddCompanyForm.vue";
 import AddContactQuickForm from "./AddContactQuickForm.vue";
@@ -40,6 +42,8 @@ export default {
     HistoryDetail,
     CreateProjectForm,
     ContactAssociationForm,
+    User,
+    CalendarDays,
   },
   props: {
     isOpen: {
@@ -114,6 +118,8 @@ export default {
       showAddCompanyForm: false,
       showAddContactQuickForm: false,
       showCreateProjectForm: false,
+      selectedProject: null,
+      dealProjects: [],
       showProjectModal: false,
       projectModalForm: {
         dealassoc: [],
@@ -144,7 +150,7 @@ export default {
         contactassoc: [],
         companyassoc: [],
         probability: null,
-        active: 1,
+        status: 1,
         task: {
           name: "",
           content: "",
@@ -201,6 +207,7 @@ export default {
     ...mapGetters("users", ["usersignin"]),
     ...mapGetters("contacts", ["allContacts"]),
     ...mapGetters("company", ["allcompany"]),
+    ...mapGetters("project", ["allProjects"]),
     ...mapGetters({
       getsources: "deals/getsources",
       getpipelines: "deals/getpipelines",
@@ -283,6 +290,16 @@ export default {
         this.formData.contactassoc = val;
       },
     },
+    associatedProjects() {
+      return this.dealProjects || [];
+    },
+    ownerOptions() {
+      const users = this.getusers || [];
+      return users.map((u) => ({
+        value: u.id || u.user_id || u.id_user || u.value || "",
+        label: u.name || u.username || u.label || "Unknown",
+      }));
+    },
   },
   watch: {
     // isOpen: {
@@ -305,6 +322,7 @@ export default {
         if (isOpen) {
           if (this.initialData) {
             this.setFormData(this.initialData);
+            this.loadDealProjects();
           } else {
             this.handleReset();
             // Pastikan prop ter-apply setelah reset
@@ -323,6 +341,7 @@ export default {
 
         if (nextData && Object.keys(nextData).length) {
           this.setFormData(nextData);
+          this.loadDealProjects();
           this.activeTab = "master";
         } else {
           this.handleReset();
@@ -381,6 +400,8 @@ export default {
     if (!this.getcontact || this.getcontact.length === 0) {
       this.fetchcontact({});
     }
+
+    this.fetchAllProjects();
   },
   beforeDestroy() {
     document.removeEventListener("click", this.handleClickOutside);
@@ -395,7 +416,9 @@ export default {
       fetchusers: "deals/fetchusers",
       fetchcompany: "deals/fetchcompany",
       fetchcontact: "deals/fetchcontact",
+      fetchProjectsByDeal: "deals/fetchProjectsByDeal",
     }),
+    ...mapActions("project", ["fetchAllProjects"]),
 
     // Parse JSON safely untuk handle associasi dari database
     parseJSON(val, defaultVal) {
@@ -653,7 +676,16 @@ export default {
         companyassoc: this.extractIdsFromAssoc(normalizedCompaniesAssoc),
         contactassoc: this.extractIdsFromAssoc(normalizedContactsAssoc),
         probability: dealData.probability ?? null,
-        active: dealData.active == 1 || dealData.active === true ? 1 : 0,
+        status:
+          dealData.status !== undefined
+            ? dealData.status == 1 || dealData.status === "active" || dealData.status === true
+              ? 1
+              : 0
+            : dealData.active !== undefined
+            ? dealData.active == 1 || dealData.active === true
+              ? 1
+              : 0
+            : 1,
         task: this.resolveTaskData(dealData),
         docs: this.resolveDocsData(dealData),
         owner_id:
@@ -661,6 +693,7 @@ export default {
           dealData.id_owner ||
           dealData.id_user ||
           dealData.user_id ||
+          dealData.owner ||
           null,
         contact_id: dealData.contact_id || dealData.id_contact || null,
         company_id: dealData.company_id || dealData.id_company || null,
@@ -1043,12 +1076,76 @@ export default {
           (this.initialData && this.initialData.id) ||
           null;
         if (dealId && !formData.deal_id) formData.deal_id = dealId;
-        await this.$store.dispatch("project/createProject", formData);
-        // showCreateProjectForm = false dihapus agar form anak yang mengontrol penutupan via emit('close')
-        await alertService.toastSuccess("Project berhasil dibuat");
+
+        if (formData.id) {
+          await this.$store.dispatch("project/updateProject", {
+            id: formData.id,
+            formData: formData,
+          });
+          await alertService.toastSuccess("Project berhasil diperbarui");
+        } else {
+          await this.$store.dispatch("project/createProject", formData);
+          await alertService.toastSuccess("Project berhasil dibuat");
+        }
+        await this.loadDealProjects();
       } catch (err) {
         console.error(err);
-        await alertService.toastError("Gagal membuat project");
+        await alertService.toastError("Gagal memproses project");
+      }
+    },
+    getProjectStatusClass(status) {
+      const s = String(status || "").toLowerCase();
+      if (s.includes("progress")) return "bg-blue-100 text-blue-700";
+      if (s.includes("complete") || s.includes("done"))
+        return "bg-emerald-100 text-emerald-700 font-semibold";
+      if (s.includes("wait")) return "bg-yellow-100 text-yellow-700";
+      if (s.includes("defer")) return "bg-red-100 text-red-700";
+      return "bg-slate-100 text-slate-700";
+    },
+    openProjectDetail(project) {
+      this.selectedProject = project;
+      this.showCreateProjectForm = true;
+    },
+    openAddProject() {
+      this.selectedProject = { 
+        deal_id: this.formData.id || this.resolveInitialDealId() 
+      };
+      this.showCreateProjectForm = true;
+    },
+    closeProjectModal() {
+      this.showCreateProjectForm = false;
+      this.selectedProject = null;
+    },
+    async loadDealProjects() {
+      const dealId = this.resolveInitialDealId();
+      if (!dealId) {
+        this.dealProjects = [];
+        return;
+      }
+      try {
+        const projects = await this.fetchProjectsByDeal(dealId);
+        const simpleList = Array.isArray(projects) ? projects : [];
+
+        // Perkaya data dengan mencari detail lengkap di allProjects store jika tersedia
+        this.dealProjects = simpleList.map((sp) => {
+          const fullData = this.allProjects.find(
+            (p) => String(p.id) === String(sp.value),
+          );
+          if (fullData) return fullData;
+
+          // Fallback jika detail lengkap tidak ditemukan di store
+          return {
+            id: sp.value,
+            project_name: sp.label,
+            status: "not_started",
+            status_name: "-",
+            due_date: null,
+            leader_name: "-",
+          };
+        });
+      } catch (e) {
+        console.error("Failed to load deal projects", e);
+        this.dealProjects = [];
       }
     },
     handleProjectModalSubmit() {
@@ -1126,10 +1223,12 @@ export default {
           priority: this.formData.priority,
           source: this.formData.source,
           description: this.formData.description,
+          probability: this.formData.probability,
+          status: this.formData.status,
           contactassoc: this.formData.contactassoc || [],
           companyassoc: this.formData.companyassoc || [],
           // SELALU kirim notes dan task (SP akan ignore kalau kosong)
-          owner_id: this.formData.owner_id || null,
+          owner_id: this.formData.owner_id || this.currentUserId || null,
           contact_id: this.formData.contact_id || null,
           company_id: this.formData.company_id || null,
           note: this.formData.noteData?.body || "",
@@ -1692,7 +1791,7 @@ export default {
             <ContactAssociationForm
               ref="contactAssociationForm"
               v-model="tempContactAssoc"
-              :initial-data="tempContactObjects"
+              :contacts="tempContactObjects"
               :company-id="tempCompanyAssoc"
               :filter-by-company="true"
             />
@@ -1756,7 +1855,7 @@ export default {
               <div class="relative">
                 <v-select
                   v-model="formData.owner_id"
-                  :options="getusers"
+                  :options="ownerOptions"
                   label="label"
                   :reduce="(opt) => opt.value"
                   placeholder="Select Owner(PJ)"
@@ -1853,7 +1952,7 @@ export default {
               </label>
               <div class="relative">
                 <select
-                  v-model="formData.active"
+                  v-model="formData.status"
                   class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
                 >
                   <option :value="1">Active</option>
@@ -1872,7 +1971,7 @@ export default {
         <div v-if="activeTab === 'projects'" class="p-6 h-full flex flex-col">
           <div class="flex items-center gap-3 mb-4">
             <button
-              @click="showCreateProjectForm = true"
+              @click="openAddProject"
               class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-outline rounded-xl text-sm font-semibold text-dark-base hover:bg-light-base hover:border-dark-base/20 transition-all duration-200 shadow-sm"
             >
               <Plus :size="18" />
@@ -1889,8 +1988,58 @@ export default {
               </h3>
             </div>
             <div class="flex-1 overflow-y-auto pr-1">
-              <div class="text-sm text-sub-text">
+              <div
+                v-if="associatedProjects.length === 0"
+                class="text-sm text-sub-text"
+              >
                 Daftar Project belum tersedia.
+              </div>
+              <div v-else class="space-y-3">
+                <div
+                  v-for="project in associatedProjects"
+                  :key="project.id"
+                  class="p-3 border border-outline rounded-lg hover:bg-light-base transition-colors cursor-pointer group"
+                  @click="openProjectDetail(project)"
+                >
+                  <div class="flex justify-between items-start mb-1.5">
+                    <h4
+                      class="text-sm font-semibold text-dark-base line-clamp-1 group-hover:text-sub-text transition-colors"
+                    >
+                      {{ project.project_name }}
+                    </h4>
+                    <span
+                      :class="[
+                        'text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider',
+                        getProjectStatusClass(project.status),
+                      ]"
+                    >
+                      {{ project.status_name || project.status }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-4 text-[11px] text-sub-text">
+                    <div class="flex items-center gap-1.5">
+                      <CalendarDays :size="12" class="opacity-70" />
+                      {{
+                        project.due_date
+                          ? new Date(project.due_date).toLocaleDateString(
+                              "id-ID",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )
+                          : "No deadline"
+                      }}
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <User :size="12" class="opacity-70" />
+                      {{
+                        project.leader_name || project.assignee || "No leader"
+                      }}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1954,7 +2103,8 @@ export default {
   <CreateProjectForm
     :isOpen="showCreateProjectForm"
     fromPage="deals"
-    @close="showCreateProjectForm = false"
+    :initialData="selectedProject"
+    @close="closeProjectModal"
     @submit="handleCreateProject"
   />
 
