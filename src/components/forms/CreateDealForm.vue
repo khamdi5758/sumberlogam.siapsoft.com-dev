@@ -1794,6 +1794,7 @@ export default {
               :contacts="tempContactObjects"
               :company-id="tempCompanyAssoc"
               :filter-by-company="true"
+              limit="1"
             />
           </div>
 

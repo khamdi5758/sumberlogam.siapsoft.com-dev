@@ -115,6 +115,7 @@
 import { mapActions, mapGetters, mapMutations } from "vuex";
 import { X, ChevronDown, Search, Check, Plus, Info } from "lucide-vue-next";
 import AddContactQuickForm from "@/components/forms/AddContactQuickForm.vue";
+import { alertService } from "@/services/alertService";
 
 export default {
   name: "ContactAssociationForm",
@@ -145,6 +146,10 @@ export default {
     filterByCompany: {
       type: Boolean,
       default: false,
+    },
+    limit: {
+      type: [Number, String],
+      default: null,
     },
   },
 
@@ -247,6 +252,11 @@ export default {
         }
         this.page = 1;
         this.hasMore = true;
+        
+        // Trigger fetch immediately when opening
+        this.$nextTick(() => {
+          this.fetchContacts();
+        });
       }
       this.isContactDropdownOpen = !this.isContactDropdownOpen;
     },
@@ -307,6 +317,12 @@ export default {
       if (this.contactassoc.includes(contactId)) {
         newValue = this.contactassoc.filter((id) => id !== contactId);
       } else {
+        if (this.limit && this.contactassoc.length >= Number(this.limit)) {
+          alertService.toastInfo(
+            `Hanya diperbolehkan ${this.limit} contact untuk deals`,
+          );
+          return;
+        }
         newValue = [...this.contactassoc, contactId];
       }
       this.contactassoc = newValue;

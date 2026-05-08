@@ -3,6 +3,14 @@ import { useCookies } from "vue3-cookies";
 
 const { cookies } = useCookies();
 
+const normalizeNumber = (value) => {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 const normalizeTaskStatus = (statusRaw) => {
   const status = String(statusRaw || "not_started")
     .toLowerCase()
@@ -68,21 +76,18 @@ const mapTaskPayload = (formData = {}) => {
 
   return {
     task_name: taskName,
-    name: taskName,
-    description,
-    task_content: description,
-    status: normalizeTaskStatus(formData.status || formData.stage),
-    stage: normalizeTaskStatus(formData.status || formData.stage),
-    assignee,
-    owner: assignee,
+    description: description,
+    assigned_id: normalizeNumber(assignee),
     due_date: dueDate,
-    dueDate: dueDate,
-    date: dueDate,
-    deadline: dueDate,
+    priority: normalizeNumber(formData.priority),
+    progress: normalizeNumber(formData.progress) || 0,
+    status_id: normalizeNumber(formData.status_id) || formData.status_id || null,
+    project_id: normalizeNumber(formData.project_id) || formData.project_id || null,
+    created_by: normalizeNumber(formData.created_by) || formData.created_by || null,
+    // Keep legacy fields for compatibility
+    assignee: assignee,
+    status: formData.status_id || formData.status || null,
     task_time: taskTime,
-    due_time: taskTime,
-    time: taskTime,
-    priority: formData.priority || null,
     created_at: createdAt,
     updated_at: updatedAt,
   };
@@ -97,6 +102,11 @@ export default {
     isLoading: false,
     error: null,
     searchQuery: "",
+    projects: [],
+    statuses: [],
+    priorities: [],
+    assignees: [],
+    currentTask: null,
   }),
 
   mutations: {
@@ -126,6 +136,21 @@ export default {
     },
     SET_SEARCH_QUERY(state, query) {
       state.searchQuery = query;
+    },
+    SET_PROJECTS(state, projects) {
+      state.projects = projects;
+    },
+    SET_STATUSES(state, statuses) {
+      state.statuses = statuses;
+    },
+    SET_PRIORITIES(state, priorities) {
+      state.priorities = priorities;
+    },
+    SET_ASSIGNEES(state, assignees) {
+      state.assignees = assignees;
+    },
+    SET_CURRENT_TASK(state, task) {
+      state.currentTask = task;
     },
   },
 
@@ -313,7 +338,7 @@ export default {
       const now = new Date().toISOString();
       const payload = {
         choice: choice,
-        ...(choice === "u" ? { id: formData.id } : {}),
+        ...(choice === "u" ? { id: normalizeNumber(formData.id) } : {}),
         ...mappedPayload,
         created_at:
           choice === "i"
@@ -383,6 +408,12 @@ export default {
           existingTask.description ??
           existingTask.task_content ??
           "",
+        status_id:
+          partialForm.status_id ||
+          partialForm.status ||
+          existingTask.status_id ||
+          existingTask.status ||
+          "1",
         status:
           partialForm.status ||
           partialForm.stage ||
@@ -410,6 +441,9 @@ export default {
           existingTask.time ??
           "",
         priority: partialForm.priority ?? existingTask.priority ?? "",
+        progress: partialForm.progress ?? existingTask.progress ?? 0,
+        project_id: partialForm.project_id ?? existingTask.project_id ?? null,
+        created_by: partialForm.created_by ?? existingTask.created_by ?? null,
       };
 
       return dispatch("createTask", formData);
@@ -475,6 +509,97 @@ export default {
     setSearchQuery({ commit }, query) {
       commit("SET_SEARCH_QUERY", query);
     },
+
+    async fetchProjects({ commit }) {
+      try {
+        const response = await api.get("tasks/project", {
+          headers: {
+            Authorization: "Bearer " + cookies.get("token"),
+          },
+        });
+        const data = response.data?.projects || response.data?.data || response.data || [];
+        commit("SET_PROJECTS", data);
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch projects for tasks:", error);
+        return [];
+      }
+    },
+
+    async fetchStatuses({ commit }) {
+      try {
+        const response = await api.get("tasks/status", {
+          headers: {
+            Authorization: "Bearer " + cookies.get("token"),
+          },
+        });
+        const data = response.data?.status || response.data?.data || response.data || [];
+        commit("SET_STATUSES", data);
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch task statuses:", error);
+        return [];
+      }
+    },
+
+    async fetchPriorities({ commit }) {
+      try {
+        const response = await api.get("tasks/priority", {
+          headers: {
+            Authorization: "Bearer " + cookies.get("token"),
+          },
+        });
+        const data = response.data?.priority || response.data?.data || response.data || [];
+        commit("SET_PRIORITIES", data);
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch task priorities:", error);
+        return [];
+      }
+    },
+
+    async fetchAssignedTo({ commit }) {
+      try {
+        const response = await api.get("tasks/assignedto", {
+          headers: {
+            Authorization: "Bearer " + cookies.get("token"),
+          },
+        });
+        const data = response.data?.assignedto || response.data?.data || response.data || [];
+        commit("SET_ASSIGNEES", data);
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch assignedto users:", error);
+        return [];
+      }
+    },
+
+    async fetchTaskById({ commit }, id) {
+      if (!id) return null;
+      commit("SET_LOADING", true);
+      try {
+        const response = await api.get(`tasks/fetchtaskbyid`, {
+          params: { id },
+          headers: {
+            Authorization: "Bearer " + cookies.get("token"),
+          },
+        });
+        let task = response.data?.task || response.data?.data || response.data;
+        
+        // Jika backend (DB::select) mengembalikan array, ambil index pertama
+        if (Array.isArray(task) && task.length > 0) {
+          task = task[0];
+        }
+        
+        commit("SET_CURRENT_TASK", task);
+        commit("SET_LOADING", false);
+        return task;
+      } catch (error) {
+        console.error("Failed to fetch task by id:", error);
+        commit("SET_LOADING", false);
+        return null;
+      }
+    },
   },
 
   getters: {
@@ -494,5 +619,10 @@ export default {
           task.description?.toLowerCase().includes(query),
       );
     },
+    allProjects: (state) => state.projects,
+    allStatuses: (state) => state.statuses,
+    allPriorities: (state) => state.priorities,
+    allAssignees: (state) => state.assignees,
+    currentTask: (state) => state.currentTask,
   },
 };

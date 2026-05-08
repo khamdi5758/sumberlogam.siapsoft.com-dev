@@ -19,7 +19,7 @@
       >
         <div class="flex items-center gap-2">
           <h2 class="text-xl font-bold text-dark-base">
-            {{ isEditMode ? "Edit Project" : "Create Project" }}
+            {{ isEditMode ? "Edit Project" : "Add Project" }}
           </h2>
         </div>
         <button
@@ -402,69 +402,26 @@
     </div>
   </transition>
 
-  <!-- ======================= TASK DRAWER DENGAN OVERLAY KHUSUS ======================= -->
-  <transition name="overlay">
-    <div
-      v-if="isTaskDrawerOpen"
-      class="fixed inset-0 bg-black/50 z-55"
-      @click="isTaskDrawerOpen = false"
-    ></div>
-  </transition>
-
-  <transition name="slide">
-    <div
-      v-if="isTaskDrawerOpen"
-      class="fixed top-0 right-0 h-screen w-full max-w-2xl bg-white shadow-2xl z-60 flex flex-col"
-      @click.stop
-    >
-      <div
-        class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10"
-      >
-        <h2 class="text-xl font-bold text-dark-base">
-          {{ editingItemIndex !== null ? "Edit Task" : "Tambah Task" }}
-        </h2>
-        <button
-          @click="isTaskDrawerOpen = false"
-          class="p-2 hover:bg-light-base rounded-lg transition-colors"
-        >
-          <X :size="20" class="text-sub-text" />
-        </button>
-      </div>
-
-      <div class="flex-1 overflow-y-auto p-6">
-        <TaskSection v-model="tempTaskData" />
-      </div>
-
-      <div
-        class="bg-white px-6 py-4 border-t border-outline flex justify-end gap-3"
-      >
-        <button
-          @click="isTaskDrawerOpen = false"
-          class="px-6 py-2 border border-outline rounded-lg text-sm font-medium hover:bg-light-base"
-        >
-          Cancel
-        </button>
-        <button
-          @click="saveTaskFromDrawer"
-          class="px-6 py-2 bg-dark-base text-white rounded-lg text-sm font-medium hover:bg-dark-hover"
-        >
-          Simpan
-        </button>
-      </div>
-    </div>
-  </transition>
+    <!-- Create Task Form Overlay -->
+    <CreateTaskForm
+      :isOpen="showCreateTaskForm"
+      :initialData="selectedTaskDetail"
+      :hideProjectField="true"
+      @close="closeCreateTaskForm"
+      @submit="handleTaskSubmit"
+    />
 </template>
 
 <script>
-import { ChevronDown, X, Plus } from "lucide-vue-next";
+import { ChevronDown, X, Plus, Calendar, Save } from "lucide-vue-next";
 import api from "@/api";
 import { useCookies } from "vue3-cookies";
 import { alertService } from "@/services/alertService";
 import LocationSelector from "./component/LocationSelector.vue";
 import NotesSection from "@/components/widgets/NotesEditor.vue";
-import TaskSection from "@/components/widgets/TaskEditor.vue";
 import HistoryDetail from "@/components/widgets/historydetail.vue";
 import { mapActions } from "vuex";
+import CreateTaskForm from "@/components/forms/CreateTaskForm.vue";
 
 const { cookies } = useCookies();
 
@@ -473,11 +430,13 @@ export default {
   components: {
     LocationSelector,
     NotesSection,
-    TaskSection,
     HistoryDetail,
     ChevronDown,
     X,
     Plus,
+    Calendar,
+    Save,
+    CreateTaskForm,
   },
   props: {
     isOpen: {
@@ -500,6 +459,8 @@ export default {
       showTabsAfterSave: false,
       statuses: [],
       isNoteDrawerOpen: false,
+      showCreateTaskForm: false,
+      selectedTaskDetail: null,
       isTaskDrawerOpen: false,
       editingItemIndex: null,
       historyitems: [],
@@ -561,7 +522,13 @@ export default {
   },
   computed: {
     isEditMode() {
-      return !!this.initialData;
+      // Benar-benar cek apakah ada ID project
+      return !!(
+        this.initialData &&
+        (this.initialData.id ||
+          this.initialData.project_id ||
+          this.initialData.id_project)
+      );
     },
     currentUser() {
       return (
@@ -614,23 +581,31 @@ export default {
       return this.$store.getters["history/history"] || [];
     },
     allHistory() {
-      // Prioritaskan history dari store jika ada (karena lebih akurat/terbaru dari BE)
-      if (this.historyFromStore && this.historyFromStore.length > 0) {
-        return this.historyFromStore.map((h) => {
-          // Deteksi tipe: Jika ada 'notes' atau 'parent_type', kemungkinan besar ini note
+      // Prioritaskan historyitems (lokal) jika ada isinya, karena ini hasil fetch spesifik project
+      if (this.historyitems && this.historyitems.length > 0) {
+        return this.historyitems.map((h) => {
           const isNote = h.notes !== undefined || h.idnote !== undefined || h.type === 'note';
-          
           return {
             ...h,
             type: h.type || (isNote ? "note" : "task"),
-            // Fallback body agar seragam di UI
             body: h.notes || h.body || h.task_name || h.name || "",
             content: h.desktask || h.content || "",
             timestamp: h.created_at || h.update_at || h.timestamp,
           };
         });
       }
-      return this.historyitems;
+      
+      // Fallback ke history dari store global
+      return this.historyFromStore.map((h) => {
+        const isNote = h.notes !== undefined || h.idnote !== undefined || h.type === 'note';
+        return {
+          ...h,
+          type: h.type || (isNote ? "note" : "task"),
+          body: h.notes || h.body || h.task_name || h.name || "",
+          content: h.desktask || h.content || "",
+          timestamp: h.created_at || h.update_at || h.timestamp,
+        };
+      });
     },
   },
   watch: {
@@ -1015,22 +990,13 @@ export default {
       }
       this.isNoteDrawerOpen = true;
     },
-    openTaskDrawer(editData = null, index = null) {
-      if (editData) {
-        this.tempTaskData = { ...editData };
-        this.editingItemIndex = index;
+    openTaskDrawer(task = null) {
+      if (task) {
+        this.selectedTaskDetail = { ...task };
       } else {
-        this.tempTaskData = {
-          name: "",
-          content: "",
-          dueDate: "",
-          time: "",
-          status: "",
-          priority: "",
-        };
-        this.editingItemIndex = null;
+        this.selectedTaskDetail = null;
       }
-      this.isTaskDrawerOpen = true;
+      this.showCreateTaskForm = true;
     },
     saveNoteFromDrawer() {
       if (
@@ -1081,42 +1047,90 @@ export default {
           );
         });
     },
-    saveTaskFromDrawer() {
-      if (!this.tempTaskData.name && !this.tempTaskData.content) {
-        alertService.toastWarn("Task masih kosong");
-        return;
+    closeCreateTaskForm() {
+      this.showCreateTaskForm = false;
+      this.selectedTaskDetail = null;
+    },
+    async handleTaskSubmit(taskData) {
+      try {
+        const payload = {
+          ...taskData,
+          project_id: this.formData.id,
+          choice: taskData.id ? "u" : "i",
+        };
+
+        const result = await this.$store.dispatch("tasks/createTask", payload);
+
+        if (result) {
+          alertService.toastSuccess(
+            `Task berhasil ${payload.choice === "u" ? "diupdate" : "dibuat"}`
+          );
+          
+          // Optimistic update: Add to local list immediately for instant feedback
+          if (!taskData.id) {
+            const newTask = {
+              type: "task",
+              id: result.id || Date.now(),
+              name: taskData.task_name,
+              body: taskData.task_name,
+              content: taskData.description,
+              timestamp: new Date().toISOString(),
+              status: "not_started",
+              priority: taskData.priority,
+              dueDate: taskData.due_date,
+            };
+            this.historyitems.unshift(newTask);
+          }
+          
+          this.closeCreateTaskForm();
+          
+          // Refresh project data from BE with a longer delay to ensure persistence
+          if (this.formData.id) {
+            setTimeout(() => {
+              this.fetchProjectHistory();
+            }, 1000);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to save task from project:", error);
+        alertService.toastError("Gagal menyimpan task");
       }
-
-      const item = {
-        type: "task",
-        timestamp: new Date().toISOString(),
-        ...this.tempTaskData,
-      };
-
-      if (this.editingItemIndex !== null) {
-        this.historyitems[this.editingItemIndex] = item;
-      } else {
-        this.historyitems.unshift(item);
+    },
+    async fetchProjectHistory() {
+      if (!this.formData.id) return;
+      try {
+        const response = await this.$store.dispatch(
+          "projects/fetchProjectById",
+          this.formData.id
+        );
+        if (response) {
+          this.setFormData(response);
+        }
+      } catch (error) {
+        console.error("Failed to fetch project history:", error);
       }
-
-      const latestTask = this.historyitems.find((h) => h.type === "task");
-      if (latestTask) {
-        this.formData.task = { ...latestTask };
-      }
-
-      this.isTaskDrawerOpen = false;
-      alertService.toastSuccess("Task ditambahkan");
     },
     handleHistoryEdit({ item, index }) {
       if (item.type === "note") {
         this.openNoteDrawer(item, index);
       } else if (item.type === "task") {
-        this.openTaskDrawer(item, index);
+        this.openTaskDrawer(item);
       }
     },
-    handleHistoryDelete(index) {
-      this.historyitems.splice(index, 1);
-      alertService.toastInfo("Item dihapus dari histori");
+    async handleHistoryDelete(index) {
+      const isConfirmed = await alertService.confirm(
+        "Apakah yakin untuk menghapus assoc task ini?",
+        "Konfirmasi Hapus",
+        {
+          confirmButtonText: "Ya, Hapus",
+          cancelButtonText: "Kembali",
+        }
+      );
+
+      if (isConfirmed) {
+        this.historyitems.splice(index, 1);
+        alertService.toastInfo("Item dihapus dari histori");
+      }
     },
     async handleSubmit() {
       if (!this.formData.project_name.trim()) {

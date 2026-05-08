@@ -3,7 +3,7 @@
   <transition name="overlay">
     <div
       v-if="isOpen"
-      class="fixed inset-0 bg-sub-text/80 z-40 transition-all duration-300"
+      class="fixed inset-0 bg-sub-text/80 z-[55] transition-all duration-300"
       @click="handleClose"
     ></div>
   </transition>
@@ -12,7 +12,7 @@
   <transition name="slide">
     <div
       v-if="isOpen"
-      class="fixed top-0 right-0 h-screen w-full sm:max-w-2xl bg-white shadow-2xl z-50 flex flex-col"
+      class="fixed top-0 right-0 h-screen w-full sm:max-w-2xl bg-white shadow-2xl z-[60] flex flex-col"
       @click.stop
     >
       <!-- Header -->
@@ -48,6 +48,7 @@
           Master
         </button>
         <button
+          v-if="hasTaskId"
           type="button"
           @click="activeTab = 'notes'"
           :class="[
@@ -80,6 +81,83 @@
               placeholder="Task name..."
               class="w-full px-4 py-3 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white"
             />
+          </div>
+
+          <!-- Project Association & Assignee To -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+            <!-- Project Association with Search -->
+            <div v-if="!hideProjectField" class="relative" ref="projectDropdownRef">
+              <label class="block text-sm font-medium text-dark-base mb-2">Project Association</label>
+              <div
+                @click="toggleProjectDropdown"
+                class="w-full px-4 py-3 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white cursor-pointer flex items-center justify-between text-dark-base"
+              >
+                <span>{{ selectedProjectLabel }}</span>
+                <ChevronDown :size="18" class="text-sub-text" />
+              </div>
+
+              <!-- Dropdown Menu -->
+              <div
+                v-if="isProjectDropdownOpen"
+                class="absolute z-50 w-full mt-1 bg-white border border-outline rounded-lg shadow-xl"
+              >
+                <div class="p-2 border-b border-outline">
+                  <div class="relative">
+                    <Search
+                      :size="14"
+                      class="absolute left-2.5 top-1/2 -translate-y-1/2 text-sub-text"
+                    />
+                    <input
+                      v-model="projectSearch"
+                      type="text"
+                      placeholder="Search project..."
+                      class="w-full pl-8 pr-3 py-1.5 text-xs border border-outline rounded focus:outline-none focus:border-sub-text"
+                      @click.stop
+                    />
+                  </div>
+                </div>
+                <div class="max-h-48 overflow-y-auto">
+                  <div
+                    v-for="opt in filteredProjectOptions"
+                    :key="opt.value"
+                    @click="selectProject(opt)"
+                    class="px-3 py-2 text-sm hover:bg-light-base cursor-pointer"
+                    :class="{ 'bg-light-base font-medium': formData.project_id === opt.value }"
+                  >
+                    {{ opt.label }}
+                  </div>
+                  <div
+                    v-if="filteredProjectOptions.length === 0"
+                    class="px-3 py-4 text-xs text-center text-sub-text"
+                  >
+                    No projects found
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Assignee To -->
+            <div :class="{ 'sm:col-span-2': hideProjectField }">
+              <label class="block text-sm font-medium text-dark-base mb-2">Assignee To</label>
+              <div class="relative">
+                <select
+                  v-model="formData.assignee"
+                  class="w-full px-4 py-3 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white appearance-none cursor-pointer text-dark-base"
+                >
+                  <option
+                    v-for="opt in assigneeOptions"
+                    :key="opt.value"
+                    :value="opt.value"
+                  >
+                    {{ opt.label }}
+                  </option>
+                </select>
+                <ChevronDown
+                  :size="18"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-sub-text pointer-events-none"
+                />
+              </div>
+            </div>
           </div>
 
           <!-- Task Description -->
@@ -191,16 +269,16 @@
             ></textarea>
           </div>
 
-          <!-- Status -->
+          <!-- Status & Due Date -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label class="block text-sm font-medium text-dark-base mb-2"
-                >Status</label
+                >Status <span class="text-red-600">*</span></label
               >
               <div class="relative">
                 <select
-                  v-model="formData.status"
-                  class="w-full px-4 py-3 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white appearance-none cursor-pointer text-dark-base"
+                  v-model="formData.status_id"
+                  class="w-full rounded-lg border border-outline bg-white py-2.5 pl-4 pr-10 text-sm text-dark-base outline-none transition focus:border-sub-text appearance-none cursor-pointer"
                 >
                   <option
                     v-for="opt in statusOptions"
@@ -216,19 +294,16 @@
                 />
               </div>
             </div>
-          </div>
 
-          <!-- Due Date & Time -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label class="block text-sm font-medium text-dark-base mb-2"
-                >Due Date</label
+                >Due Date <span class="text-red-600">*</span></label
               >
               <div class="relative">
                 <input
                   v-model="formData.due_date"
                   type="date"
-                  class="w-full px-4 py-3 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white"
+                  class="w-full px-4 py-2.5 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white"
                 />
                 <Calendar
                   :size="18"
@@ -236,52 +311,50 @@
                 />
               </div>
             </div>
+          </div>
+
+          <!-- Priority & Progress -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
-                >Time</label
-              >
+              <label class="block text-sm font-medium text-dark-base mb-2">Priority <span class="text-red-600">*</span></label>
               <div class="relative">
-                <input
-                  v-model="formData.task_time"
-                  type="time"
-                  class="w-full px-4 py-3 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white"
-                />
-                <Clock
+                <select
+                  v-model="formData.priority"
+                  class="w-full px-4 py-3 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white appearance-none cursor-pointer text-dark-base"
+                >
+                  <option
+                    v-for="opt in priorityOptions"
+                    :key="opt.value"
+                    :value="opt.value"
+                  >
+                    {{ opt.label }}
+                  </option>
+                </select>
+                <ChevronDown
                   :size="18"
                   class="absolute right-3 top-1/2 -translate-y-1/2 text-sub-text pointer-events-none"
                 />
               </div>
             </div>
-          </div>
-
-          <!-- Priority -->
-          <div>
-            <label class="block text-sm font-medium text-dark-base mb-2"
-              >Priority</label
-            >
-            <div class="relative">
-              <select
-                v-model="formData.priority"
-                class="w-full px-4 py-3 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white appearance-none cursor-pointer text-dark-base"
-              >
-                <option
-                  v-for="opt in priorityOptions"
-                  :key="opt.value"
-                  :value="opt.value"
-                >
-                  {{ opt.label }}
-                </option>
-              </select>
-              <ChevronDown
-                :size="18"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-sub-text pointer-events-none"
+            <div>
+              <label class="block text-sm font-medium text-dark-base mb-2">Progress (%) <span class="text-red-600">*</span></label>
+              <input
+                v-model="formData.progress"
+                type="number"
+                min="0"
+                max="100"
+                placeholder="0"
+                class="w-full px-4 py-3 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white"
               />
             </div>
           </div>
         </form>
 
         <!-- Tab Notes -->
-        <div v-if="activeTab === 'notes'" class="p-6 h-full flex flex-col">
+        <div
+          v-if="hasTaskId && activeTab === 'notes'"
+          class="p-6 h-full flex flex-col"
+        >
           <HistoryDetail
             :items="historyitems"
             @add-note="openNoteDrawer"
@@ -395,6 +468,8 @@ import {
   RotateCcw,
   RotateCw,
   Plus,
+  Search,
+  Check,
 } from "lucide-vue-next";
 import NotesSection from "@/components/widgets/NotesEditor.vue";
 import HistoryDetail from "@/components/widgets/historydetail.vue";
@@ -422,6 +497,8 @@ export default {
     RotateCcw,
     RotateCw,
     Plus,
+    Search,
+    Check,
     NotesSection,
     HistoryDetail,
   },
@@ -430,7 +507,15 @@ export default {
       type: Boolean,
       default: false,
     },
+    hideProjectField: {
+      type: Boolean,
+      default: false,
+    },
     initialData: {
+      type: Object,
+      default: null,
+    },
+    task: {
       type: Object,
       default: null,
     },
@@ -439,16 +524,20 @@ export default {
     return {
       activeTab: "master",
       isNoteDrawerOpen: false,
+      isProjectDropdownOpen: false,
+      projectSearch: "",
       editingItemIndex: null,
       historyitems: [],
       formData: {
         task_name: "",
         description: "",
-        status: "",
+        status_id: "",
         assignee: "",
         due_date: "",
         task_time: "",
         priority: "",
+        progress: 0,
+        project_id: null,
       },
       tempNoteData: {
         body: "",
@@ -458,32 +547,77 @@ export default {
         photos: [],
         audioBlob: null,
       },
-      statusOptions: [
-        { value: "", label: "Select Data" },
-        { value: "todo", label: "To Do" },
-        { value: "in_progress", label: "In Progress" },
-        { value: "done", label: "Done" },
-      ],
-      priorityOptions: [
-        { value: "", label: "Select Data" },
-        { value: "low", label: "Low" },
-        { value: "medium", label: "Medium" },
-        { value: "high", label: "High" },
-      ],
     };
   },
   computed: {
-    ...mapGetters("users", ["usersignin", "allUsers"]),
+    ...mapGetters("users", ["usersignin"]),
+    ...mapGetters("tasks", ["allProjects", "allStatuses", "allPriorities", "allAssignees", "currentTask"]),
+    sourceData() {
+      return this.initialData || this.task || null;
+    },
     isEditMode() {
-      return !!(this.initialData && Object.keys(this.initialData).length);
+      return !!(this.sourceData && Object.keys(this.sourceData).length);
+    },
+    hasTaskId() {
+      return !!(
+        this.sourceData?.id ||
+        this.sourceData?.task_id ||
+        this.sourceData?.taskId ||
+        this.sourceData?.task?.id
+      );
+    },
+    statusOptions() {
+      const statuses = this.allStatuses || [];
+      return [
+        { value: "", label: "Select Status" },
+        ...statuses.map((s) => ({
+          value: s.value || s.id || "",
+          label: s.label || s.name || s.status_name || "Unknown",
+        })),
+      ];
+    },
+    priorityOptions() {
+      const priorities = this.allPriorities || [];
+      return [
+        { value: "", label: "Select Priority" },
+        ...priorities.map((p) => ({
+          value: p.value || p.id || "",
+          label: p.label || p.name || p.priority_name || "Unknown",
+        })),
+      ];
+    },
+    filteredProjectOptions() {
+      const search = this.projectSearch.toLowerCase().trim();
+      if (!search) return this.projectOptions;
+      return this.projectOptions.filter(opt => 
+        opt.label.toLowerCase().includes(search)
+      );
+    },
+    selectedProjectLabel() {
+      const selected = this.projectOptions.find(opt => opt.value === this.formData.project_id);
+      return selected ? selected.label : "Select Project";
+    },
+    selectedStatusLabel() {
+      const selected = this.statusOptions.find(opt => opt.value === this.formData.status_id);
+      return selected ? selected.label : "Select Status";
     },
     assigneeOptions() {
-      const users = this.allUsers || [];
+      const users = this.allAssignees || [];
       return [
-        { value: "", label: "Select Data" },
+        { value: "", label: "Select User" },
         ...users.map((user) => ({
-          value: user.name || user.username || user.id,
-          label: user.name || user.username || "Unknown",
+          value: user.value || user.id || user.user_id || "",
+          label: user.label || user.name || user.username || "Unknown",
+        })),
+      ];
+    },
+    projectOptions() {
+      const projects = this.allProjects || [];
+      return [
+        { value: "", label: "Select Project" },
+        ...projects.map((p) => ({
+          value: p.value || p.id || p.project_id || "",
+          label: p.label || p.project_name || p.name || "Untitled Project",
         })),
       ];
     },
@@ -501,10 +635,26 @@ export default {
   watch: {
     isOpen: {
       immediate: true,
-      handler(val) {
+      async handler(val) {
         if (val) {
-          if (this.initialData) {
-            this.setFormData(this.initialData);
+          this.$store.dispatch("tasks/fetchProjects");
+          this.$store.dispatch("tasks/fetchStatuses");
+          this.$store.dispatch("tasks/fetchPriorities");
+          this.$store.dispatch("tasks/fetchAssignedTo");
+          this.$store.dispatch("users/getusersignin");
+
+          if (this.sourceData) {
+            const taskId = this.sourceData.id || this.sourceData.task_id || this.sourceData.taskId;
+            if (taskId) {
+              const fullTask = await this.$store.dispatch("tasks/fetchTaskById", taskId);
+              if (fullTask) {
+                this.setFormData(fullTask);
+              } else {
+                this.setFormData(this.sourceData);
+              }
+            } else {
+              this.setFormData(this.sourceData);
+            }
           } else {
             this.handleReset();
           }
@@ -521,32 +671,148 @@ export default {
         }
       },
     },
+    task: {
+      deep: true,
+      handler(newData) {
+        if (this.isOpen && newData) {
+          this.setFormData(newData);
+          this.activeTab = "master";
+        }
+      },
+    },
   },
   mounted() {
-    this.$store.dispatch("users/fetchAllusers");
+    this.$store.dispatch("tasks/fetchStatuses");
+    this.$store.dispatch("tasks/fetchPriorities");
+    this.$store.dispatch("tasks/fetchAssignedTo");
+    this.$store.dispatch("tasks/fetchProjects");
     this.$store.dispatch("users/getusersignin");
-    if (!this.formData.assignee && this.currentUserName) {
-      this.formData.assignee = this.currentUserName;
+    
+    if (!this.formData.assignee && this.usersignin?.id) {
+      this.formData.assignee = this.usersignin.id;
     }
-    window.addEventListener("keydown", this.handleEscKey);
+    document.addEventListener("click", this.handleClickOutside);
   },
-  beforeDestroy() {
-    window.removeEventListener("keydown", this.handleEscKey);
+  beforeUnmount() {
+    document.removeEventListener("click", this.handleClickOutside);
   },
   methods: {
+    pickFirst(...values) {
+      for (const value of values) {
+        if (value !== undefined && value !== null && value !== "") return value;
+      }
+      return "";
+    },
+    normalizeDateForInput(rawValue) {
+      if (!rawValue) return "";
+
+      if (typeof rawValue === "string") {
+        const trimmed = rawValue.trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+
+        const match = trimmed.match(/^(\d{4}-\d{2}-\d{2})/);
+        if (match) return match[1];
+      }
+
+      const parsed = new Date(rawValue);
+      if (Number.isNaN(parsed.getTime())) return "";
+      return parsed.toISOString().slice(0, 10);
+    },
+    normalizeTimeForInput(rawValue) {
+      if (!rawValue) return "";
+
+      if (typeof rawValue === "string") {
+        const trimmed = rawValue.trim();
+        const hhmm = trimmed.match(/^(\d{2}:\d{2})/);
+        if (hhmm) return hhmm[1];
+
+        const fromDateTime = trimmed.match(/T(\d{2}:\d{2})/);
+        if (fromDateTime) return fromDateTime[1];
+      }
+
+      const parsed = new Date(rawValue);
+      if (Number.isNaN(parsed.getTime())) return "";
+      return `${String(parsed.getHours()).padStart(2, "0")}:${String(parsed.getMinutes()).padStart(2, "0")}`;
+    },
+    normalizeStatus(rawValue) {
+      const normalized = String(rawValue || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "_");
+
+      if (!normalized) return "";
+      if (normalized === "process" || normalized === "progress") {
+        return "in_progress";
+      }
+      return normalized;
+    },
     getCurrentUserName() {
       return this.currentUserName;
     },
     setFormData(data) {
       if (!data) return;
+
+      const taskData = data.task || {};
+      const dueDateRaw = this.pickFirst(
+        data.due_date,
+        data.dueDate,
+        data.date,
+        data.deadline,
+        taskData.due_date,
+        taskData.dueDate,
+        taskData.date,
+        taskData.deadline,
+      );
+      const timeRaw = this.pickFirst(
+        data.task_time,
+        data.time,
+        taskData.task_time,
+        taskData.time,
+        dueDateRaw,
+      );
+
       this.formData = {
-        task_name: data.task_name || data.name || "",
-        description: data.description || data.content || "",
-        status: data.status || "",
-        assignee: data.assignee || this.currentUserName,
-        due_date: data.due_date || "",
-        task_time: data.task_time || data.time || "",
-        priority: data.priority || "",
+        task_name: this.pickFirst(
+          data.task_name,
+          data.title,
+          data.name,
+          taskData.task_name,
+          taskData.title,
+          taskData.name,
+        ),
+        description: this.pickFirst(
+          data.description,
+          data.content,
+          taskData.description,
+          taskData.content,
+        ),
+        status_id: this.pickFirst(
+          data.status_id,
+          data.id_status,
+          data.status,
+          taskData.status_id,
+          taskData.id_status,
+          taskData.status,
+        ),
+        assignee: this.pickFirst(
+          data.assignee,
+          data.assigned_id,
+          data.owner,
+          taskData.assignee,
+          taskData.assigned_id,
+          taskData.owner,
+          this.usersignin?.id,
+        ),
+        due_date: this.normalizeDateForInput(dueDateRaw),
+        task_time: this.normalizeTimeForInput(timeRaw),
+        priority: this.pickFirst(
+          data.priority,
+          data.prioritytask,
+          taskData.priority,
+          taskData.prioritytask,
+        ),
+        progress: this.pickFirst(data.progress, taskData.progress, 0),
+        project_id: this.pickFirst(data.project_id, taskData.project_id, null),
       };
       // Map history notes
       let rawNotes = data.notes || data.note;
@@ -588,10 +854,12 @@ export default {
         task_name: "",
         description: "",
         status: "",
-        assignee: this.currentUserName,
+        assignee: this.usersignin?.id || "",
         due_date: "",
         task_time: "",
         priority: "",
+        progress: 0,
+        project_id: null,
       };
       this.historyitems = [];
       this.tempNoteData = {
@@ -611,11 +879,36 @@ export default {
       this.$emit("close");
     },
     handleSubmit() {
-      if (!this.formData.task_name.trim()) {
+      // Required fields validation
+      if (!this.formData.task_name?.trim()) {
         alertService.toastError("Nama task wajib diisi");
         return;
       }
-      this.$emit("submit", this.formData);
+      if (!this.formData.due_date) {
+        alertService.toastError("Due date wajib diisi");
+        return;
+      }
+      if (!this.formData.priority) {
+        alertService.toastError("Priority wajib diisi");
+        return;
+      }
+      if (this.formData.progress === undefined || this.formData.progress === null || this.formData.progress === "") {
+        alertService.toastError("Progress wajib diisi");
+        return;
+      }
+      if (!this.formData.status_id) {
+        alertService.toastError("Status wajib diisi");
+        return;
+      }
+
+      // Add created_by if not already present
+      const currentUserId = this.usersignin?.id || this.$store.getters["users/useridsignin"];
+      const payload = {
+        ...this.formData,
+        created_by: this.formData.created_by || currentUserId,
+      };
+
+      this.$emit("submit", payload);
       this.handleReset();
       this.handleClose();
     },
@@ -662,9 +955,20 @@ export default {
       alertService.toastInfo("Item dihapus dari histori");
     },
     handleEscKey(e) {
-      if (e.key === "Escape" && this.isNoteDrawerOpen) {
-        this.isNoteDrawerOpen = false;
+      if (e.key === "Escape") {
+        if (this.isNoteDrawerOpen) this.isNoteDrawerOpen = false;
+        if (this.isProjectDropdownOpen) this.isProjectDropdownOpen = false;
       }
+    },
+    handleClickOutside(e) {
+      if (this.$refs.projectDropdownRef && !this.$refs.projectDropdownRef.contains(e.target)) {
+        this.isProjectDropdownOpen = false;
+      }
+    },
+    selectProject(opt) {
+      this.formData.project_id = opt.value;
+      this.isProjectDropdownOpen = false;
+      this.projectSearch = "";
     },
   },
 };

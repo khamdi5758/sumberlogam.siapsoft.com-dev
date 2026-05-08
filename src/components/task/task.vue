@@ -140,20 +140,12 @@
     <TaskCard v-else-if="activeMode === 'grid'" @viewDetail="openTaskDetail" />
   </div>
 
-  <!-- Create Task Form -->
+  <!-- Create / Edit Task Form -->
   <CreateTaskForm
     :isOpen="showCreateTaskForm"
-    @close="showCreateTaskForm = false"
-    @submit="handleCreateTask"
-  />
-
-  <!-- Task Detail Form -->
-  <TaskDetailDataForm
-    :isOpen="showTaskDetailForm"
     :task="selectedTaskDetail"
-    :isSubmitting="isTaskDetailSubmitting"
-    @close="closeTaskDetail"
-    @submit="handleTaskDetailSubmit"
+    @close="closeCreateTaskForm"
+    @submit="handleTaskSubmit"
   />
 </template>
 
@@ -176,7 +168,6 @@ import TaskList from "./tasklist.vue";
 import TaskCalender from "./taskcalender.vue";
 import TaskCard from "./taskcard.vue";
 import CreateTaskForm from "@/components/forms/CreateTaskForm.vue";
-import TaskDetailDataForm from "@/components/forms/TaskDetailDataForm.vue";
 import { alertService } from "@/services/alertService";
 
 export default {
@@ -197,16 +188,13 @@ export default {
     TaskCalender,
     TaskCard,
     CreateTaskForm,
-    TaskDetailDataForm,
   },
   data() {
     return {
       showDropdown: false,
       showDownloadDropdown: false,
       showCreateTaskForm: false,
-      showTaskDetailForm: false,
       selectedTaskDetail: null,
-      isTaskDetailSubmitting: false,
     };
   },
   computed: {
@@ -255,11 +243,19 @@ export default {
       return `${baseClass} ${activeClass}`;
     },
     fetchData() {
-      return this.$store.dispatch("tasks/fetchAllTasks");
+      this.$store.dispatch("tasks/fetchAllTasks");
+      this.$store.dispatch("tasks/fetchProjects");
     },
     openCreateTaskForm() {
       this.showDropdown = false;
+      this.selectedTaskDetail = null;
       this.showCreateTaskForm = true;
+      
+      // Proactive fetch for form options
+      this.$store.dispatch("tasks/fetchStatuses");
+      this.$store.dispatch("tasks/fetchPriorities");
+      this.$store.dispatch("tasks/fetchAssignedTo");
+      this.$store.dispatch("tasks/fetchProjects");
     },
     handleBulkAdd() {
       this.showDropdown = false;
@@ -273,62 +269,65 @@ export default {
       this.showDownloadDropdown = false;
       console.log("Download Selected Tasks");
     },
-    async handleCreateTask(formData) {
-      try {
-        await this.$store.dispatch("tasks/createTask", formData);
-        this.showCreateTaskForm = false;
-      } catch (err) {
-        console.error("Failed to create task:", err);
+    async openTaskDetail(task) {
+      const taskId = task.id || task.task_id || task.id_task;
+      
+      if (taskId) {
+        // Fetch data terbaru dari backend sebelum buka form
+        const fullTask = await this.$store.dispatch("tasks/fetchTaskById", taskId);
+        this.selectedTaskDetail = fullTask || { ...task };
+      } else {
+        this.selectedTaskDetail = { ...task };
       }
+      
+      this.showCreateTaskForm = true;
+
+      // Proactive fetch for other options
+      this.$store.dispatch("tasks/fetchStatuses");
+      this.$store.dispatch("tasks/fetchPriorities");
+      this.$store.dispatch("tasks/fetchAssignedTo");
+      this.$store.dispatch("tasks/fetchProjects");
     },
-    openTaskDetail(task) {
-      this.selectedTaskDetail = { ...task };
-      this.showTaskDetailForm = true;
-    },
-    closeTaskDetail() {
+    closeCreateTaskForm() {
       this.selectedTaskDetail = null;
-      this.showTaskDetailForm = false;
+      this.showCreateTaskForm = false;
     },
-    async handleTaskDetailSubmit(payload) {
-      const taskId = this.selectedTaskDetail?.id || payload?.id;
-
-      if (!taskId) {
-        alertService.error(
-          "ID task tidak ditemukan. Coba buka ulang detail task.",
-        );
-        return;
-      }
-
-      if (!payload?.task_name?.trim()) {
-        alertService.error("Task name wajib diisi.");
-        return;
-      }
-
-      this.isTaskDetailSubmitting = true;
+    async handleTaskSubmit(formData) {
+      const isEdit = !!(formData.id || this.selectedTaskDetail?.id);
+      const taskId = formData.id || this.selectedTaskDetail?.id;
+      
+      // Fallback ID user dari Store jika di formData belum ada
+      const currentUserId = this.$store.getters["users/useridsignin"] || this.$store.getters["users/usersignin"]?.id;
 
       try {
-        await this.$store.dispatch("tasks/updateTask", {
-          id: taskId,
-          formData: {
-            ...payload,
-            task_name: payload.task_name.trim(),
-            description: payload.description?.trim() || "",
-            assignee: payload.assignee?.trim() || "",
-          },
-        });
+        const payload = {
+          ...formData,
+          task_name: formData.task_name.trim(),
+          description: formData.description?.trim() || "",
+          assignee: String(formData.assignee || "").trim(),
+          created_by: formData.created_by || currentUserId,
+          project_id: formData.project_id || null,
+        };
 
+        if (isEdit) {
+          await this.$store.dispatch("tasks/updateTask", {
+            id: taskId,
+            formData: payload,
+          });
+          alertService.success("Task berhasil diperbarui.");
+        } else {
+          await this.$store.dispatch("tasks/createTask", payload);
+        }
+        
         await this.$store.dispatch("tasks/fetchAllTasks");
-        alertService.success("Task berhasil diperbarui.");
-        this.closeTaskDetail();
+        this.closeCreateTaskForm();
       } catch (err) {
         const backendMessage =
           err?.response?.data?.message ||
           err?.response?.data?.error ||
           err?.message ||
-          "Gagal update task. Silakan coba lagi.";
+          "Gagal memproses task. Silakan coba lagi.";
         alertService.error(backendMessage);
-      } finally {
-        this.isTaskDetailSubmitting = false;
       }
     },
     handleRouteChange() {
