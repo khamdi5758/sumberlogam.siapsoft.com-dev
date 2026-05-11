@@ -93,7 +93,7 @@
         </div>
       </div>
 
-      <div class="relative">
+      <!--<div class="relative">
         <Search
           class="pointer-events-none absolute left-3 top-2.5 text-gray-400"
           :size="18"
@@ -103,17 +103,17 @@
           placeholder="Type to search..."
           class="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
         />
-      </div>
+      </div>-->
     </div>
 
     <div class="hidden items-center justify-between gap-3 lg:flex">
       <div class="relative w-full sm:w-72">
-        <Search class="absolute left-3 top-2.5 text-gray-400" :size="18" />
+        <!--<Search class="absolute left-3 top-2.5 text-gray-400" :size="18" />
         <input
           type="text"
           placeholder="Type to search..."
           class="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-sub-text"
-        />
+        />-->
       </div>
 
       <div class="flex items-center gap-3 sm:gap-4">

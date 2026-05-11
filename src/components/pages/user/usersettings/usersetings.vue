@@ -59,7 +59,7 @@ import { alertService } from "@/services/alertService";
 import UsersHeader from "./usersHeader.vue";
 import UsersFilterBar from "./usersetFiltBar.vue";
 import UsersTable from "./usersTable.vue";
-import CreateUserForm from "../../forms/CreateUserForm.vue";
+import CreateUserForm from "@/components/forms/CreateUserForm.vue";
 
 export default {
   name: "UserSettings",

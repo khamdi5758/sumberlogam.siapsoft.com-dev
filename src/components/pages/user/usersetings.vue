@@ -9,7 +9,7 @@ import {
   ChevronDown,
 } from "lucide-vue-next";
 
-import CreateUserForm from "../forms/CreateUserForm.vue";
+import CreateUserForm from "@/components/forms/CreateUserForm.vue";
 import { mapGetters, mapActions, mapState } from "vuex";
 import { alertService } from "@/services/alertService";
 

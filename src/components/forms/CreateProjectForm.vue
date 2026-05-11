@@ -669,6 +669,7 @@ export default {
     ...mapActions({
       saveNote: "history/saveNote",
       acthistory: "history/acthistory",
+      deleteTask: "tasks/deleteTask",
     }),
 
     handleEscKey(e) {
@@ -1128,17 +1129,46 @@ export default {
       }
     },
     async handleHistoryDelete(index) {
+      const item = this.allHistory[index];
+      if (!item) return;
+
       const isConfirmed = await alertService.confirm(
-        "Apakah yakin untuk menghapus assoc task ini?",
+        `Apakah Anda yakin ingin menghapus ${item.type === "task" ? "task" : "note"} ini?`,
         "Konfirmasi Hapus",
         {
           confirmButtonText: "Ya, Hapus",
           cancelButtonText: "Kembali",
-        }
+        },
       );
 
       if (isConfirmed) {
-        this.historyitems.splice(index, 1);
+        if (item.type === "task") {
+          try {
+            const taskId = item.id || item.task_id || item.id_task;
+            if (taskId) {
+              await this.deleteTask(taskId);
+              alertService.toastSuccess("Task berhasil dihapus");
+            }
+          } catch (error) {
+            console.error("Failed to delete task:", error);
+            alertService.toastError("Gagal menghapus task");
+            return;
+          }
+        }
+
+        // Cari index asli di historyitems untuk di splice
+        const itemId = item.id || item.id_task || item.task_id || item.idnote;
+        const localIndex = this.historyitems.findIndex((h) => {
+          const hId = h.id || h.id_task || h.task_id || h.idnote;
+          return String(hId) === String(itemId);
+        });
+
+        if (localIndex !== -1) {
+          this.historyitems.splice(localIndex, 1);
+        }
+
+        // Selalu refresh dari store untuk sinkronisasi final
+        this.fetchProjectHistory();
         alertService.toastInfo("Item dihapus dari histori");
       }
     },

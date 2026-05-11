@@ -9,8 +9,8 @@ import {
   Trash2,
   RefreshCw,
 } from "lucide-vue-next";
-import CreateTeamForm from "../forms/CreateTeamForm.vue";
-import DetailTeamForm from "../forms/DetailTeamForm.vue";
+import CreateTeamForm from "@/components/forms/CreateTeamForm.vue";
+import DetailTeamForm from "@/components/forms/DetailTeamForm.vue";
 import { alertService } from "@/services/alertService";
 
 export default {
