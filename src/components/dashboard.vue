@@ -493,13 +493,13 @@ export default {
     <Activity :activities="activities" :isLoading="isLoadingActivity" />
   </div>
 
-  <!-- Leads Report -->
+  <!-- Leads Report 
   <LeadsReport
     :contacts="leadsContacts"
     :companies="leadsCompanies"
     :deals="leadsDeals"
     :isLoading="isLoadingLeads"
-  />
+  />-->
 
   <!-- Top Contacts and Company -->
   <div class="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-5 mb-5">
@@ -507,8 +507,8 @@ export default {
     <TopComp :companies="topCompaniesList" :isLoading="isLoadingTopCompanies" />
   </div>
 
-  <!-- Tasks KPI -->
-  <TasksKPI :tasks="tasksList" :loading="isLoadingTasksKPI" />
+  <!-- Tasks KPI 
+  <TasksKPI :tasks="tasksList" :loading="isLoadingTasksKPI" /> -->
 
   <!-- Task List and Top Salespeople -->
   <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 mb-5">
