@@ -338,8 +338,8 @@
             Cancel
           </button>
           <button
-            type="submit"
-            form="projectForm"
+            type="button"
+            @click="handleSubmit"
             :disabled="isSubmitting"
             class="rounded-lg bg-dark-base px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-dark-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
@@ -523,12 +523,13 @@ export default {
   },
   computed: {
     isEditMode() {
-      // Benar-benar cek apakah ada ID project
+      // Benar-benar cek apakah ada ID project di initialData atau formData
       return !!(
-        this.initialData &&
-        (this.initialData.id ||
-          this.initialData.project_id ||
-          this.initialData.id_project)
+        (this.initialData &&
+          (this.initialData.id ||
+            this.initialData.project_id ||
+            this.initialData.id_project)) ||
+        this.formData.id
       );
     },
     currentUser() {
@@ -619,20 +620,25 @@ export default {
     },
     isOpen(isOpen) {
       if (isOpen) {
+        // Bersihkan error di store setiap kali drawer dibuka agar pesan merah di background hilang
+        this.$store.commit("project/SET_ERROR", null);
+
+        // Segera isi data jika sudah ada untuk menghindari input kosong di awal
+        if (this.initialData) {
+          this.setFormData(this.initialData);
+        } else {
+          this.resetForm();
+          this.showTabsAfterSave = false;
+        }
+        this.activeTab = "master";
+
         Promise.allSettled([
           this.$store.dispatch("users/getusersignin"),
           this.$store.dispatch("project/fetchLeaders"),
           this.$store.dispatch("project/fetchDeals"),
           this.$store.dispatch("project/fetchStatuses"),
         ]).finally(() => {
-          if (this.initialData) {
-            this.setFormData(this.initialData);
-          } else {
-            this.resetForm();
-            this.showTabsAfterSave = false;
-          }
           this.applyDefaultCreator();
-          this.activeTab = "master";
         });
       }
     },
@@ -767,48 +773,50 @@ export default {
         });
       }
 
-      this.formData = {
-        id: data.id ?? data.project_id ?? data.id_project ?? null,
-        project_name:
-          data.project_name ||
-          data["Project Name"] ||
-          data.title ||
-          data.name ||
-          "",
-        deal_id: data.deal_id ?? data.deal ?? data.id_deals ?? "",
-        leader_id:
-          data.leader_id ??
-          data.id_leader ??
-          data.assignee_id ??
-          data.id_user ??
-          "",
-        description: data.description || data.project_content || "",
-        location: data.location || "",
-        kd_kelurahan: data.kd_kelurahan || data.kelurahan || "",
-        project_status: data.project_status || data.status || data.stage || "",
-        status_id: data.status_id || data.id_status || "",
-        created_at: data.created_at || new Date().toISOString(),
-        created_by:
-          data.created_by || this.currentUserId || this.currentUserLabel || "",
-        task: {
-          name: data.task_name || data.task?.name || "",
-          content: data.desktask || data.task?.content || "",
-          dueDate: data.due_date || data.task?.dueDate || "",
-          time: data.task_time || data.task?.time || "",
-          status: data.statustask || data.task?.status || "",
-          priority: data.prioritytask || data.task?.priority || "",
-        },
-        noteData: {
-          body: data.note || data.notes || data.noteData?.body || "",
-          gps_address: data.noteData?.gps_address || null,
-          latitude: data.noteData?.latitude || null,
-          longitude: data.noteData?.longitude || null,
-          photos: Array.isArray(data.noteData?.photos)
-            ? data.noteData.photos
-            : [],
-          audioBlob: data.noteData?.audioBlob || null,
-        },
+      // Update secara spesifik untuk menjaga reactivity
+      this.formData.id = pid || null;
+      this.formData.project_name =
+        data.project_name ||
+        data.project_title ||
+        data["Project Name"] ||
+        data.title ||
+        data.name ||
+        data.label ||
+        data.project?.project_name ||
+        this.formData.project_name || 
+        "";
+      this.formData.deal_id = data.deal_id ?? data.deal ?? data.id_deals ?? "";
+      this.formData.leader_id =
+        data.leader_id ??
+        data.id_leader ??
+        data.assignee_id ??
+        data.id_user ??
+        "";
+      this.formData.description = data.description || data.project_content || "";
+      this.formData.location = data.location || "";
+      this.formData.kd_kelurahan = data.kd_kelurahan || data.kelurahan || "";
+      this.formData.project_status =
+        data.project_status || data.status || data.stage || "";
+      this.formData.status_id = data.status_id || data.id_status || "";
+      this.formData.created_at = data.created_at || new Date().toISOString();
+      this.formData.created_by =
+        data.created_by || this.currentUserId || this.currentUserLabel || "";
+      this.formData.task = {
+        name: data.task_name || data.task?.name || "",
+        content: data.desktask || data.task?.content || "",
+        dueDate: data.due_date || data.task?.dueDate || "",
+        time: data.task_time || data.task?.time || "",
+        status: data.statustask || data.task?.status || "",
+        priority: data.prioritytask || data.task?.priority || "",
       };
+      this.formData.noteData = {
+        body: data.note || data.notes || data.noteData?.body || "",
+        gps_address: data.noteData?.gps_address || null,
+        latitude: data.noteData?.latitude || null,
+        longitude: data.noteData?.longitude || null,
+        photos: Array.isArray(data.noteData?.photos) ? data.noteData.photos : [],
+      };
+      this.formData.noteData.audioBlob = data.noteData?.audioBlob || null;
 
       // If we are coming from deals page and it's a new project, 
       // ensure deal_id is set from initialData if formData.deal_id is empty
@@ -926,7 +934,9 @@ export default {
       this.formData = {
         id: null,
         project_name: "",
-        deal_id: "",
+        deal_id: (this.fromPage === 'deals' && this.initialData) 
+          ? (this.initialData.deal_id || this.initialData.id_deals || this.initialData.id || "")
+          : "",
         leader_id: "",
         description: "",
         location: "",
@@ -1173,13 +1183,29 @@ export default {
       }
     },
     async handleSubmit() {
-      if (!this.formData.project_name.trim()) {
-        await alertService.error("Project name wajib diisi.");
+      if (this.isSubmitting) return;
+
+      // Bersihkan error lama di store agar pesan merah di background hilang
+      this.$store.commit("project/SET_ERROR", null);
+
+      const projectName = String(this.formData.project_name || "").trim();
+      if (!projectName) {
+        await alertService.error("Nama Project wajib diisi.");
         return;
       }
       if (!this.formData.deal_id) {
-        await alertService.error("Deal wajib dipilih.");
-        return;
+        // Jika dari deals page, coba ambil deal_id dari initialData sebagai fallback
+        const dealIdFallback = this.initialData?.deal_id || 
+                             this.initialData?.id_deals || 
+                             this.initialData?.id_deal || 
+                             this.initialData?.id;
+
+        if (this.fromPage === 'deals' && dealIdFallback) {
+          this.formData.deal_id = dealIdFallback;
+        } else {
+          await alertService.error("Deal wajib dipilih.");
+          return;
+        }
       }
       if (!this.formData.leader_id) {
         await alertService.error("Leader wajib dipilih.");
@@ -1220,18 +1246,46 @@ export default {
           historyitems: this.historyitems.map((item) => ({ ...item })),
         };
 
-        // Handle flow after submit
-        if (this.fromPage === "projects" && !this.isEditMode) {
-          // Jika dari halaman project, jangan tutup, tapi pindah ke tab tasks
-          this.showTabsAfterSave = true;
-          this.activeTab = "tasks";
-          alertService.toastSuccess(
-            "Project saved. You can now add tasks and notes.",
-          );
-          this.$emit("submit", payload); // Tetap emit agar list di background refresh
+        let response;
+        if (this.isEditMode) {
+          response = await this.$store.dispatch("project/updateProject", {
+            id: this.formData.id,
+            formData: payload,
+          });
+          alertService.toastSuccess("Project updated successfully");
         } else {
-          // Jika dari deals atau edit mode, tutup seperti biasa
-          this.$emit("submit", payload);
+          response = await this.$store.dispatch("project/createProject", payload);
+          alertService.toastSuccess("Project created successfully");
+
+          // Ambil ID baru dari response backend (mencakup berbagai kemungkinan struktur response)
+          const newId =
+            response?.id ||
+            response?.result?.id ||
+            response?.param?.id ||
+            response?.data?.id ||
+            response?.project_id ||
+            response?.data?.project_id ||
+            (Array.isArray(response?.result) && response.result[0]?.id) ||
+            (Array.isArray(response?.data) && response.data[0]?.id);
+
+          if (newId) {
+            this.formData.id = newId;
+          }
+        }
+
+        // Handle UI flow based on context
+        if (this.fromPage === "projects") {
+          if (!this.isEditMode) {
+            this.showTabsAfterSave = true;
+            this.activeTab = "tasks";
+          } else {
+            // Refresh history/detail jika perlu
+            this.fetchProjectHistory();
+          }
+          this.$emit("submit", response || payload);
+        } else {
+          // Jika dari deals atau context lain, tutup dan emit
+          this.$emit("submit", response || payload);
           this.resetForm();
           this.$emit("close");
         }

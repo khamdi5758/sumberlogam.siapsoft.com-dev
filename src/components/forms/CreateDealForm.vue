@@ -1155,29 +1155,11 @@ export default {
       this.historyitems = [];
       this.$emit("close");
     },
-    async handleCreateProject(formData) {
-      try {
-        const dealId =
-          this.resolveInitialDealId() ||
-          (this.initialData && this.initialData.id) ||
-          null;
-        if (dealId && !formData.deal_id) formData.deal_id = dealId;
-
-        if (formData.id) {
-          await this.$store.dispatch("project/updateProject", {
-            id: formData.id,
-            formData: formData,
-          });
-          await alertService.toastSuccess("Project berhasil diperbarui");
-        } else {
-          await this.$store.dispatch("project/createProject", formData);
-          await alertService.toastSuccess("Project berhasil dibuat");
-        }
-        await this.loadDealProjects();
-      } catch (err) {
-        console.error(err);
-        await alertService.toastError("Gagal memproses project");
-      }
+    async handleCreateProject() {
+      // Form Project sudah melakukan simpan sendiri (internal), 
+      // di sini kita cukup tutup modal dan refresh list project di tab Deal.
+      this.closeProjectModal();
+      await this.loadDealProjects();
     },
     getProjectStatusClass(status) {
       const s = String(status || "").toLowerCase();

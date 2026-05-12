@@ -82,7 +82,14 @@ const mapProjectPayload = (formData = {}) => {
         : [];
 
     return {
-        project_name: formData.project_name || formData.projectName || "",
+        project_name: (
+            formData.project_name || 
+            formData.projectName || 
+            formData.project_title ||
+            formData.title || 
+            formData.name || 
+            ""
+        ).toString().trim(),
         deal_id: formData.deal_id || formData.deal || null,
         leader_id: formData.leader_id || null,
         description: formData.description || "",
@@ -427,6 +434,9 @@ export default {
 
             try {
                 const response = await api.post("project/input", payload, { headers });
+
+                // Bersihkan error segera setelah simpan berhasil untuk menghilangkan pesan merah di UI
+                commit("SET_ERROR", null);
 
                 await dispatch("fetchAllProjects");
 

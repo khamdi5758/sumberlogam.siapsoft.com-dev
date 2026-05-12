@@ -49,6 +49,7 @@ const mapCreateDealPayload = (formData = {}) => {
   const normalizedAmount = normalizeNumber(
     formData.amount ?? formData.amount_value,
   );
+  const normalizedProbability = normalizeNumber(formData.probability);
   const normalizedDealName =
     formData.dealName?.trim() ||
     formData.deal_name?.trim() ||
@@ -187,11 +188,11 @@ const mapCreateDealPayload = (formData = {}) => {
     amount_value: normalizedAmount,
     expected_close_date:
       formData.expectedCloseDate || formData.expected_close_date || null,
-    owner: formData.owner_id || formData.id_owner || formData.id_user || formData.owner || null,
-    owner_id: formData.owner_id || formData.id_owner || formData.id_user || null,
+    owner: formData.owner_id || formData.id_owner || formData.id_user || null,
+    owner_id: normalizeNumber(formData.owner_id || formData.id_owner || formData.id_user),
     priority: formData.priority || null,
     source: formData.source || null,
-    probability: formData.probability || null,
+    probability: normalizedProbability,
     status: formData.status ?? 1,
     // Associations
     contactassoc: formatAssoc(formData.contactassoc || formData.contacts_id || formData.contact_id),

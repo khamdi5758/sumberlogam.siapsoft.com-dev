@@ -285,12 +285,13 @@ export default {
       this.showDownloadDropdown = false;
       console.log("Download Selected Projects");
     },
-    async handleCreateProject(formData) {
+    async handleCreateProject() {
+      // Proses simpan sudah ditangani secara internal oleh CreateProjectForm.
+      // Di sini kita cukup refresh list agar data baru muncul.
       try {
-        await this.$store.dispatch("project/createProject", formData);
-        // Biarkan form anak yang menentukan kapan harus close via emit('close')
+        await this.$store.dispatch("project/fetchAllProjects");
       } catch (err) {
-        console.error("Failed to create project:", err);
+        console.error("Failed to refresh projects:", err);
       }
     },
     async openProjectDetail(project) {
@@ -316,40 +317,14 @@ export default {
       this.selectedProjectDetail = null;
       this.showProjectDetailForm = false;
     },
-    async handleProjectDetailSubmit(payload) {
-      const projectId =
-        payload?.id ||
-        this.selectedProjectDetail?.id ||
-        this.selectedProjectDetail?.project_id;
-
-      if (!projectId) {
-        alertService.error(
-          "ID project tidak ditemukan. Coba buka ulang detail project.",
-        );
-        return;
-      }
-
-      if (!payload?.project_name?.trim() && !payload?.task_name?.trim()) {
-        alertService.error("Project name wajib diisi.");
-        return;
-      }
-
+    async handleProjectDetailSubmit() {
+      // Proses simpan sudah ditangani oleh komponen CreateProjectForm secara internal.
+      // Di sini kita cukup me-refresh daftar project agar tampilan sinkron.
       try {
-        await this.$store.dispatch("project/updateProject", {
-          id: projectId,
-          formData: payload,
-        });
-
         await this.$store.dispatch("project/fetchAllProjects");
-        alertService.success("Project berhasil diperbarui.");
-        this.closeProjectDetail();
+        // Kita tidak menutup detail di sini agar user bisa lanjut mengisi Task/Notes di drawer
       } catch (err) {
-        const backendMessage =
-          err?.response?.data?.message ||
-          err?.response?.data?.error ||
-          err?.message ||
-          "Gagal update project. Silakan coba lagi.";
-        alertService.error(backendMessage);
+        console.error("Failed to refresh projects after update:", err);
       }
     },
     handleRouteChange() {
