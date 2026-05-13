@@ -117,6 +117,9 @@ export default {
     usersList() {
       return this.dashboardUsers;
     },
+    allUsers() {
+      return this.$store.getters["users/allUsers"] || [];
+    },
     isLoadingUsers() {
       return this.isLoadingDashboard;
     },
@@ -290,6 +293,7 @@ export default {
         ...item,
         date: item.date || item.created_at || item.createdAt,
         user: item.user || item.user_id || item.userId,
+        user_name: item.user_name || item.username || item.full_name,
         note: item.note || item.details || item.description || "-",
       }));
       const contacts = this.normalizeList(topcontact, [
@@ -445,6 +449,9 @@ export default {
     },
   },
   mounted() {
+    if ((this.allUsers || []).length === 0) {
+      this.$store.dispatch("users/fetchAllusers").catch(() => {});
+    }
     this.loadAllData();
   },
 };
@@ -490,7 +497,11 @@ export default {
       :isLoadingDeals="isLoadingDeals"
       :pipelines="pipelines"
     />
-    <Activity :activities="activities" :isLoading="isLoadingActivity" />
+    <Activity
+      :activities="activities"
+      :users="allUsers"
+      :isLoading="isLoadingActivity"
+    />
   </div>
 
   <!-- Leads Report 

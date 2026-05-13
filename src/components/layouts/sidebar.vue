@@ -95,7 +95,7 @@
       </div>
     </nav>
 
-    <!-- Log Out -->
+    <!-- Log Out
     <div class="p-4 border-t border-slate-800 shrink-0">
       <button
         :class="[
@@ -107,7 +107,7 @@
         <LogOut :size="20" />
         <span v-show="isExpanded" class="font-medium truncate"> Log Out </span>
       </button>
-    </div>
+    </div> -->
   </aside>
 </template>
 

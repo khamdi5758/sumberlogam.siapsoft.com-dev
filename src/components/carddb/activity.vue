@@ -74,12 +74,13 @@
             </div>
             <div>
               <span class="font-semibold text-slate-500">Action:</span>
-              <span class="text-dark-base ml-1">{{ item.action }}</span>
+              <span class="text-dark-base ml-1">{{ item.displayAction }}</span>
             </div>
             <div>
               <span class="font-semibold text-slate-500">Note:</span>
               <span class="text-dark-base ml-1">
-                <span class="font-bold">"{{ item.user }}"</span> {{ item.note }}
+                <span class="font-bold">{{ item.userName }}</span>
+                {{ item.displayNote }}
               </span>
             </div>
           </div>
@@ -89,9 +90,12 @@
             <span class="text-dark-base font-medium">{{
               item.displayDate
             }}</span>
-            <span class="text-dark-base font-medium">{{ item.action }}</span>
+            <span class="text-dark-base font-medium">{{
+              item.displayAction
+            }}</span>
             <span class="text-dark-base">
-              <span class="font-bold">"{{ item.user }}"</span> {{ item.note }}
+              <span class="font-bold">{{ item.userName }}</span>
+              {{ item.displayNote }}
             </span>
           </div>
         </div>
@@ -112,6 +116,10 @@ export default {
   name: "SystemActivity",
   props: {
     activities: {
+      type: Array,
+      default: () => [],
+    },
+    users: {
       type: Array,
       default: () => [],
     },
@@ -157,10 +165,9 @@ export default {
         .map((item) => ({
           ...item,
           date: item.date || item.created_at || item.createdAt,
-          action:
-            item.action || item.entity_name || item.entity || "Updated Data",
-          user: item.user || item.user_id || item.userId || "System",
-          note: item.note || item.details || "-",
+          displayAction: this.resolveActionLabel(item),
+          userName: this.resolveUserName(item),
+          displayNote: this.buildNote(item),
           displayDate: this.formatDate(
             item.date || item.created_at || item.createdAt,
           ),
@@ -168,6 +175,145 @@ export default {
     },
   },
   methods: {
+    resolveActionLabel(item = {}) {
+      const rawAction = String(
+        item.operation || item.choice || item.action || item.type || "",
+      ).toLowerCase();
+      const actionMap = {
+        i: "Input",
+        input: "Input",
+        add: "Input",
+        added: "Input",
+        create: "Input",
+        created: "Input",
+        u: "Update",
+        update: "Update",
+        updated: "Update",
+        edit: "Update",
+        edited: "Update",
+        d: "Delete",
+        delete: "Delete",
+        deleted: "Delete",
+        remove: "Delete",
+        removed: "Delete",
+      };
+
+      if (actionMap[rawAction]) {
+        return actionMap[rawAction];
+      }
+
+      if (item.action) {
+        const normalizedAction = String(item.action).trim();
+        if (/^(i|input|add|added|create|created)$/i.test(normalizedAction)) {
+          return "Input";
+        }
+        if (/^(u|update|updated|edit|edited)$/i.test(normalizedAction)) {
+          return "Update";
+        }
+        if (/^(d|delete|deleted|remove|removed)$/i.test(normalizedAction)) {
+          return "Delete";
+        }
+        return normalizedAction;
+      }
+
+      if (item.entity_name || item.entity) {
+        return "Update";
+      }
+
+      return "Update";
+    },
+    resolveUserName(item = {}) {
+      const candidateNames = [
+        item.user_name,
+        item.username,
+        item.full_name,
+        item.fullname,
+        item.name,
+      ].filter((value) => typeof value === "string" && value.trim());
+
+      if (candidateNames.length) {
+        return candidateNames[0];
+      }
+
+      const userId = item.user_id ?? item.userId ?? item.user;
+      const matchedUser = (this.users || []).find((user) => {
+        const candidateId =
+          user?.id ?? user?.user_id ?? user?.userId ?? user?.id_user;
+        return String(candidateId) === String(userId);
+      });
+
+      if (matchedUser) {
+        return (
+          matchedUser.name ||
+          [matchedUser.firstname, matchedUser.lastname]
+            .filter(Boolean)
+            .join(" ") ||
+          matchedUser.user_name ||
+          matchedUser.username ||
+          String(userId)
+        );
+      }
+
+      if (userId !== undefined && userId !== null && String(userId).trim()) {
+        return String(userId);
+      }
+
+      return "System";
+    },
+    getActivitySubject(item = {}) {
+      const candidateFields = [
+        item.target_name,
+        item.record_name,
+        item.subject,
+        item.entity_name,
+        item.company_name,
+        item.contact_name,
+        item.deal_name,
+        item.task_name,
+        item.project_name,
+        item.title,
+        item.label,
+        item.name,
+      ];
+
+      for (const value of candidateFields) {
+        if (typeof value === "string" && value.trim()) {
+          return value.trim();
+        }
+      }
+
+      if (item.entity) {
+        return String(item.entity).replace(/_/g, " ");
+      }
+
+      return "data";
+    },
+    buildNote(item = {}) {
+      const actionLabel = this.resolveActionLabel(item);
+      const userName = this.resolveUserName(item);
+      const subject = this.getActivitySubject(item);
+      const rawDetail = [item.note, item.details, item.description]
+        .find((value) => typeof value === "string" && value.trim())
+        ?.trim();
+
+      const verbMap = {
+        Input: "menambahkan",
+        Update: "memperbarui",
+        Delete: "menghapus",
+      };
+      const verb = verbMap[actionLabel] || "memproses";
+      const baseSentence = `${userName} ${verb} ${subject}`;
+
+      if (!rawDetail) {
+        return `${baseSentence}.`;
+      }
+
+      if (/^(?:-\s*)?(?:GET|POST|PUT|PATCH|DELETE)\s+/i.test(rawDetail)) {
+        return `${baseSentence}.`;
+      }
+
+      return `${baseSentence}: ${rawDetail}.`;
+    },
     formatDate(dateStr) {
       const dt = new Date(dateStr);
       if (Number.isNaN(dt.getTime())) return "-";
