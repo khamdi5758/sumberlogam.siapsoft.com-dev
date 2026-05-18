@@ -242,138 +242,9 @@
       </div>
 
       <div class="flex items-center gap-3 sm:gap-4">
-        <!-- Notification Bell -->
-        <div class="relative" ref="notificationRef">
-          <button
-            @click="toggleNotification"
-            class="relative rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100"
-            :class="{ 'bg-gray-100 text-gray-700': isNotificationOpen }"
-          >
-            <Bell :size="20" />
-            <span
-              v-if="unreadCount > 0"
-              class="absolute top-2 right-2.5 w-2.5 h-2.5 rounded-full border-2 border-white"
-              style="background-color: var(--color-dark-base)"
-            ></span>
-          </button>
 
-          <Transition
-            enter-active-class="transition ease-out duration-100"
-            enter-from-class="transform opacity-0 scale-95"
-            enter-to-class="transform opacity-100 scale-100"
-            leave-active-class="transition ease-in duration-75"
-            leave-from-class="transform opacity-100 scale-100"
-            leave-to-class="transform opacity-0 scale-95"
-          >
-            <div
-              v-if="isNotificationOpen"
-              class="absolute right-0 mt-2 w-[480px] overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl z-50 p-1"
-            >
-              <div class="p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-xl font-bold text-gray-900" style="color: var(--color-dark-base)">Notifications</h3>
-                  <button 
-                    v-if="unreadCount > 0"
-                    @click.stop="markAllRead"
-                    class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:bg-gray-100"
-                    style="color: var(--color-sub-text)"
-                  >
-                    Mark all as read
-                  </button>
-                </div>
-
-                <!-- Category Dropdown -->
-                <div class="relative mb-6">
-                  <button 
-                    @click.stop="isCategoryDropdownOpen = !isCategoryDropdownOpen"
-                    class="w-full flex items-center justify-between px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-all"
-                    style="border-color: var(--color-outline); color: var(--color-sub-text)"
-                  >
-                    <span>{{ selectedCategory }}</span>
-                    <ChevronDown :size="16" class="text-gray-400 transition-transform" :class="{ 'rotate-180': isCategoryDropdownOpen }" />
-                  </button>
-                  
-                  <Transition
-                    enter-active-class="transition ease-out duration-100"
-                    enter-from-class="transform opacity-0 scale-95"
-                    enter-to-class="transform opacity-100 scale-100"
-                    leave-active-class="transition ease-in duration-75"
-                    leave-from-class="transform opacity-100 scale-100"
-                    leave-to-class="transform opacity-0 scale-95"
-                  >
-                    <div v-if="isCategoryDropdownOpen" class="absolute left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-xl z-[60] overflow-hidden py-1">
-                      <button 
-                        v-for="cat in categories" 
-                        :key="cat" 
-                        @click.stop="selectCategory(cat)" 
-                        class="w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50"
-                        :class="selectedCategory === cat ? 'bg-blue-500 text-white' : 'text-gray-700'"
-                      >
-                        {{ cat }}
-                      </button>
-                    </div>
-                  </Transition>
-                </div>
-
-                <!-- Notification List Container -->
-                <div class="max-h-[400px] overflow-y-auto -mx-2 px-2 custom-scrollbar">
-                  <div v-if="filteredNotifications.length === 0" class="flex flex-col items-center justify-center py-16 text-center">
-                    <div class="w-24 h-24 rounded-full flex items-center justify-center mb-4" style="background-color: var(--color-light-base)">
-                      <Bell :size="40" style="color: var(--color-points)" />
-                    </div>
-                    <p class="text-lg font-bold" style="color: var(--color-dark-base)">No notification yet</p>
-                    <p class="text-sm" style="color: var(--color-sub-text)">Your notification list will appear here.</p>
-                  </div>
-
-                  <div 
-                    v-else
-                    v-for="n in filteredNotifications"
-                    :key="n.id"
-                    @click="handleNotificationClick(n)"
-                    class="group relative flex items-center gap-4 p-4 rounded-xl transition-all cursor-pointer mb-2 border border-transparent hover:border-[var(--color-outline)]"
-                    :style="{ 
-                      backgroundColor: n.read_at ? '#ffffff' : 'var(--color-pipeline)',
-                      borderColor: n.read_at ? 'var(--color-outline)' : 'transparent'
-                    }"
-                    onmouseover="this.style.backgroundColor='var(--color-baris-genap)'"
-                    onmouseout="this.style.backgroundColor=this.getAttribute('data-read') === 'true' ? '#ffffff' : 'var(--color-pipeline)'"
-                    :data-read="!!n.read_at"
-                  >
-                    <div class="relative shrink-0">
-                      <div class="w-12 h-12 rounded-full bg-white border flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow" style="border-color: var(--color-outline)">
-                        <Bell :size="22" :style="{ color: n.read_at ? 'var(--color-sub-text)' : 'var(--color-dark-base)' }" />
-                      </div>
-                      <span v-if="!n.read_at" class="absolute top-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white" style="background-color: var(--color-dark-base)"></span>
-                    </div>
-                    
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-2 mb-1">
-                        <p class="text-sm font-bold truncate" :style="{ color: 'var(--color-dark-base)' }">
-                          {{ n.title || 'Notification' }}
-                        </p>
-                        <span class="text-[11px] font-medium text-gray-400 whitespace-nowrap">{{ timeAgo(n.created_at) }}</span>
-                      </div>
-                      <p class="text-xs leading-relaxed line-clamp-1" :style="{ color: 'var(--color-sub-text)' }">
-                        {{ n.body || n.message || 'You have a new message.' }}
-                      </p>
-                    </div>
-
-                    <!-- Read Button -->
-                    <button 
-                      v-if="!n.read_at"
-                      @click.stop="markRead(n.id)"
-                      class="shrink-0 p-2 rounded-lg bg-white border hover:bg-gray-50 transition-colors shadow-sm"
-                      style="color: var(--color-progress-color); border-color: var(--color-outline)"
-                      title="Mark as read"
-                    >
-                      <Check :size="18" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Transition>
-        </div>
+        <NotificationBell/>
+        
 
         <!-- User Profile Dropdown -->
         <div class="relative" ref="dropdownRef">
@@ -482,6 +353,7 @@ import ProfileForm from "../forms/ProfileForm.vue";
 import { mapGetters, mapActions } from "vuex";
 import { alertService } from "@/services/alertService";
 import { useNotifications } from "@/composables/useNotifications";
+import NotificationBell from "@/components/widgets/NotificationBell.vue";
 
 export default {
   name: "HeaderComponent",
@@ -497,6 +369,7 @@ export default {
     ListCollapse,
     Check,
     ProfileForm,
+    NotificationBell
   },
 
   setup() {
