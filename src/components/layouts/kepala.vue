@@ -117,18 +117,18 @@
                       @click="handleNotificationClick(n)"
                       class="group relative flex items-center gap-4 p-4 rounded-xl transition-all cursor-pointer mb-2 border border-transparent hover:border-[var(--color-outline)]"
                       :style="{ 
-                        backgroundColor: n.read_at ? '#ffffff' : 'var(--color-pipeline)',
-                        borderColor: n.read_at ? 'var(--color-outline)' : 'transparent'
+                        backgroundColor: n.is_read == 1 ? '#ffffff' : 'var(--color-pipeline)',
+                        borderColor: n.is_read == 1 ? 'var(--color-outline)' : 'transparent'
                       }"
                       onmouseover="this.style.backgroundColor='var(--color-baris-genap)'"
                       onmouseout="this.style.backgroundColor=this.getAttribute('data-read') === 'true' ? '#ffffff' : 'var(--color-pipeline)'"
-                      :data-read="!!n.read_at"
+                      :data-read="n.is_read == 1"
                     >
                       <div class="relative shrink-0">
                         <div class="w-12 h-12 rounded-full bg-white border flex items-center justify-center shadow-sm" style="border-color: var(--color-outline)">
-                          <Bell :size="20" :style="{ color: n.read_at ? 'var(--color-sub-text)' : 'var(--color-dark-base)' }" />
+                          <Bell :size="20" :style="{ color: n.is_read == 1 ? 'var(--color-sub-text)' : 'var(--color-dark-base)' }" />
                         </div>
-                        <span v-if="!n.read_at" class="absolute top-0 right-0 w-3 h-3 rounded-full border-2 border-white" style="background-color: var(--color-dark-base)"></span>
+                        <span v-if="n.is_read == 0" class="absolute top-0 right-0 w-3 h-3 rounded-full border-2 border-white" style="background-color: var(--color-dark-base)"></span>
                       </div>
                       
                       <div class="flex-1 min-w-0">
@@ -145,7 +145,7 @@
 
                       <!-- Read Button -->
                       <button 
-                        v-if="!n.read_at"
+                        v-if="n.is_read == 0"
                         @click.stop="markRead(n.id)"
                         class="shrink-0 p-2 rounded-lg bg-white border border-gray-100 hover:bg-gray-50 transition-colors shadow-sm"
                         style="color: var(--color-progress-color); border-color: var(--color-outline)"
@@ -430,7 +430,7 @@ export default {
     filteredNotifications() {
       let filtered = this.notifications || [];
       if (this.showOnlyUnread) {
-        filtered = filtered.filter((n) => !n.read_at);
+        filtered = filtered.filter((n) => n.is_read == 0);
       }
       if (this.selectedCategory !== "All general notification") {
         // Map category to possible type fields in backend
@@ -475,6 +475,7 @@ export default {
       if (this.isNotificationOpen) {
         this.isDropdownOpen = false;
         this.isCategoryDropdownOpen = false;
+        this.fetchNotifications();
       }
     },
 

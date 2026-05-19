@@ -1,6 +1,5 @@
 <template>
   <div class="relative" ref="notificationRef">
-
     <!-- Bell Button -->
     <button
       @click="toggleNotification"
@@ -15,7 +14,6 @@
     <!-- Dropdown Panel -->
     <Transition name="dropdown">
       <div v-if="isNotificationOpen" class="notif-panel">
-
         <!-- Header -->
         <div class="notif-header">
           <h3 class="notif-title">Notifications</h3>
@@ -59,7 +57,6 @@
 
         <!-- Notification List -->
         <div class="notif-list custom-scrollbar">
-
           <!-- Empty state -->
           <div v-if="filteredNotifications.length === 0" class="notif-empty">
             <div class="empty-icon-wrap">
@@ -76,28 +73,33 @@
             :key="n.id"
             @click="handleNotificationClick(n)"
             class="notif-item"
-            :class="{ unread: !n.read_at }"
+            :class="{ unread: n.is_read == 0 }"
           >
             <!-- Avatar -->
             <div class="notif-avatar-wrap">
               <div class="notif-avatar">
-                <Bell :size="20" :class="n.read_at ? 'icon-read' : 'icon-unread'" />
+                <Bell
+                  :size="20"
+                  :class="n.is_read == 1 ? 'icon-read' : 'icon-unread'"
+                />
               </div>
-              <span v-if="!n.read_at" class="unread-dot" />
+              <span v-if="n.is_read == 0" class="unread-dot" />
             </div>
 
             <!-- Content -->
             <div class="notif-content">
               <div class="notif-row">
-                <p class="notif-notif-title">{{ n.title || 'Notification' }}</p>
+                <p class="notif-notif-title">{{ n.title || "Notification" }}</p>
                 <span class="notif-time">{{ timeAgo(n.created_at) }}</span>
               </div>
-              <p class="notif-body">{{ n.body || n.message || 'You have a new message.' }}</p>
+              <p class="notif-body">
+                {{ n.body || n.message || "You have a new message." }}
+              </p>
             </div>
 
             <!-- Mark read button -->
             <button
-              v-if="!n.read_at"
+              v-if="n.is_read == 0"
               @click.stop="markRead(n.id)"
               class="read-btn"
               title="Mark as read"
@@ -105,82 +107,114 @@
               <Check :size="15" />
             </button>
           </div>
-
         </div>
       </div>
     </Transition>
-
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { Bell, ChevronDown, Check } from 'lucide-vue-next'
-import { useNotifications } from '@/composables/useNotifications'
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { Bell, ChevronDown, Check } from "lucide-vue-next";
+import { useNotifications } from "@/composables/useNotifications";
 
 // ── Notifications composable ────────────────────────────────────────
-const { notifications, unreadCount, markRead, markAllRead } = useNotifications()
+const {
+  notifications,
+  unreadCount,
+  markRead,
+  markAllRead,
+  fetchNotifications,
+} = useNotifications();
 
 // ── Panel state ─────────────────────────────────────────────────────
-const isNotificationOpen    = ref(false)
-const isCategoryDropdownOpen = ref(false)
-const notificationRef        = ref(null)
-const categoryRef            = ref(null)
+const isNotificationOpen = ref(false);
+const isCategoryDropdownOpen = ref(false);
+const notificationRef = ref(null);
+const categoryRef = ref(null);
 
 function toggleNotification() {
-  isNotificationOpen.value = !isNotificationOpen.value
-  if (!isNotificationOpen.value) isCategoryDropdownOpen.value = false
+  isNotificationOpen.value = !isNotificationOpen.value;
+  if (!isNotificationOpen.value) {
+    isCategoryDropdownOpen.value = false;
+  } else {
+    fetchNotifications();
+  }
 }
 
 // ── Category filter ─────────────────────────────────────────────────
-const categories     = ['All', 'Unread', 'Read']
-const selectedCategory = ref('All')
+const categories = ["All", "Unread", "Read"];
+const selectedCategory = ref("All");
 
 function selectCategory(cat) {
-  selectedCategory.value    = cat
-  isCategoryDropdownOpen.value = false
+  selectedCategory.value = cat;
+  isCategoryDropdownOpen.value = false;
 }
 
 const filteredNotifications = computed(() => {
-  if (selectedCategory.value === 'Unread') return notifications.value.filter(n => !n.read_at)
-  if (selectedCategory.value === 'Read')   return notifications.value.filter(n =>  n.read_at)
-  return notifications.value
-})
+  let list = notifications.value.slice();
+
+  if (selectedCategory.value === "Unread")
+    list = list.filter((n) => n.is_read == 0);
+  else if (selectedCategory.value === "Read")
+    list = list.filter((n) => n.is_read == 1);
+
+  list.sort((a, b) => {
+    const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return tb - ta; // newest first
+  });
+
+  return list;
+});
 
 // ── Click handler ───────────────────────────────────────────────────
 function handleNotificationClick(n) {
-  if (!n.read_at) markRead(n.id)
+  if (n.is_read == 0) markRead(n.id);
 }
 
 // ── Time ago helper ─────────────────────────────────────────────────
 function timeAgo(dateStr) {
-  if (!dateStr) return ''
-  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000)
-  if (diff < 60)          return 'just now'
-  if (diff < 3600)        return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400)       return `${Math.floor(diff / 3600)}h ago`
-  if (diff < 2592000)     return `${Math.floor(diff / 86400)}d ago`
-  return new Date(dateStr).toLocaleDateString()
+  if (!dateStr) return "";
+  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
+  return new Date(dateStr).toLocaleDateString();
 }
 
 // ── Close on outside click ──────────────────────────────────────────
 function handleOutsideClick(e) {
   if (notificationRef.value && !notificationRef.value.contains(e.target)) {
-    isNotificationOpen.value    = false
-    isCategoryDropdownOpen.value = false
+    isNotificationOpen.value = false;
+    isCategoryDropdownOpen.value = false;
   }
 }
 
-onMounted(()  => document.addEventListener('mousedown', handleOutsideClick))
-onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
+onMounted(() => document.addEventListener("mousedown", handleOutsideClick));
+onUnmounted(() =>
+  document.removeEventListener("mousedown", handleOutsideClick),
+);
 </script>
 
 <style scoped>
 /* ── Transitions ──────────────────────────────────────────────────── */
-.dropdown-enter-active { transition: opacity 100ms ease, transform 100ms ease; }
-.dropdown-leave-active { transition: opacity 75ms ease,  transform 75ms ease;  }
+.dropdown-enter-active {
+  transition:
+    opacity 100ms ease,
+    transform 100ms ease;
+}
+.dropdown-leave-active {
+  transition:
+    opacity 75ms ease,
+    transform 75ms ease;
+}
 .dropdown-enter-from,
-.dropdown-leave-to     { opacity: 0; transform: scale(0.95) translateY(-4px); }
+.dropdown-leave-to {
+  opacity: 0;
+  transform: scale(0.95) translateY(-4px);
+}
 
 /* ── Bell button ──────────────────────────────────────────────────── */
 .notif-btn {
@@ -195,7 +229,9 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
   background: transparent;
   color: var(--color-sub-text, #9ca3af);
   cursor: pointer;
-  transition: background 150ms, color 150ms;
+  transition:
+    background 150ms,
+    color 150ms;
 }
 .notif-btn:hover,
 .notif-btn.active {
@@ -224,7 +260,9 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
   background: #fff;
   border: 1px solid var(--color-outline, #e5e7eb);
   border-radius: 16px;
-  box-shadow: 0 20px 60px -12px rgba(0,0,0,0.15), 0 4px 16px -4px rgba(0,0,0,0.08);
+  box-shadow:
+    0 20px 60px -12px rgba(0, 0, 0, 0.15),
+    0 4px 16px -4px rgba(0, 0, 0, 0.08);
   z-index: 50;
   overflow: hidden;
 }
@@ -253,7 +291,9 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
   cursor: pointer;
   transition: background 150ms;
 }
-.mark-all-btn:hover { background: var(--color-baris-genap, #f3f4f6); }
+.mark-all-btn:hover {
+  background: var(--color-baris-genap, #f3f4f6);
+}
 
 /* ── Category dropdown ────────────────────────────────────────────── */
 .category-wrap {
@@ -274,9 +314,16 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
   cursor: pointer;
   transition: background 150ms;
 }
-.category-btn:hover { background: var(--color-baris-genap, #f9fafb); }
-.chevron { transition: transform 150ms; color: #9ca3af; }
-.chevron.rotated { transform: rotate(180deg); }
+.category-btn:hover {
+  background: var(--color-baris-genap, #f9fafb);
+}
+.chevron {
+  transition: transform 150ms;
+  color: #9ca3af;
+}
+.chevron.rotated {
+  transform: rotate(180deg);
+}
 
 .category-list {
   position: absolute;
@@ -286,7 +333,7 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
   background: #fff;
   border: 1px solid var(--color-outline, #e5e7eb);
   border-radius: 10px;
-  box-shadow: 0 8px 24px -4px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.12);
   z-index: 60;
   overflow: hidden;
   padding: 4px;
@@ -303,8 +350,13 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
   cursor: pointer;
   transition: background 120ms;
 }
-.category-item:hover    { background: var(--color-baris-genap, #f3f4f6); }
-.category-item.selected { background: var(--color-dark-base, #111827); color: #fff; }
+.category-item:hover {
+  background: var(--color-baris-genap, #f3f4f6);
+}
+.category-item.selected {
+  background: var(--color-dark-base, #111827);
+  color: #fff;
+}
 
 /* ── Notification list ────────────────────────────────────────────── */
 .notif-list {
@@ -332,7 +384,9 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
   justify-content: center;
   margin-bottom: 16px;
 }
-.empty-icon { color: var(--color-points, #3b82f6); }
+.empty-icon {
+  color: var(--color-points, #3b82f6);
+}
 .empty-title {
   font-size: 15px;
   font-weight: 700;
@@ -356,16 +410,23 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
   margin-bottom: 6px;
   background: #fff;
   cursor: pointer;
-  transition: background 150ms, border-color 150ms;
+  transition:
+    background 150ms,
+    border-color 150ms;
 }
 .notif-item.unread {
   background: var(--color-pipeline, #eff6ff);
   border-color: transparent;
 }
-.notif-item:hover { background: var(--color-baris-genap, #f3f4f6); }
+.notif-item:hover {
+  background: var(--color-baris-genap, #f3f4f6);
+}
 
 /* ── Avatar ───────────────────────────────────────────────────────── */
-.notif-avatar-wrap { position: relative; flex-shrink: 0; }
+.notif-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
 .notif-avatar {
   width: 42px;
   height: 42px;
@@ -375,10 +436,14 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
-.icon-read   { color: var(--color-sub-text, #9ca3af); }
-.icon-unread { color: var(--color-dark-base, #111827); }
+.icon-read {
+  color: var(--color-sub-text, #9ca3af);
+}
+.icon-unread {
+  color: var(--color-dark-base, #111827);
+}
 .unread-dot {
   position: absolute;
   top: 0;
@@ -391,7 +456,10 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
 }
 
 /* ── Content ──────────────────────────────────────────────────────── */
-.notif-content { flex: 1; min-width: 0; }
+.notif-content {
+  flex: 1;
+  min-width: 0;
+}
 .notif-row {
   display: flex;
   align-items: center;
@@ -439,10 +507,19 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
   cursor: pointer;
   transition: background 150ms;
 }
-.read-btn:hover { background: var(--color-baris-genap, #f3f4f6); }
+.read-btn:hover {
+  background: var(--color-baris-genap, #f3f4f6);
+}
 
 /* ── Custom scrollbar ─────────────────────────────────────────────── */
-.custom-scrollbar::-webkit-scrollbar       { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-outline, #e5e7eb); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-outline, #e5e7eb);
+  border-radius: 4px;
+}
 </style>

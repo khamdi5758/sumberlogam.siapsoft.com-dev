@@ -10,6 +10,29 @@ let   listenerCount = 0
 // ─── sessionStorage helpers ────────────────────────────────────────
 const STORAGE_KEY = 'notif_shown_ids'
 
+function getSortTime(obj) {
+  if (obj?.created_at) {
+    const time = new Date(String(obj.created_at).replace(' ', 'T')).getTime();
+    if (!isNaN(time)) return time;
+  }
+  return obj?.id || 0;
+}
+
+function sortNotifications(list) {
+  return (list || []).slice().sort((a, b) => {
+    const readA = a?.is_read == 1 ? 1 : 0
+    const readB = b?.is_read == 1 ? 1 : 0
+    
+    if (readA !== readB) {
+      return readA - readB // Unread (0) comes before Read (1)
+    }
+
+    const ta = getSortTime(a)
+    const tb = getSortTime(b)
+    return tb - ta
+  })
+}
+
 function loadShownIds() {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY)
@@ -34,19 +57,25 @@ const shownIds = loadShownIds()
 export function useNotifications() {
 
   const unreadCount = computed(() =>
-    notifications.value.filter(n => !n.read_at).length
+    notifications.value.filter(n => n.is_read == 0).length
   )
 
   // ── Fetch & deteksi notif baru ──────────────────────────────────
   async function fetchNotifications() {
     try {
-      const res  = await api.get('notifications')
+      const res  = await api.get('notifications', {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       const data = res.data?.data ?? res.data ?? []
 
       // Deteksi notif baru berdasarkan ID (bukan bandingkan count)
-      const newOnes = data.filter(n => !n.read_at && !shownIds.has(n.id))
+      const newOnes = data.filter(n => n.is_read == 0 && !shownIds.has(n.id))
 
-      notifications.value = data
+      notifications.value = sortNotifications(data)
 
       // Tampilkan toast & simpan ID agar tidak muncul lagi setelah F5
       if (newOnes.length) {
@@ -66,7 +95,8 @@ export function useNotifications() {
     try {
       await api.patch(`notifications/${id}/read`)
       const n = notifications.value.find(x => x.id === id)
-      if (n) n.read_at = new Date().toISOString()
+      if (n) n.is_read = 1
+      notifications.value = sortNotifications(notifications.value)
     } catch (e) {
       console.error('[useNotifications] Gagal mark read:', e)
     }
@@ -74,18 +104,19 @@ export function useNotifications() {
 
   // ── Mark semua notif sebagai sudah dibaca ───────────────────────
   async function markAllRead() {
-    try {
-      await api.patch('notifications/markallread')
-      notifications.value.forEach(n => {
-        if (!n.read_at) n.read_at = new Date().toISOString()
-      })
-      // Reset shownIds agar notif baru berikutnya bisa muncul toast lagi
-      shownIds.clear()
-      sessionStorage.removeItem(STORAGE_KEY)
-    } catch (e) {
-      console.error('[useNotifications] Gagal mark all read:', e)
-    }
+  try {
+    await api.patch('notifications/markallread')
+    notifications.value.forEach(n => {
+      if (n.is_read == 0) n.is_read = 1
+    })
+    notifications.value = sortNotifications(notifications.value)
+    // Reset shownIds agar notif baru berikutnya bisa muncul toast lagi
+    shownIds.clear()
+    sessionStorage.removeItem(STORAGE_KEY)
+  } catch (e) {
+    console.error('[useNotifications] Gagal mark all read:', e)
   }
+}
 
   // ── Toast ───────────────────────────────────────────────────────
   function addToast(message) {
