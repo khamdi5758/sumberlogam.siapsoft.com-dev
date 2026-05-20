@@ -130,7 +130,7 @@ export default {
     // Data untuk peta: prioritaskan dashboardCompanyLocations (dari backend baru), fallback ke estimasi top companies
     companyLocations() {
       const dbLocations = this.dashboardCompanyLocations;
-      
+
       if (Array.isArray(dbLocations) && dbLocations.length > 0) {
         const validLocations = [];
 
@@ -157,7 +157,14 @@ export default {
           }
 
           // Pastikan koordinat valid dan tidak nol
-          if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+          if (
+            lat !== null &&
+            lng !== null &&
+            !isNaN(lat) &&
+            !isNaN(lng) &&
+            lat !== 0 &&
+            lng !== 0
+          ) {
             validLocations.push({
               lat,
               lng,
@@ -183,25 +190,25 @@ export default {
 
       // Daftar koordinat wilayah populer di Indonesia sebagai fallback
       const regionCoords = {
-        "jakarta": { lat: -6.2088, lng: 106.8456 },
+        jakarta: { lat: -6.2088, lng: 106.8456 },
         "jawa barat": { lat: -6.9175, lng: 107.6191 },
-        "bandung": { lat: -6.9175, lng: 107.6191 },
+        bandung: { lat: -6.9175, lng: 107.6191 },
         "jawa timur": { lat: -7.2575, lng: 112.7521 },
-        "surabaya": { lat: -7.2575, lng: 112.7521 },
+        surabaya: { lat: -7.2575, lng: 112.7521 },
         "jawa tengah": { lat: -7.0051, lng: 110.4381 },
-        "semarang": { lat: -7.0051, lng: 110.4381 },
-        "yogyakarta": { lat: -7.7956, lng: 110.3695 },
-        "banten": { lat: -6.1200, lng: 106.1502 },
-        "tangerang": { lat: -6.1783, lng: 106.6319 },
-        "bekasi": { lat: -6.2383, lng: 106.9756 },
-        "depok": { lat: -6.4025, lng: 106.7942 },
-        "bogor": { lat: -6.5971, lng: 106.8060 },
-        "bali": { lat: -8.4095, lng: 115.1889 },
-        "denpasar": { lat: -8.6705, lng: 115.2126 },
+        semarang: { lat: -7.0051, lng: 110.4381 },
+        yogyakarta: { lat: -7.7956, lng: 110.3695 },
+        banten: { lat: -6.12, lng: 106.1502 },
+        tangerang: { lat: -6.1783, lng: 106.6319 },
+        bekasi: { lat: -6.2383, lng: 106.9756 },
+        depok: { lat: -6.4025, lng: 106.7942 },
+        bogor: { lat: -6.5971, lng: 106.806 },
+        bali: { lat: -8.4095, lng: 115.1889 },
+        denpasar: { lat: -8.6705, lng: 115.2126 },
         "sumatera utara": { lat: 2.1121, lng: 99.3998 },
-        "medan": { lat: 3.5952, lng: 98.6722 },
-        "sulawesi selatan": { lat: -3.6687, lng: 119.9740 },
-        "makassar": { lat: -5.1477, lng: 119.4327 }
+        medan: { lat: 3.5952, lng: 98.6722 },
+        "sulawesi selatan": { lat: -3.6687, lng: 119.974 },
+        makassar: { lat: -5.1477, lng: 119.4327 },
       };
 
       return companies.map((company, index) => {
@@ -210,13 +217,23 @@ export default {
         let isEstimated = false;
 
         if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
-          const city = String(company.city || company.kota || "").toLowerCase().trim();
-          const province = String(company.province || company.provinsi || "").toLowerCase().trim();
-          const address = String(company.address || company.alamat || "").toLowerCase().trim();
+          const city = String(company.city || company.kota || "")
+            .toLowerCase()
+            .trim();
+          const province = String(company.province || company.provinsi || "")
+            .toLowerCase()
+            .trim();
+          const address = String(company.address || company.alamat || "")
+            .toLowerCase()
+            .trim();
 
           let matched = null;
           for (const [key, coords] of Object.entries(regionCoords)) {
-            if (city.includes(key) || province.includes(key) || address.includes(key)) {
+            if (
+              city.includes(key) ||
+              province.includes(key) ||
+              address.includes(key)
+            ) {
               matched = coords;
               break;
             }
@@ -238,8 +255,10 @@ export default {
         }
 
         const rawAddress = company.address || company.alamat || "";
-        const finalAddress = isEstimated 
-          ? (rawAddress ? `${rawAddress} (Estimasi Koordinat)` : "Koordinat estimasi berdasarkan wilayah")
+        const finalAddress = isEstimated
+          ? rawAddress
+            ? `${rawAddress} (Estimasi Koordinat)`
+            : "Koordinat estimasi berdasarkan wilayah"
           : rawAddress;
 
         return {
@@ -270,7 +289,12 @@ export default {
           ["topcompany", api.get("dashboard/topcompany")],
           ["tasklist", api.get("dashboard/tasklist")],
           ["topsalespeople", api.get("dashboard/topsalespeople")],
-          ["companylocations", api.get("dashboard/company-locations").catch(() => api.get("company-locations"))], // Mendukung fallback jika tanpa prefix 'dashboard'
+          [
+            "companylocations",
+            api
+              .get("dashboard/company-locations")
+              .catch(() => api.get("company-locations")),
+          ], // Mendukung fallback jika tanpa prefix 'dashboard'
         ];
 
         const results = await Promise.allSettled(
@@ -582,12 +606,10 @@ export default {
       this.dashboardTopCompanies = companies;
       this.dashboardTasks = tasks;
       this.dashboardUsers = users;
-      this.dashboardCompanyLocations = this.normalizeList(payloads.companylocations || [], [
-        "data",
-        "items",
-        "rows",
-        "records",
-      ]);
+      this.dashboardCompanyLocations = this.normalizeList(
+        payloads.companylocations || [],
+        ["data", "items", "rows", "records"],
+      );
     },
   },
   mounted() {

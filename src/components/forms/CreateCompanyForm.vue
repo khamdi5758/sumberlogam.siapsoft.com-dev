@@ -1,6 +1,7 @@
 <script>
 import { mapActions, mapGetters, mapMutations } from "vuex";
 import { X, Plus, ChevronDown } from "lucide-vue-next";
+import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import AddDealForm from "./AddDealForm.vue";
 import AddContactQuickForm from "./AddContactQuickForm.vue";
 import LocationSelector from "./component/LocationSelector.vue";
@@ -71,6 +72,11 @@ export default {
         industry: "",
         source: "",
         address: "",
+        location: {
+          address: "",
+          latitude: null,
+          longitude: null,
+        },
         country: "",
         province: "",
         city: "",
@@ -112,6 +118,11 @@ export default {
       showDetailForm: false,
       isSubmitting: false,
       savedCompany: null,
+      locationSearchQuery: "",
+      locationMap: null,
+      locationMarker: null,
+      locationGeocoder: null,
+      locationMapReady: false,
 
       // History & Drawer States
       historyitems: [],
@@ -198,6 +209,13 @@ export default {
         } else {
           this.resetForm();
         }
+
+        await this.$nextTick();
+        await this.initCompanyLocationMap();
+      } else {
+        this.locationMap = null;
+        this.locationMarker = null;
+        this.locationMapReady = false;
       }
     },
 
@@ -309,6 +327,11 @@ export default {
         industry: data.industry || "",
         source: data.source || "",
         address: data.address || "",
+        location: this.parseJSON(data.location, {
+          address: data.address || "",
+          latitude: data.latitude || null,
+          longitude: data.longitude || null,
+        }),
         country: data.country || "",
         province: data.province || "",
         city: data.city || "",
@@ -479,14 +502,13 @@ export default {
     },
 
     handleClickOutside(e) {
-      // Close dropdowns saat klik di luar
       if (!e.target.closest("[data-contacts-dropdown]")) {
         this.isContactDropdownOpen = false;
       }
     },
 
     handleClose() {
-      ((this.formData = {
+      this.formData = {
         company_name: "",
         company_owner: "",
         owner: "",
@@ -497,6 +519,11 @@ export default {
         industry: "",
         source: "",
         address: "",
+        location: {
+          address: "",
+          latitude: null,
+          longitude: null,
+        },
         country: "",
         province: "",
         kecamatan: "",
@@ -504,7 +531,6 @@ export default {
         city: "",
         pos_code: "",
         type: "",
-        // notes: "",
         dealsassoc: [],
         contactassoc: [],
         task: {
@@ -515,7 +541,6 @@ export default {
           time: "",
           priority: "",
         },
-
         docs: {
           description: "",
           fileSource: "",
@@ -526,44 +551,45 @@ export default {
           gps_address: null,
           latitude: null,
           longitude: null,
-          photos: [], // [{ id, src (base64), file (File object) }]
-          audioBlob: null, // Blob audio
-        },
-      }),
-        (this.tempNoteData = {
-          idnote: null,
-          body: "",
-          gps_address: null,
-          latitude: null,
-          longitude: null,
           photos: [],
-          documents: [],
           audioBlob: null,
-          visibility: 0,
-        }),
-        this.$emit("close"));
+        },
+      };
+
+      this.tempNoteData = {
+        idnote: null,
+        body: "",
+        gps_address: null,
+        latitude: null,
+        longitude: null,
+        photos: [],
+        documents: [],
+        audioBlob: null,
+        visibility: 0,
+      };
+
+      this.$emit("close");
       this.setclearcompanybyid();
     },
 
     handleSave() {
       this.isSubmitting = true;
 
-      // 🚀 Gunakan buildFormData untuk menghandle file upload (docs[], noteData[photos][], dll)
+      const payload = {
+        ...this.formData,
+        latitude: this.formData.location?.latitude ?? null,
+        longitude: this.formData.location?.longitude ?? null,
+        location: JSON.stringify(this.formData.location || {}),
+      };
 
-      const fd = buildFormData(
-        this.formData,
-        this.hasCompanyId,
-        this.companyid,
-      );
+      const fd = buildFormData(payload, this.hasCompanyId, this.companyid);
 
       this.insertCompany(fd)
         .then((data) => {
           const message = this.isEditMode
             ? "Company berhasil diperbarui!"
             : "Company berhasil ditambahkan!";
-          // alertService.success(message);
           toast.success(message);
-          console.log(data.param);
           if (this.hasCompanyId) {
             this.$emit("submit", data);
             this.setclearcompanybyid();
@@ -571,15 +597,8 @@ export default {
           this.savedCompany = data.param;
           this.showDetailForm = false;
           this.activeTab = "Contacts";
-          // this.resetForm();
-          // this.handleClose();
         })
         .catch((error) => {
-          // alertService.error(
-          //   error.response?.data?.message ||
-          //     error.message ||
-          //     "Gagal menyimpan company.",
-          // );
           toast.error(
             error.response?.data?.message ||
               error.message ||
@@ -592,27 +611,6 @@ export default {
     },
 
     resetForm() {
-      // this.formData = {
-      //   company_name: "",
-      //   company_owner: "",
-      //   owner: this.currentUserName || "",
-      //   description: "",
-      //   email: "",
-      //   telephone: "",
-      //   website: "",
-      //   industry: "",
-      //   address: "",
-      //   country: "",
-      //   province: "",
-      //   city: "",
-      //   pos_code: "",
-      //   source: "",
-      //   type: "",
-      //   dealsassoc: [],
-      //   contactassoc: [],
-      // };
-      // this.contactSearch = "";
-
       this.formData = {
         company_name: "",
         company_owner: "",
@@ -624,6 +622,11 @@ export default {
         industry: "",
         source: "",
         address: "",
+        location: {
+          address: "",
+          latitude: null,
+          longitude: null,
+        },
         country: "",
         province: "",
         city: "",
@@ -642,13 +645,11 @@ export default {
           time: "",
           priority: "",
         },
-
         docs: {
           description: "",
           fileSource: "",
           files: [],
         },
-
         noteData: {
           body: "",
           gps_address: null,
@@ -659,6 +660,136 @@ export default {
         },
       };
       this.historyitems = [];
+    },
+
+    async initCompanyLocationMap() {
+      const apiKey =
+        import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY ||
+        process.env.VUE_APP_GOOGLE_MAPS_API_KEY;
+
+      const mapContainer = this.$refs.companyLocationMap;
+      if (!apiKey || !mapContainer) return;
+
+      try {
+        if (!window.__googleMapsLoaderOptionsSet) {
+          setOptions({
+            apiKey,
+            key: apiKey,
+            version: "weekly",
+          });
+          window.__googleMapsLoaderOptionsSet = true;
+        }
+
+        await importLibrary("maps");
+        this.locationGeocoder = new google.maps.Geocoder();
+
+        const initialLat = Number(this.formData.location?.latitude);
+        const initialLng = Number(this.formData.location?.longitude);
+        const hasInitialPoint =
+          Number.isFinite(initialLat) && Number.isFinite(initialLng);
+
+        this.locationMap = new google.maps.Map(mapContainer, {
+          center: hasInitialPoint
+            ? { lat: initialLat, lng: initialLng }
+            : { lat: -7.2575, lng: 112.7521 },
+          zoom: hasInitialPoint ? 15 : 10,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+          clickableIcons: false,
+        });
+
+        this.locationMap.addListener("click", (event) => {
+          if (!event?.latLng) return;
+
+          const latitude = Number(event.latLng.lat().toFixed(6));
+          const longitude = Number(event.latLng.lng().toFixed(6));
+          this.setCompanyLocationPoint(latitude, longitude);
+        });
+
+        this.locationMarker = null;
+
+        this.locationMapReady = true;
+        this.locationSearchQuery = this.formData.location?.address || "";
+        this.syncCompanyLocationMarker();
+      } catch (error) {
+        console.error("Gagal memuat company location map:", error);
+      }
+    },
+
+    setCompanyLocationPoint(latitude, longitude, address = null) {
+      this.formData.location = {
+        ...(this.formData.location || {}),
+        address: address || this.formData.location?.address || "",
+        latitude,
+        longitude,
+      };
+
+      this.locationSearchQuery = this.formData.location.address || "";
+
+      if (this.locationMap) {
+        this.locationMap.setCenter({ lat: latitude, lng: longitude });
+        this.locationMap.setZoom(15);
+      }
+
+      this.syncCompanyLocationMarker(latitude, longitude);
+    },
+
+    syncCompanyLocationMarker(forcedLatitude = null, forcedLongitude = null) {
+      if (!this.locationMapReady || !this.locationMap) return;
+
+      const latitude = Number(
+        forcedLatitude ?? this.formData.location?.latitude ?? NaN,
+      );
+      const longitude = Number(
+        forcedLongitude ?? this.formData.location?.longitude ?? NaN,
+      );
+
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        return;
+      }
+
+      const point = { lat: latitude, lng: longitude };
+
+      if (!this.locationMarker) {
+        this.locationMarker = new google.maps.Marker({
+          position: point,
+          map: this.locationMap,
+          draggable: true,
+        });
+
+        this.locationMarker.addListener("dragend", (event) => {
+          if (!event?.latLng) return;
+
+          const nextLatitude = Number(event.latLng.lat().toFixed(6));
+          const nextLongitude = Number(event.latLng.lng().toFixed(6));
+          this.setCompanyLocationPoint(nextLatitude, nextLongitude);
+        });
+      } else {
+        this.locationMarker.setPosition(point);
+      }
+
+      this.locationMap.setCenter(point);
+    },
+
+    searchCompanyLocation() {
+      if (!this.locationGeocoder || !this.locationSearchQuery?.trim()) return;
+
+      this.locationGeocoder.geocode(
+        { address: this.locationSearchQuery.trim() },
+        (results, status) => {
+          if (status !== "OK" || !results?.[0]) return;
+
+          const result = results[0];
+          const lat = Number(result.geometry.location.lat().toFixed(6));
+          const lng = Number(result.geometry.location.lng().toFixed(6));
+          this.setCompanyLocationPoint(
+            lat,
+            lng,
+            result.formatted_address || "",
+          );
+        },
+      );
     },
 
     handleContactSubmit(response) {
@@ -1130,10 +1261,74 @@ export default {
             <!-- Address & City | Province & Country -->
             <LocationSelector v-model="formData" />
 
+            <div class="space-y-3 rounded-xl border border-outline p-4">
+              <div>
+                <label class="block text-sm font-medium text-dark-base mb-2"
+                  >Search Location</label
+                >
+                <div class="flex gap-2">
+                  <input
+                    v-model="locationSearchQuery"
+                    type="text"
+                    placeholder="Cari alamat atau nama tempat"
+                    class="flex-1 px-3 py-2 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm"
+                    @keyup.enter="searchCompanyLocation"
+                  />
+                  <button
+                    type="button"
+                    @click="searchCompanyLocation"
+                    class="px-4 py-2 border border-outline rounded-lg text-sm font-medium hover:bg-white transition-colors"
+                  >
+                    Search
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-dark-base mb-2"
+                  >Location Map</label
+                >
+                <p class="text-xs text-sub-text mb-2">
+                  Klik peta atau drag pin untuk menentukan latitude dan
+                  longitude.
+                </p>
+                <div
+                  ref="companyLocationMap"
+                  class="w-full h-[260px] rounded-lg border border-outline bg-white overflow-hidden"
+                ></div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-dark-base mb-2"
+                    >Latitude</label
+                  >
+                  <input
+                    :value="formData.location.latitude || ''"
+                    type="text"
+                    readonly
+                    class="w-full px-3 py-2 border border-outline rounded-lg bg-white text-sm"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-dark-base mb-2"
+                    >Longitude</label
+                  >
+                  <input
+                    :value="formData.location.longitude || ''"
+                    type="text"
+                    readonly
+                    class="w-full px-3 py-2 border border-outline rounded-lg bg-white text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
             <!-- Pos Code & Source -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label
+                  class="block border-outline text-sm font-medium text-dark-base mb-2"
                   >Source</label
                 >
                 <div class="relative">
@@ -1148,7 +1343,8 @@ export default {
               </div>
               <!-- Type -->
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label
+                  class="block border-outline text-sm font-medium text-dark-base mb-2"
                   >Type</label
                 >
                 <div class="relative">

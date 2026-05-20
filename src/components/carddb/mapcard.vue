@@ -71,12 +71,17 @@ export default {
 
       try {
         // 1. Muat Google Maps API pakai functional API dari js-api-loader v2.x
-        const apiKey = import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY || process.env.VUE_APP_GOOGLE_MAPS_API_KEY;
-        setOptions({
-          apiKey: apiKey,
-          key: apiKey,
-          version: "weekly",
-        });
+        const apiKey =
+          import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY ||
+          process.env.VUE_APP_GOOGLE_MAPS_API_KEY;
+        if (!window.__googleMapsLoaderOptionsSet) {
+          setOptions({
+            apiKey: apiKey,
+            key: apiKey,
+            version: "weekly",
+          });
+          window.__googleMapsLoaderOptionsSet = true;
+        }
 
         await Promise.all([
           importLibrary("maps"),
