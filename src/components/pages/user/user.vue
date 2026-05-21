@@ -40,9 +40,34 @@ export default {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr] h-full">
+  <div
+    class="flex flex-col gap-4 lg:grid lg:grid-cols-[220px_1fr] lg:gap-6 h-full"
+  >
     <div
-      class="bg-white rounded-xl shadow-sm border border-outline overflow-hidden sticky top-4"
+      class="lg:hidden bg-white rounded-xl shadow-sm border border-outline p-2"
+    >
+      <div class="grid grid-cols-3 gap-2">
+        <button
+          v-for="item in menuItems"
+          :key="item.key"
+          @click="setActiveTab(item.key)"
+          class="flex flex-col items-center justify-center gap-1 rounded-lg border px-3 py-3 text-center transition cursor-pointer"
+          :class="
+            activeTab === item.key
+              ? 'border-dark-base bg-dark-base text-white shadow-sm'
+              : 'border-outline bg-light-base/30 text-sub-text hover:bg-light-base/60'
+          "
+        >
+          <component :is="item.icon" :size="18" />
+          <span class="text-[11px] font-medium leading-none">{{
+            item.label
+          }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="hidden lg:block bg-white rounded-xl shadow-sm border border-outline overflow-hidden sticky top-4"
     >
       <div class="bg-light-base/50 px-5 py-3 border-b border-outline">
         <h3 class="font-bold text-dark-base uppercase tracking-wider text-xs">

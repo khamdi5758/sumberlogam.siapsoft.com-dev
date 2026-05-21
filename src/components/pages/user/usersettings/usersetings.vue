@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-full">
     <div
-      class="bg-white rounded-lg shadow-sm p-4 border border-outline flex flex-col min-h-0 flex-1"
+      class="bg-white rounded-lg shadow-sm p-4 border border-outline flex flex-col min-h-0 flex-1 overflow-hidden mb-4 lg:mb-0"
     >
       <!-- Header -->
       <UsersHeader
@@ -27,7 +27,7 @@
       />
 
       <!-- Table (scrollable) -->
-      <div class="flex-1 min-h-0 relative">
+      <div class="mt-3 flex-1 min-h-0 relative overflow-hidden">
         <UsersTable
           :users="currentUser"
           :isLoading="isLoadingTable"
@@ -177,8 +177,7 @@ export default {
       } catch (error) {
         console.error("Failed deleting user:", error);
         const backendMessage =
-          error?.response?.data?.message ||
-          "Gagal menghapus user.";
+          error?.response?.data?.message || "Gagal menghapus user.";
         await alertService.error(backendMessage);
       }
     },

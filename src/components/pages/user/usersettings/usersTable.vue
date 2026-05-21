@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-4 flex-1 min-h-0 relative">
+  <div class="h-full min-h-0 relative">
     <!-- Loading Overlay -->
     <div
       v-if="isLoading"
@@ -11,18 +11,144 @@
       </div>
     </div>
 
-    <div class="h-full overflow-auto relative rounded-b-lg">
-      <table class="w-full table-fixed border-collapse">
-        <thead
-          class="sticky top-0 z-10 bg-white"
+    <!-- Mobile List -->
+    <div
+      class="lg:hidden h-full min-h-0 overflow-y-auto overflow-x-hidden relative rounded-b-lg pr-1"
+    >
+      <div class="space-y-3 pb-2">
+        <div
+          v-if="users.length === 0 && !isLoading"
+          class="px-2 py-8 text-center text-sub-text"
         >
-          <tr class="border-b border-outline shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-            <th class="w-10 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white">No</th>
-            <th class="w-auto px-4 py-4 text-left text-sm font-bold text-dark-base bg-white">Name(Email)</th>
-            <th class="w-32 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white">Team</th>
-            <th class="w-40 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white">Last Active</th>
-            <th class="w-20 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white">Role</th>
-            <th class="w-28 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white text-center">Actions</th>
+          <div class="flex flex-col items-center gap-3">
+            <div
+              class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center"
+            >
+              <Search :size="28" class="text-gray-400" />
+            </div>
+            <p class="text-base font-medium">No users found</p>
+            <p class="text-xs text-gray-400 px-6">
+              Try refreshing or adding a new user
+            </p>
+          </div>
+        </div>
+
+        <article
+          v-for="(user, index) in users"
+          :key="user.id"
+          class="mx-1 rounded-xl border border-outline bg-white p-4 shadow-sm"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span
+                  class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-light-base px-2 text-[11px] font-semibold text-dark-base"
+                >
+                  {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+                </span>
+                <h3 class="truncate text-sm font-semibold text-gray-800">
+                  {{
+                    user.firstname
+                      ? `${user.firstname} ${user.lastname || ""}`
+                      : user.name || "Unknown User"
+                  }}
+                </h3>
+              </div>
+              <p class="mt-1 truncate text-xs text-gray-400">
+                {{ user.email }}
+              </p>
+            </div>
+
+            <span
+              class="shrink-0 rounded-full bg-light-base px-2.5 py-1 text-[11px] font-semibold text-dark-base"
+            >
+              {{ user.role || "-" }}
+            </span>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-3 text-xs">
+            <div class="rounded-lg bg-gray-50 px-3 py-2">
+              <p class="text-[10px] uppercase tracking-wider text-gray-400">
+                Team
+              </p>
+              <p class="mt-1 truncate font-medium text-gray-700">
+                {{ user.primaryteam || user.team || "-" }}
+              </p>
+            </div>
+            <div class="rounded-lg bg-gray-50 px-3 py-2">
+              <p class="text-[10px] uppercase tracking-wider text-gray-400">
+                Last Active
+              </p>
+              <p class="mt-1 truncate font-medium text-gray-700">
+                {{
+                  user.last_active || user.lastactv || user.updated_at || "-"
+                }}
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="mt-4 flex items-center justify-end gap-2 border-t border-outline pt-3"
+          >
+            <button
+              @click="$emit('edit', user)"
+              class="flex h-9 items-center gap-2 rounded-lg border border-outline bg-white px-3 text-xs font-medium text-sub-text transition active:scale-95 hover:bg-light-base hover:text-dark-base"
+              title="Edit User"
+            >
+              <Pencil :size="15" />
+              Edit
+            </button>
+            <button
+              @click="$emit('delete', user)"
+              class="flex h-9 items-center gap-2 rounded-lg border border-outline bg-white px-3 text-xs font-medium text-red transition active:scale-95 hover:bg-red/5"
+              title="Delete User"
+            >
+              <Trash2 :size="15" />
+              Delete
+            </button>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div
+      class="hidden lg:block h-full min-h-0 overflow-y-auto overflow-x-auto relative rounded-b-lg"
+    >
+      <table class="w-full table-fixed border-collapse">
+        <thead class="sticky top-0 z-10 bg-white">
+          <tr
+            class="border-b border-outline shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+          >
+            <th
+              class="w-10 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white"
+            >
+              No
+            </th>
+            <th
+              class="w-auto px-4 py-4 text-left text-sm font-bold text-dark-base bg-white"
+            >
+              Name(Email)
+            </th>
+            <th
+              class="w-32 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white"
+            >
+              Team
+            </th>
+            <th
+              class="w-40 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white"
+            >
+              Last Active
+            </th>
+            <th
+              class="w-20 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white"
+            >
+              Role
+            </th>
+            <th
+              class="w-28 px-4 py-4 text-sm font-bold text-dark-base bg-white text-center"
+            >
+              Actions
+            </th>
           </tr>
         </thead>
 
@@ -98,11 +224,11 @@
 </template>
 
 <script>
-import { RefreshCcw, Search, ChevronDown, Pencil, Trash2 } from "lucide-vue-next";
+import { RefreshCcw, Search, Pencil, Trash2 } from "lucide-vue-next";
 
 export default {
   name: "UsersTable",
-  components: { RefreshCcw, Search, ChevronDown, Pencil, Trash2 },
+  components: { RefreshCcw, Search, Pencil, Trash2 },
   props: {
     users: { type: Array, default: () => [] },
     isLoading: { type: Boolean, default: false },

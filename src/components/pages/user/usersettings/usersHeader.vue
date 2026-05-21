@@ -1,14 +1,17 @@
 <template>
-  <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
-    <div class="flex min-w-0 items-baseline gap-3">
-      <h1 class="text-2xl font-bold text-dark-base">Users</h1>
-      <span class="text-sm text-sub-text"> {{ totalUsers }} users total </span>
-    </div>
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <h1 class="text-lg font-bold text-dark-base sm:text-2xl">Users</h1>
 
-    <div
-      class="flex w-full flex-wrap items-center justify-end gap-1 sm:w-auto sm:gap-2"
-    >
-      <!-- Refresh Button -->
+    <div class="flex items-center gap-2">
+      <button
+        @click="$emit('open-add-user')"
+        type="button"
+        class="flex h-9 w-9 items-center justify-center rounded-lg border border-outline bg-white text-sub-text transition hover:bg-sub-text hover:text-white sm:h-10 sm:w-auto sm:gap-2 sm:px-4"
+      >
+        <span class="text-xl leading-none font-semibold">+</span>
+        <span class="hidden text-sm font-medium sm:inline">Add User</span>
+      </button>
+
       <button
         @click="$emit('refresh')"
         :disabled="isLoading"
@@ -21,17 +24,6 @@
           class="text-sub-text"
         />
       </button>
-
-      <!-- Add User -->
-      <button
-        @click="$emit('open-add-user')"
-        type="button"
-        class="flex h-9 w-9 items-center justify-center gap-2 rounded-lg border border-outline bg-white px-2 py-2 text-sub-text transition hover:bg-sub-text hover:text-white sm:h-10 sm:w-auto sm:px-4"
-      >
-        <span class="text-lg font-semibold">+</span>
-        <span class="hidden text-sm font-medium md:inline">Add User</span>
-      </button>
-
     </div>
   </div>
 </template>

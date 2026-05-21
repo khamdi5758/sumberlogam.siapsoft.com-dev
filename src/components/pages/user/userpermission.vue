@@ -1,16 +1,22 @@
 <template>
   <section
-    class="bg-white rounded-xl border border-outline shadow-sm overflow-hidden"
+    class="bg-white rounded-xl border border-outline shadow-sm overflow-hidden mb-4"
   >
     <div class="p-4 border-b border-outline">
+      <p class="mb-3 text-xs text-sub-text sm:hidden">
+        Pilih user dan profil, lalu simpan perubahan akses di sini.
+      </p>
       <!-- Top Section: Selects & Buttons -->
-      <div class="flex flex-col lg:flex-row lg:items-end gap-4 w-full">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-4 w-full">
         <!-- LEFT: Selects -->
         <div class="flex flex-col sm:flex-row gap-3 flex-1 min-w-0">
           <!-- Select User -->
           <div class="flex-1 min-w-0 sm:min-w-64">
-            <label class="mb-1 block text-sm font-medium text-sub-text">
-              Select User:
+            <label
+              class="mb-1 block text-xs font-medium text-sub-text sm:text-sm"
+            >
+              <span class="sm:hidden">User</span>
+              <span class="hidden sm:inline">Select User:</span>
             </label>
             <select
               v-model="selectedUserEmail"
@@ -24,8 +30,11 @@
 
           <!-- Select Authority Profile -->
           <div class="flex-1 min-w-0 sm:min-w-56">
-            <label class="mb-1 block text-sm font-medium text-sub-text">
-              Authority Profile:
+            <label
+              class="mb-1 block text-xs font-medium text-sub-text sm:text-sm"
+            >
+              <span class="sm:hidden">Profile</span>
+              <span class="hidden sm:inline">Authority Profile:</span>
             </label>
             <select
               v-model="selectedProfile"
@@ -40,12 +49,13 @@
               </option>
             </select>
           </div>
+        </div>
 
-          <!-- Refresh Button -->
+        <div class="flex w-full items-center gap-2 lg:w-auto">
           <button
             @click="loadPermissionFromApi"
             :disabled="isLoadingPermission"
-            class="h-10 w-10 lg:h-9 lg:w-9 rounded-lg border border-outline bg-white p-2 transition-all hover:bg-light-base active:scale-95 disabled:opacity-50 self-end"
+            class="h-10 w-10 shrink-0 rounded-lg border border-outline bg-white p-2 transition-all hover:bg-light-base active:scale-95 disabled:opacity-50"
             title="Refresh Data"
           >
             <RefreshCcw
@@ -54,20 +64,24 @@
               class="text-sub-text"
             />
           </button>
-        </div>
 
-        <!-- RIGHT: Save Button -->
-        <button
-          @click="savePermissionToApi"
-          :disabled="isSavingPermission || isLoadingPermission"
-          class="rounded-lg bg-dark-base border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 w-full lg:w-auto"
-        >
-          {{ isSavingPermission ? "Saving..." : "Save Changes" }}
-        </button>
+          <button
+            @click="savePermissionToApi"
+            :disabled="isSavingPermission || isLoadingPermission"
+            class="rounded-lg bg-dark-base border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 flex-1 lg:flex-none"
+          >
+            <span class="sm:hidden">
+              {{ isSavingPermission ? "Saving..." : "Save" }}
+            </span>
+            <span class="hidden sm:inline">
+              {{ isSavingPermission ? "Saving..." : "Save Changes" }}
+            </span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="relative overflow-x-auto">
+    <div class="relative overflow-x-auto pb-4">
       <div
         v-if="isLoadingPermission"
         class="absolute inset-0 bg-white/70 backdrop-blur-[1px] z-10 flex items-center justify-center"
@@ -83,34 +97,38 @@
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-200 bg-gray-50/50">
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+            <th
+              class="px-3 py-3 text-left text-xs font-semibold text-gray-700 sm:px-6 sm:py-4 sm:text-sm"
+            >
               Menu
             </th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+            <th
+              class="px-3 py-3 text-left text-xs font-semibold text-gray-700 sm:px-6 sm:py-4 sm:text-sm"
+            >
               Username
             </th>
             <th
-              class="px-6 py-4 text-center text-sm font-semibold text-gray-700"
+              class="px-3 py-3 text-center text-xs font-semibold text-gray-700 sm:px-6 sm:py-4 sm:text-sm"
             >
               Access
             </th>
             <th
-              class="px-6 py-4 text-center text-sm font-semibold text-gray-700"
+              class="px-3 py-3 text-center text-xs font-semibold text-gray-700 sm:px-6 sm:py-4 sm:text-sm"
             >
               Add
             </th>
             <th
-              class="px-6 py-4 text-center text-sm font-semibold text-gray-700"
+              class="px-3 py-3 text-center text-xs font-semibold text-gray-700 sm:px-6 sm:py-4 sm:text-sm"
             >
               Delete
             </th>
             <th
-              class="px-6 py-4 text-center text-sm font-semibold text-gray-700"
+              class="px-3 py-3 text-center text-xs font-semibold text-gray-700 sm:px-6 sm:py-4 sm:text-sm"
             >
               Edit
             </th>
             <th
-              class="px-6 py-4 text-center text-sm font-semibold text-gray-700"
+              class="px-3 py-3 text-center text-xs font-semibold text-gray-700 sm:px-6 sm:py-4 sm:text-sm"
             >
               Export
             </th>
@@ -123,13 +141,17 @@
             :key="row.id"
             class="border-b border-gray-100 hover:bg-gray-50 transition"
           >
-            <td class="px-6 py-3 text-sm text-gray-800 font-medium">
+            <td
+              class="px-3 py-3 text-xs text-gray-800 font-medium sm:px-6 sm:py-3 sm:text-sm"
+            >
               <span class="mr-1 text-gray-400">&#9656;</span>{{ row.menu }}
             </td>
-            <td class="px-6 py-3 text-sm text-dark-base">
+            <td
+              class="px-3 py-3 text-xs text-dark-base sm:px-6 sm:py-3 sm:text-sm"
+            >
               {{ selectedUserEmail }}
             </td>
-            <td class="px-6 py-3 text-center">
+            <td class="px-3 py-3 text-center sm:px-6">
               <input
                 v-model="row.akses"
                 @change="queueAutoSave"
@@ -137,7 +159,7 @@
                 class="w-4 h-4 text-blue-600 rounded focus:ring-sub-text border-gray-300"
               />
             </td>
-            <td class="px-6 py-3 text-center">
+            <td class="px-3 py-3 text-center sm:px-6">
               <input
                 v-model="row.tambah"
                 @change="queueAutoSave"
@@ -145,7 +167,7 @@
                 class="w-4 h-4 text-blue-600 rounded focus:ring-sub-text border-gray-300"
               />
             </td>
-            <td class="px-6 py-3 text-center">
+            <td class="px-3 py-3 text-center sm:px-6">
               <input
                 v-model="row.hapus"
                 @change="queueAutoSave"
@@ -153,7 +175,7 @@
                 class="w-4 h-4 text-blue-600 rounded focus:ring-sub-text border-gray-300"
               />
             </td>
-            <td class="px-6 py-3 text-center">
+            <td class="px-3 py-3 text-center sm:px-6">
               <input
                 v-model="row.koreksi"
                 @change="queueAutoSave"
@@ -161,7 +183,7 @@
                 class="w-4 h-4 text-blue-600 rounded focus:ring-sub-text border-gray-300"
               />
             </td>
-            <td class="px-6 py-3 text-center">
+            <td class="px-3 py-3 text-center sm:px-6">
               <input
                 v-model="row.export"
                 @change="queueAutoSave"
@@ -172,7 +194,10 @@
           </tr>
 
           <tr v-if="visiblePermissions.length === 0">
-            <td colspan="7" class="px-6 py-20 text-center text-sub-text">
+            <td
+              colspan="7"
+              class="px-6 py-20 text-center text-sm text-sub-text sm:text-base"
+            >
               No permission data available.
             </td>
           </tr>
