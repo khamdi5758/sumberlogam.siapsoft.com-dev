@@ -4,11 +4,13 @@ import { useStore } from "vuex";
 import draggable from "vuedraggable";
 import Swal from "sweetalert2";
 import { alertService } from "@/services/alertService";
+import { useNotifications } from "@/composables/useNotifications";
 
 // Sub-components
 import DealsCardFilter from "./DealsCardFilter.vue";
 import DealsCardItem from "./DealsCardItem.vue";
 
+const { fetchNotifications } = useNotifications();
 const store = useStore();
 const emit = defineEmits([
   "viewDetail",
@@ -362,6 +364,14 @@ const handleBoardChange = async (event, targetBoard) => {
         dealId: movedDeal.id,
         newStage: finalStage,
       });
+
+      // ── Refresh Notification jika Deal Won ──
+      // Karena backend yang memproses notifikasi, frontend tinggal tarik data terbaru
+      if (finalStage.toLowerCase().includes("won")) {
+        setTimeout(() => {
+          fetchNotifications();
+        }, 500); // delay sedikit agar backend selesai menyimpan notif
+      }
     } catch (error) {
       console.error("Failed to sync deal stage to backend:", error);
       // Revert local stage on failure
@@ -409,6 +419,13 @@ const handleStageChange = async (deal, newStage) => {
     alertService.success(
       `Status updated to ${newStage.includes("won") ? "Won" : "Lost"}`,
     );
+
+    // ── Refresh Notification jika Deal Won ──
+    if (newStage.toLowerCase().includes("won")) {
+      setTimeout(() => {
+        fetchNotifications();
+      }, 500);
+    }
   } catch (error) {
     console.error("Failed to update stage:", error);
     alertService.error("Failed to update deal status.");

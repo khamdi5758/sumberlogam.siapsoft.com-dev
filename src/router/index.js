@@ -25,6 +25,7 @@ import Project from "@/components/pages/Projects/project.vue";
 import ProjectList from "@/components/pages/Projects/projectlist.vue";
 import ProjectCard from "@/components/pages/Projects/projectcard.vue";
 import ProjectCalender from "@/components/pages/Projects/projectcalender.vue";
+import Notifications from "@/components/pages/Notifications/Notifications.vue";
 
 import { createRouter, createWebHistory } from "vue-router";
 import store from "@/store";
@@ -185,6 +186,11 @@ const routes = [
         path: "settings",
         name: "Settings",
         component: SettingsPage,
+      },
+      {
+        path: "notifications",
+        name: "Notifications",
+        component: Notifications,
       },
     ],
   },
