@@ -1,8 +1,9 @@
 <script>
 import { mapGetters } from "vuex";
-import { User, UserCog, Users } from "lucide-vue-next";
+import { User, UserCog, Users, Map } from "lucide-vue-next";
 import UserSettings from "./usersettings/usersetings.vue";
 import UserPermission from "./userpermission.vue";
+import UserArea from "./userarea.vue";
 import UserTeam from "./userteam.vue";
 
 export default {
@@ -10,6 +11,7 @@ export default {
   components: {
     UserSettings,
     UserPermission,
+    UserArea,
     UserTeam,
   },
   data() {
@@ -18,6 +20,7 @@ export default {
       menuItems: [
         { key: "settings", label: "User Settings", icon: User },
         { key: "permission", label: "User Permission", icon: UserCog },
+        { key: "area", label: "Area", icon: Map },
         { key: "team", label: "Team", icon: Users },
       ],
       maxUsers: 10,
@@ -46,7 +49,7 @@ export default {
     <div
       class="lg:hidden bg-white rounded-xl shadow-sm border border-outline p-2"
     >
-      <div class="grid grid-cols-3 gap-2">
+      <div class="grid grid-cols-4 gap-2">
         <button
           v-for="item in menuItems"
           :key="item.key"
@@ -112,6 +115,7 @@ export default {
     <div class="min-w-0 flex flex-col h-full">
       <UserSettings v-if="activeTab === 'settings'" />
       <UserPermission v-else-if="activeTab === 'permission'" />
+      <UserArea v-else-if="activeTab === 'area'" />
       <UserTeam v-else-if="activeTab === 'team'" />
     </div>
   </div>

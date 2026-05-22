@@ -9,14 +9,14 @@ import {
   Trash2,
   RefreshCw,
 } from "lucide-vue-next";
-import CreateTeamForm from "@/components/forms/CreateTeamForm.vue";
-import DetailTeamForm from "@/components/forms/DetailTeamForm.vue";
+import CreateAreaForm from "@/components/forms/CreateAreaForm.vue";
+import DetailAreaForm from "@/components/forms/DetailAreaForm.vue";
 import { alertService } from "@/services/alertService";
 
 export default {
   components: {
-    CreateTeamForm,
-    DetailTeamForm,
+    CreateAreaForm,
+    DetailAreaForm,
     Filter,
     Search,
     ChevronLeft,
@@ -28,53 +28,53 @@ export default {
 
   data() {
     return {
-      showCreateTeamForm: false,
-      showTeamDetailForm: false,
-      selectedTeamDetail: null,
-      teamApiPayload: null,
+      showCreateAreaForm: false,
+      showAreaDetailForm: false,
+      selectedAreaDetail: null,
+      areaApiPayload: null,
       currentPage: 1,
       itemsPerPage: 5,
-      selectedTeam: [],
+      selectedArea: [],
     };
   },
 
   computed: {
     ...mapGetters({
-      teams: "team/allTeamUsers",
-      isLoading: "team/isLoading",
-      error: "team/error",
+      areas: "area/allAreaUsers",
+      isLoading: "area/isLoading",
+      error: "area/error",
     }),
 
     searchQuery: {
       get() {
-        return this.$store.state.team.searchQuery;
+        return this.$store.state.area.searchQuery;
       },
       set(value) {
-        this.$store.dispatch("team/setSearchQuery", value);
+        this.$store.dispatch("area/setSearchQuery", value);
       },
     },
 
-    filteredTeams() {
-      return this.teams;
+    filteredAreas() {
+      return this.areas;
     },
 
     totalPages() {
       return Math.max(
         1,
-        Math.ceil(this.filteredTeams.length / this.itemsPerPage),
+        Math.ceil(this.filteredAreas.length / this.itemsPerPage),
       );
     },
 
-    paginatedTeams() {
+    paginatedAreas() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
-      return this.filteredTeams.slice(start, start + this.itemsPerPage);
+      return this.filteredAreas.slice(start, start + this.itemsPerPage);
     },
 
     allSelected() {
       return (
-        this.paginatedTeams.length > 0 &&
-        this.paginatedTeams.every((t) =>
-          this.selectedTeam.includes(this.getTeamId(t)),
+        this.paginatedAreas.length > 0 &&
+        this.paginatedAreas.every((t) =>
+          this.selectedArea.includes(this.getAreaId(t)),
         )
       );
     },
@@ -82,11 +82,11 @@ export default {
 
   methods: {
     ...mapActions({
-      fetchAllTeamUsers: "team/fetchAllTeamUsers",
-      createTeam: "team/createTeam",
-      deleteTeam: "team/deleteTeam",
-      addTeamUsers: "team/addTeamUsers",
-      setSearchQuery: "team/setSearchQuery",
+      fetchAllAreaUsers: "area/fetchAllAreaUsers",
+      createArea: "area/createArea",
+      deleteArea: "area/deleteArea",
+      addAreaUsers: "area/addAreaUsers",
+      setSearchQuery: "area/setSearchQuery",
     }),
 
     nextPage() {
@@ -97,64 +97,64 @@ export default {
       if (this.currentPage > 1) this.currentPage--;
     },
 
-    getTeamId(team) {
-      if (!team) return null;
-      const id = team.team_id ?? team.teamid ?? team.id ?? team.id_team;
+    getAreaId(area) {
+      if (!area) return null;
+      const id = area.area_id ?? area.areaid ?? area.id ?? area.id_area;
       return id !== undefined && id !== null ? String(id) : "";
     },
 
     toggleSelectAll(e) {
-      this.selectedTeam = e.target.checked
-        ? this.paginatedTeams.map((t) => this.getTeamId(t))
+      this.selectedArea = e.target.checked
+        ? this.paginatedAreas.map((t) => this.getAreaId(t))
         : [];
     },
 
     async fetchData() {
       try {
-        const result = await this.fetchAllTeamUsers();
-        this.teamApiPayload = result || null;
+        const result = await this.fetchAllAreaUsers();
+        this.areaApiPayload = result || null;
       } catch (err) {
-        console.error("Failed to fetch team_user:", err);
+        console.error("Failed to fetch area_user:", err);
       }
     },
 
-    openTeamDetail(team) {
-      this.selectedTeamDetail = { ...team };
-      this.showTeamDetailForm = true;
+    openAreaDetail(area) {
+      this.selectedAreaDetail = { ...area };
+      this.showAreaDetailForm = true;
     },
 
-    closeTeamDetail() {
-      this.showTeamDetailForm = false;
-      this.selectedTeamDetail = null;
+    closeAreaDetail() {
+      this.showAreaDetailForm = false;
+      this.selectedAreaDetail = null;
     },
 
-    async handleDeleteSelectedTeams() {
-      if (!this.selectedTeam.length) {
+    async handleDeleteSelectedAreas() {
+      if (!this.selectedArea.length) {
         return alertService.validationError(
           "Pilih tim yang ingin dihapus terlebih dahulu.",
         );
       }
 
       const confirm = await alertService.confirmDelete(
-        `${this.selectedTeam.length} tim`,
+        `${this.selectedArea.length} tim`,
       );
       if (!confirm) return;
 
       try {
         // Use sequential deletion to avoid 429 and DB locks
-        for (const id of this.selectedTeam) {
+        for (const id of this.selectedArea) {
           if (id) {
-            await this.deleteTeam(id);
+            await this.deleteArea(id);
           }
         }
 
-        this.selectedTeam = [];
+        this.selectedArea = [];
         alertService.success("Tim berhasil dihapus");
         await this.fetchData();
       } catch (err) {
-        console.error("Failed to delete teams:", err);
+        console.error("Failed to delete areas:", err);
         // Look for error message in state if not in err object (some actions commit errors to state)
-        const serverError = this.$store.state.team.error;
+        const serverError = this.$store.state.area.error;
         const errorMessage =
           serverError ||
           err.response?.data?.message ||
@@ -164,71 +164,71 @@ export default {
       }
     },
 
-    handleCreateTeamSubmit(data) {
+    handleCreateAreaSubmit(data) {
       console.log(data);
 
       let dataparam = {
-        teamName: data.teamName,
-        parentTeam: data.parentTeam?.name || null,
+        areaName: data.areaName,
+        parentArea: data.parentArea?.name || null,
         selectedMembers: data.selectedMembers.map((member) => member.id),
       };
 
-      this.createTeam(dataparam)
+      this.createArea(dataparam)
         .then((createResult) => {
-          const createdTeamId =
-            createResult?.team?.id ||
+          const createdAreaId =
+            createResult?.area?.id ||
             createResult?.data?.id ||
             createResult?.id;
 
-          if (createdTeamId && dataparam.selectedMembers.length) {
+          if (createdAreaId && dataparam.selectedMembers.length) {
             const addUsersPayload = {
-              team_id: createdTeamId,
+              area_id: createdAreaId,
               user_ids: dataparam.selectedMembers,
             };
-            return this.addTeamUsers(addUsersPayload);
+            return this.addAreaUsers(addUsersPayload);
           }
         })
         .then(() => {
-          this.showCreateTeamForm = false;
+          this.showCreateAreaForm = false;
           return this.fetchData();
         })
         .catch((err) => {
-          console.error("Failed to create team:", err);
-          alert("Failed to create team. Please check API payload format.");
+          console.error("Failed to create area:", err);
+          alert("Failed to create area. Please check API payload format.");
         });
       console.log(dataparam);
 
       // try {
       //   const createPayload = {
-      //     team_name: data.teamName,
-      //     parent_id: data.parentTeam ? data.parentTeam.id : null,
+      //     area_name: data.areaName,
+      //     parent_id: data.parentArea ? data.parentArea.id : null,
       //   };
 
-      //   const createResult = await this.createTeam(createPayload);
+      //   const createResult = await this.createArea(createPayload);
 
-      //   const createdTeamId =
-      //     (createResult && createResult.team && createResult.team.id) ||
+      //   const createdAreaId =
+      //     (createResult && createResult.area && createResult.area.id) ||
       //     (createResult && createResult.data && createResult.data.id) ||
       //     (createResult && createResult.id);
 
       //   if (
-      //     createdTeamId &&
+      //     createdAreaId &&
       //     Array.isArray(data.selectedMembers) &&
       //     data.selectedMembers.length
       //   ) {
       //     const addUsersPayload = {
-      //       team_id: createdTeamId,
+      //       area_id: createdAreaId,
       //       user_ids: data.selectedMembers.map((member) => member.id),
       //     };
 
-      //     await this.addTeamUsers(addUsersPayload);
+      //     await this.addAreaUsers(addUsersPayload);
       //   }
 
-      //   this.showCreateTeamForm = false;
+      //   this.showCreateAreaForm = false;
       //   await this.fetchData();
       // } catch (err) {
-      //   console.error("Failed to create team:", err);
-      //   alert("Failed to create team. Please check API payload format.");
+      //   console.error("Failed to create area:", err);
+      //   alert("Failed to create area. Please check API payload format.");
       // }
     },
   },
@@ -238,7 +238,7 @@ export default {
   },
 
   watch: {
-    teams(e) {
+    areas(e) {
       console.log(e);
     },
   },
@@ -266,7 +266,7 @@ export default {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search team..."
+              placeholder="Search area..."
               class="w-full rounded-lg border border-outline bg-white py-2 pl-3 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-sub-text"
             />
           </div>
@@ -307,18 +307,18 @@ export default {
 
             <div class="relative inline-block add-dropdown">
               <button
-                @click="showCreateTeamForm = true"
+                @click="showCreateAreaForm = true"
                 type="button"
                 class="flex h-9 items-center justify-center gap-2 rounded-lg border border-outline bg-white px-3 py-2 text-sub-text transition hover:bg-sub-text hover:text-white"
               >
                 <span class="text-lg font-semibold">+</span>
-                <span class="text-sm font-medium">Team</span>
+                <span class="text-sm font-medium">Area</span>
               </button>
             </div>
 
             <button
-              @click="handleDeleteSelectedTeams"
-              :disabled="!selectedTeam.length || isLoading"
+              @click="handleDeleteSelectedAreas"
+              :disabled="!selectedArea.length || isLoading"
               class="h-9 w-9 rounded-lg border border-red bg-white p-2 text-red transition hover:bg-red hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 :size="18" />
@@ -338,7 +338,7 @@ export default {
           class="h-4 w-4 rounded border-gray-300"
         />
         <span class="sm:hidden">Select all</span>
-        <span class="hidden sm:inline">Select all team</span>
+        <span class="hidden sm:inline">Select all area</span>
       </label>
 
       <div
@@ -384,7 +384,7 @@ export default {
       >
         <div class="flex flex-col items-center gap-3">
           <RefreshCw :size="32" class="animate-spin text-sub-text" />
-          <p class="text-sm font-medium text-sub-text">Loading teams...</p>
+          <p class="text-sm font-medium text-sub-text">Loading areas...</p>
         </div>
       </div>
 
@@ -397,7 +397,7 @@ export default {
               class="px-3 py-3 text-left text-xs font-semibold text-gray-700 sm:px-6 sm:py-4 sm:text-sm"
             >
               <div class="flex items-center gap-2">
-                Team Name
+                Area Name
                 <ChevronDown :size="16" class="text-gray-400" />
               </div>
             </th>
@@ -432,27 +432,27 @@ export default {
           </tr>
 
           <!-- EMPTY STATE -->
-          <tr v-else-if="!isLoading && paginatedTeams.length === 0">
+          <tr v-else-if="!isLoading && paginatedAreas.length === 0">
             <td
               colspan="4"
               class="px-6 py-20 text-center text-sm text-sub-text sm:text-base"
             >
-              No team_user data found
+              No area_user data found
             </td>
           </tr>
 
           <!-- ROWS -->
           <tr
-            v-for="team in paginatedTeams"
-            :key="getTeamId(team)"
+            v-for="area in paginatedAreas"
+            :key="getAreaId(area)"
             class="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
-            @click="openTeamDetail(team)"
+            @click="openAreaDetail(area)"
           >
             <td class="px-3 py-4 sm:px-6">
               <input
                 type="checkbox"
-                :value="getTeamId(team)"
-                v-model="selectedTeam"
+                :value="getAreaId(area)"
+                v-model="selectedArea"
                 @click.stop
                 class="w-4 h-4"
               />
@@ -461,23 +461,23 @@ export default {
             <td
               class="px-3 py-4 text-xs font-medium text-gray-800 sm:px-6 sm:py-4 sm:text-sm"
               style="cursor: pointer"
-              @click="openTeamDetail(team)"
+              @click="openAreaDetail(area)"
             >
-              {{ team.team_name }}
+              {{ area.area_name }}
             </td>
             <td
               class="px-3 py-4 text-xs font-medium text-gray-800 sm:px-6 sm:py-4 sm:text-sm"
               style="cursor: pointer"
-              @click="openTeamDetail(team)"
+              @click="openAreaDetail(area)"
             >
-              {{ team.parent }}
+              {{ area.parent }}
             </td>
 
             <td
               class="px-3 py-4 text-xs text-dark-base sm:px-6 sm:py-4 sm:text-sm"
-              @click="openTeamDetail(team)"
+              @click="openAreaDetail(area)"
             >
-              {{ team.total_users }}
+              {{ area.total_users }}
             </td>
           </tr>
         </tbody>
@@ -485,17 +485,17 @@ export default {
     </div>
   </div>
 
-  <!-- Add Team Form -->
-  <CreateTeamForm
-    :isOpen="showCreateTeamForm"
-    @close="showCreateTeamForm = false"
-    @submit="handleCreateTeamSubmit"
+  <!-- Add Area Form -->
+  <CreateAreaForm
+    :isOpen="showCreateAreaForm"
+    @close="showCreateAreaForm = false"
+    @submit="handleCreateAreaSubmit"
   />
 
-  <DetailTeamForm
-    :isOpen="showTeamDetailForm"
-    :team="selectedTeamDetail"
-    :apiPayload="teamApiPayload"
-    @close="closeTeamDetail"
+  <DetailAreaForm
+    :isOpen="showAreaDetailForm"
+    :area="selectedAreaDetail"
+    :apiPayload="areaApiPayload"
+    @close="closeAreaDetail"
   />
 </template>
