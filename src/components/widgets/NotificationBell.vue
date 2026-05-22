@@ -108,6 +108,13 @@
             </button>
           </div>
         </div>
+
+        <!-- View All Button -->
+        <div class="p-3 border-t border-gray-200 text-center bg-gray-50 rounded-b-[16px]">
+          <button @click="goToNotifications" class="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+            View all notifications
+          </button>
+        </div>
       </div>
     </Transition>
   </div>
@@ -117,10 +124,13 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { Bell, ChevronDown, Check } from "lucide-vue-next";
 import { useNotifications } from "@/composables/useNotifications";
+import { useRouter } from "vue-router";
+import { useStore } from "vuex";
 
 // ── Notifications composable ────────────────────────────────────────
 const {
   notifications,
+  recentNotifications,
   unreadCount,
   markRead,
   markAllRead,
@@ -132,6 +142,18 @@ const isNotificationOpen = ref(false);
 const isCategoryDropdownOpen = ref(false);
 const notificationRef = ref(null);
 const categoryRef = ref(null);
+const router = useRouter();
+const store = useStore();
+
+function goToNotifications() {
+  isNotificationOpen.value = false;
+  const notifTab = {
+    CAPTION: "Notifications",
+    pathfile: "/crmAdmin/notifications"
+  };
+  store.dispatch("tabs/addTab", notifTab);
+  store.dispatch("tabs/selectTab", notifTab);
+}
 
 function toggleNotification() {
   isNotificationOpen.value = !isNotificationOpen.value;
@@ -152,7 +174,7 @@ function selectCategory(cat) {
 }
 
 const filteredNotifications = computed(() => {
-  let list = notifications.value.slice();
+  let list = recentNotifications.value.slice();
 
   if (selectedCategory.value === "Unread")
     list = list.filter((n) => n.is_read == 0);

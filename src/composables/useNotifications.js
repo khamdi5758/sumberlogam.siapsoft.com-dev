@@ -60,6 +60,10 @@ export function useNotifications() {
     notifications.value.filter(n => n.is_read == 0).length
   )
 
+  const recentNotifications = computed(() => 
+    notifications.value.slice(0, 5)
+  )
+
   // ── Fetch & deteksi notif baru ──────────────────────────────────
   async function fetchNotifications() {
     try {
@@ -151,6 +155,7 @@ export function useNotifications() {
   // ── Public API ──────────────────────────────────────────────────
   return {
     notifications,
+    recentNotifications,
     unreadCount,
     toasts,
     markRead,

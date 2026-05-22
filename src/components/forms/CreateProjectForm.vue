@@ -425,6 +425,7 @@ import NotesSection from "@/components/widgets/NotesEditor.vue";
 import HistoryDetail from "@/components/widgets/historydetail.vue";
 import { mapActions, mapGetters } from "vuex";
 import CreateTaskForm from "@/components/forms/CreateTaskForm.vue";
+import { useNotifications } from "@/composables/useNotifications";
 
 const { cookies } = useCookies();
 
@@ -1291,6 +1292,15 @@ export default {
           this.resetForm();
           this.$emit("close");
         }
+
+        // ── Refresh Notifications jika Buat Project Baru ──
+        if (!this.isEditMode) {
+          const { fetchNotifications } = useNotifications();
+          setTimeout(() => {
+            fetchNotifications();
+          }, 500); // delay agar backend selesai menyimpan notifikasi
+        }
+
       } catch (error) {
         console.error("Submit error:", error);
         alertService.error("Gagal menyimpan project.");
