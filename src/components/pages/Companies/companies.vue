@@ -50,6 +50,7 @@ export default {
       statuses: [],
       debounceTimer: null,
       isAlertOpen: false,
+      isDesktop: true,
     };
   },
 
@@ -154,16 +155,49 @@ export default {
     },
 
     companyColumns() {
-      return [
-        { dataField: "Company Name", caption: "Company Name", visible: true },
-        { dataField: "Company_Owner", caption: "Company Owner", visible: true },
+      const desktop = this.isDesktop;
 
-        { dataField: "Email", caption: "Email", visible: true },
-        {
+      const makeCol = (opts) => {
+        const col = {
+          dataField: opts.dataField,
+          caption: opts.caption,
+          visible: opts.visible !== false,
+          allowHiding: opts.allowHiding === true,
+          allowResizing: true,
+        };
+
+        if (!desktop && opts.width) {
+          col.width = opts.width;
+        }
+
+        return col;
+      };
+
+      return [
+        makeCol({
+          dataField: "Company Name",
+          caption: "Company Name",
+          width: 240,
+          allowHiding: false,
+        }),
+        makeCol({
+          dataField: "Company_Owner",
+          caption: "Company Owner",
+          width: 220,
+          allowHiding: false,
+        }),
+        makeCol({
+          dataField: "Email",
+          caption: "Email",
+          width: 260,
+          allowHiding: false,
+        }),
+        makeCol({
           dataField: "Address",
           caption: "Address",
-          visible: true,
-        },
+          width: 300,
+          allowHiding: false,
+        }),
       ];
     },
   },
@@ -176,14 +210,21 @@ export default {
     // this.fetchAllContacts();
     // this.fetchAllDeals();companyColumns
 
+    this.updateIsDesktop();
+    window.addEventListener("resize", this.updateIsDesktop);
     document.addEventListener("click", this.handleClickOutside);
   },
 
   beforeUnmount() {
+    window.removeEventListener("resize", this.updateIsDesktop);
     document.removeEventListener("click", this.handleClickOutside);
   },
 
   methods: {
+    updateIsDesktop() {
+      this.isDesktop = window.innerWidth >= 1024;
+    },
+
     handleFocusedRowChanged(e) {
       if (this.isAlertOpen) return;
       const company = e?.data;
@@ -858,11 +899,15 @@ export default {
         :keyExpr="'id'"
         :selectedRowKeys="selectedIds"
         :rowRenderingMode="'standard'"
+        :columnAutoWidth="isDesktop"
+        :wordwrap="true"
         @focused-row-changed="handleFocusedRowChanged"
         @selection-changed="handleSelectionChanged"
         @edit-click="handleRowEdit"
         @delete-click="handleRowDelete"
         :showActionColumn="true"
+        :pinActionColumnRight="isDesktop"
+        :columnHidingEnabled="false"
         :disablecol="[
           'tasks',
           'location',
@@ -1012,5 +1057,31 @@ input[type="number"] {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* Scoped fixes for DevExtreme fixed column / pane alignment */
+:deep(.dx-datagrid) {
+  /* ensure grid uses available space and panes align */
+  --company-grid-bg: transparent;
+}
+
+:deep(.dx-datagrid .dx-datagrid-content-fixed) {
+  background: var(--company-grid-bg) !important;
+  box-shadow: none !important;
+  border-left: 1px solid rgba(0, 0, 0, 0.04) !important;
+}
+
+:deep(.dx-datagrid .dx-datagrid-content) {
+  background: transparent !important;
+}
+
+:deep(.dx-datagrid .dx-scrollable) {
+  /* remove extra internal margins that may cause split */
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+:deep(.dx-datagrid-rowsview) {
+  overflow: visible !important;
 }
 </style>

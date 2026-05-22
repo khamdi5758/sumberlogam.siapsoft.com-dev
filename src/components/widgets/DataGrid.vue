@@ -1,6 +1,6 @@
 <template>
   <div class="mt-4 flex-1 min-h-1 relative">
-    <div class="h-full overflow-hidden">
+    <div class="h-full overflow-auto overflow-x-auto">
       <DxDataGrid
         ref="dataGridRef"
         :dataSource="dataSource"
@@ -1519,7 +1519,9 @@ export default {
 
 /* Focused & Selected row color override to #acb3b9 */
 :deep(.dx-datagrid-rowsview .dx-selection.dx-row:not(.dx-row-focused) > td),
-:deep(.dx-datagrid-rowsview .dx-selection.dx-row:not(.dx-row-focused):hover > td),
+:deep(
+  .dx-datagrid-rowsview .dx-selection.dx-row:not(.dx-row-focused):hover > td
+),
 :deep(.dx-datagrid-rowsview .dx-row-focused.dx-data-row > td) {
   background-color: #acb3b9 !important;
   color: white !important;

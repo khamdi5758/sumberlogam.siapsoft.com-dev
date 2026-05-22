@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+:root {
+  --app-bg: #f7f9fc;
+  --app-surface: #ffffff;
+  --app-text: #1c2434;
+  --app-muted: #64728b;
+  --app-border: #d6dae5;
+  --app-ring: rgba(59, 130, 246, 0.18);
+}
+
+html,
+body,
+#app {
+  font-family: "Montserrat", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--app-bg);
+  color: var(--app-text);
+}
+
 @theme {
   --font-sans: "Montserrat", sans-serif;
 
