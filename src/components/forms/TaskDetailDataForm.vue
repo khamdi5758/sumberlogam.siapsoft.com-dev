@@ -118,7 +118,7 @@ onMounted(() => {
       <div
         class="border-b border-outline px-6 py-4 flex items-center justify-between"
       >
-        <h2 class="text-xl font-bold text-dark-base">Task Detail</h2>
+        <h2 class="text-xl font-bold text-main-text">Task Detail</h2>
         <button
           @click="closePanel"
           :disabled="props.isSubmitting"
@@ -130,7 +130,7 @@ onMounted(() => {
 
       <div class="flex-1 overflow-y-auto p-6 space-y-6">
         <div class="space-y-2">
-          <label class="text-sm font-medium text-dark-base">Task Name</label>
+          <label class="text-sm font-medium text-main-text">Task Name</label>
           <input
             v-model="form.task_name"
             type="text"
@@ -140,7 +140,7 @@ onMounted(() => {
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-dark-base">Description</label>
+          <label class="text-sm font-medium text-main-text">Description</label>
           <textarea
             v-model="form.description"
             rows="4"
@@ -151,7 +151,7 @@ onMounted(() => {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="space-y-2">
-            <label class="text-sm font-medium text-dark-base">Status</label>
+            <label class="text-sm font-medium text-main-text">Status</label>
             <select
               v-model="form.status"
               class="w-full px-3 py-2 border border-outline rounded-lg text-sm bg-white focus:outline-none focus:ring-1 focus:ring-sub-text"
@@ -167,7 +167,7 @@ onMounted(() => {
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-dark-base">Priority</label>
+            <label class="text-sm font-medium text-main-text">Priority</label>
             <select
               v-model="form.priority"
               class="w-full px-3 py-2 border border-outline rounded-lg text-sm bg-white focus:outline-none focus:ring-1 focus:ring-sub-text"
@@ -183,7 +183,7 @@ onMounted(() => {
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-dark-base">Due Date</label>
+            <label class="text-sm font-medium text-main-text">Due Date</label>
             <input
               v-model="form.due_date"
               type="date"
@@ -192,7 +192,7 @@ onMounted(() => {
           </div>
 
           <div class="space-y-2 sm:col-span-2">
-            <label class="text-sm font-medium text-dark-base">Time</label>
+            <label class="text-sm font-medium text-main-text">Time</label>
             <input
               v-model="form.task_time"
               type="time"
@@ -215,7 +215,7 @@ onMounted(() => {
         <button
           @click="handleSave"
           :disabled="props.isSubmitting || !form.task_name.trim()"
-          class="px-4 py-2 rounded-lg text-sm font-medium bg-sub-text text-white hover:bg-gray-700 transition disabled:opacity-50"
+          class="px-4 py-2 rounded-lg text-sm font-medium bg-dark-base text-white hover:bg-dark-hover transition disabled:opacity-50"
         >
           {{ props.isSubmitting ? "Saving..." : "Save" }}
         </button>

@@ -96,7 +96,7 @@ export default {
   >
     <!-- Header -->
     <div class="flex justify-between items-center mb-4 sm:mb-6">
-      <h2 class="text-lg sm:text-xl font-bold text-dark-base">
+      <h2 class="text-lg sm:text-xl font-bold text-main-text">
         Task KPI by Status
       </h2>
       <button class="text-slate-400 hover:text-gray-700 text-xl leading-none">
@@ -131,12 +131,12 @@ export default {
         <!-- Nama & Total (mobile: sejajar atas) -->
         <div class="flex justify-between items-baseline sm:contents">
           <p
-            class="font-medium text-dark-base text-sm sm:text-base wrap-break-word"
+            class="font-medium text-main-text text-sm sm:text-base wrap-break-word"
           >
             {{ task.name }}
           </p>
           <!-- Total tampil di kanan pada mobile, di grid desktop nanti sendiri -->
-          <p class="text-right text-sm text-dark-base font-medium sm:hidden">
+          <p class="text-right text-sm text-main-text font-medium sm:hidden">
             {{ task.total }}
           </p>
         </div>
@@ -160,7 +160,7 @@ export default {
         </div>
 
         <!-- Total (hanya tampil di desktop, karena di mobile sudah di atas) -->
-        <p class="hidden sm:block text-right text-sm text-dark-base">
+        <p class="hidden sm:block text-right text-sm text-main-text">
           {{ task.total }}
         </p>
       </div>

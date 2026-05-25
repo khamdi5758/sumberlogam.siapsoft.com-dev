@@ -1,7 +1,8 @@
 <template>
   <div
     v-if="showMobileBackdrop"
-    class="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-[1px] transition-opacity duration-300 md:hidden"
+    class="fixed inset-0 z-40 backdrop-blur-[1px] transition-opacity duration-300 md:hidden"
+    :style="{ backgroundColor: 'rgba(28, 36, 52, 0.5)' }"
     @click="closeMobileSidebar"
   ></div>
 
@@ -9,21 +10,33 @@
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
     :class="sidebarClasses"
+    :style="{
+      backgroundColor: 'var(--layout-sidebar-bg)',
+      color: 'var(--layout-sidebar-text)',
+      borderColor: 'var(--layout-sidebar-border)',
+    }"
   >
     <!-- Header -->
     <div
       :class="[
-        'px-5 py-2 text-white text-2xl font-bold flex items-center border-b border-slate-800 shrink-0',
+        'px-5 py-2 text-2xl font-bold flex items-center border-b shrink-0',
         isExpanded ? 'gap-2 justify-start' : 'justify-center',
       ]"
+      :style="{
+        color: 'var(--layout-sidebar-text)',
+        borderBottomColor: 'var(--layout-sidebar-border)',
+      }"
     >
       <span v-show="isExpanded" class="truncate">CRM MG26</span>
       <button
         @click="toggleCollapsed"
         :class="[
-          'w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800',
+          'w-8 h-8 rounded-lg flex items-center justify-center transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)',
           isExpanded ? 'ml-auto' : '',
         ]"
+        :style="{
+          color: 'var(--layout-sidebar-muted)',
+        }"
       >
         <ListCollapse :size="20" />
       </button>
@@ -42,7 +55,7 @@
         :ref="`menuItem${mainMenu.L1}`"
       >
         <div
-          class="menu-icon-container flex h-12 items-center p-3 rounded-xl transition group hover:bg-slate-800 hover:text-white w-full"
+          class="menu-icon-container flex h-12 items-center p-3 rounded-xl transition group w-full hover:bg-[var(--layout-sidebar-hover)] hover:text-[var(--layout-sidebar-accent)]"
           @mouseenter="toggleSubmenu(mainMenu.L1, index)"
         >
           <component :is="iconMap[mainMenu.ICON]" :size="20"
@@ -60,29 +73,102 @@
         class="menu-item relative"
         :ref="`menuItem${mainMenu.L1}`"
       >
-        <div
-          class="menu-icon-container flex h-12 items-center p-3 rounded-xl transition group hover:bg-slate-800 hover:text-white w-full"
-          @click="openTab(mainMenu)"
+        <button
+          type="button"
+          class="menu-icon-container flex h-12 w-full items-center rounded-xl p-3 transition group hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
+          @click="!hasChildren(mainMenu) && openTab(mainMenu)"
           :class="
             isExpanded
-              ? 'gap-3 justify-start cursor-pointer'
+              ? 'gap-3 justify-between cursor-pointer'
               : 'justify-center cursor-pointer'
           "
           :title="!isExpanded ? mainMenu.NamaCaption : ''"
         >
-          <!-- Icon -->
-          <div class="w-6 flex justify-center">
-            <component
-              :is="iconMap[mainMenu.ICON]"
-              :size="20"
-              class="group-hover:text-blue-400 menu-icon"
-            />
-          </div>
+          <span
+            class="flex items-center gap-3 min-w-0"
+            :class="isExpanded ? '' : 'justify-center'"
+          >
+            <!-- Icon -->
+            <div class="w-6 flex justify-center">
+              <component
+                :is="iconMap[mainMenu.ICON]"
+                :size="20"
+                class="menu-icon group-hover:text-(--layout-sidebar-accent)"
+                :style="{ color: 'var(--layout-sidebar-muted)' }"
+              />
+            </div>
 
-          <!-- Label -->
-          <span v-show="isExpanded" class="truncate">{{
-            mainMenu.NamaCaption
-          }}</span>
+            <!-- Label -->
+            <span v-show="isExpanded" class="truncate text-left">{{
+              mainMenu.NamaCaption
+            }}</span>
+          </span>
+
+          <ChevronDown
+            v-if="isExpanded && hasChildren(mainMenu)"
+            @click.stop="toggleMenuExpand(mainMenu.L1)"
+            :size="16"
+            class="shrink-0 cursor-pointer transition-transform duration-200 group-hover:text-(--layout-sidebar-accent)"
+            :style="{ color: 'var(--layout-sidebar-muted)' }"
+            :class="{ 'rotate-180': isMenuExpanded(mainMenu.L1) }"
+          />
+        </button>
+
+        <!-- Inline child menu (when sidebar expanded) -->
+        <div v-if="isExpanded && isMenuExpanded(mainMenu.L1)">
+          <div
+            v-if="getChildren(mainMenu.L1, mainMenu).length"
+            class="pl-6 mt-1 space-y-1"
+          >
+            <div
+              v-for="child in getChildren(mainMenu.L1, mainMenu)"
+              :key="child.L1"
+              class="flex flex-col"
+            >
+              <div class="flex items-center">
+                <button
+                  type="button"
+                  @click="!childHasChildren(child) && openTab(child)"
+                  class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
+                  :style="{
+                    color: 'var(--layout-sidebar-text)',
+                  }"
+                >
+                  <span class="truncate">{{ child.NamaCaption }}</span>
+                  <ChevronDown
+                    v-if="childHasChildren(child)"
+                    @click.stop="toggleMenuExpand(child.L1)"
+                    :size="14"
+                    class="shrink-0 cursor-pointer transition-transform duration-200 group-hover:text-(--layout-sidebar-accent)"
+                    :style="{ color: 'var(--layout-sidebar-muted)' }"
+                    :class="{
+                      'rotate-180': isMenuExpanded(child.L1),
+                    }"
+                  />
+                </button>
+              </div>
+
+              <!-- level-2 inline submenu -->
+              <div
+                v-if="
+                  isMenuExpanded(child.L1) &&
+                  getChildren(child.L1, child).length
+                "
+                class="pl-4 mt-1"
+              >
+                <div v-for="sub in getChildren(child.L1, child)" :key="sub.L1">
+                  <button
+                    type="button"
+                    @click="openTab(sub)"
+                    class="w-full rounded-lg px-3 py-2 text-left text-sm transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
+                    :style="{ color: 'var(--layout-sidebar-muted)' }"
+                  >
+                    <span class="truncate">{{ sub.NamaCaption }}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Separator -->
@@ -99,9 +185,10 @@
     <div class="p-4 border-t border-slate-800 shrink-0">
       <button
         :class="[
-          'flex items-center p-3 w-full rounded-xl transition bg-dark-red text-white hover:bg-red-700',
+          'flex items-center p-3 w-full rounded-xl transition text-white hover:bg-[var(--layout-sidebar-hover)]',
           isExpanded ? 'gap-3 justify-start text-left' : 'justify-center',
         ]"
+        :style="{ backgroundColor: 'var(--layout-sidebar-danger)' }"
         :title="!isExpanded ? 'Log Out' : ''"
       >
         <LogOut :size="20" />
@@ -155,6 +242,8 @@ import {
   ListCollapse,
   Package,
   BarChart3,
+  ChevronDown,
+  Map,
 } from "lucide-vue-next";
 
 export default {
@@ -174,6 +263,8 @@ export default {
     ListCollapse,
     Package,
     BarChart3,
+    ChevronDown,
+    Map,
   },
 
   data() {
@@ -188,6 +279,36 @@ export default {
       activeLevel2MenuId: null,
       submenuStyle: {},
       level2SubmenuStyle: {},
+      // track expanded menus for inline sidebar dropdowns
+      expandedMenuIds: [],
+      dummySidebarChildren: {
+        users: [
+          {
+            L1: "dummy-user-settings",
+            NamaCaption: "User Settings",
+            pathfile: "/crmAdmin/users?tab=settings",
+            ICON: "UserCircle",
+          },
+          {
+            L1: "dummy-user-permission",
+            NamaCaption: "User Permission",
+            pathfile: "/crmAdmin/users?tab=permission",
+            ICON: "CheckSquare",
+          },
+          {
+            L1: "dummy-user-area",
+            NamaCaption: "Area",
+            pathfile: "/crmAdmin/users?tab=area",
+            ICON: "Map",
+          },
+          {
+            L1: "dummy-user-team",
+            NamaCaption: "Team",
+            pathfile: "/crmAdmin/users?tab=team",
+            ICON: "Users",
+          },
+        ],
+      },
     };
   },
 
@@ -213,8 +334,7 @@ export default {
     },
 
     sidebarClasses() {
-      const baseClasses =
-        "flex flex-col bg-dark-base text-slate-300 h-screen transition-all duration-300";
+      const baseClasses = "flex flex-col h-screen transition-all duration-300";
 
       if (this.isMobileViewport) {
         return [
@@ -259,6 +379,8 @@ export default {
         ListCollapse,
         Package,
         BarChart3,
+        ChevronDown,
+        Map,
       };
     },
 
@@ -351,6 +473,22 @@ export default {
       this.closeAllMenus();
     },
 
+    normalizeMenuCaption(caption) {
+      return String(caption || "")
+        .trim()
+        .toLowerCase();
+    },
+
+    getDummyChildren(menuItem) {
+      const caption = this.normalizeMenuCaption(menuItem?.NamaCaption);
+
+      if (caption === "user") {
+        return this.dummySidebarChildren.users;
+      }
+
+      return [];
+    },
+
     closeAllMenus() {
       this.showSubmenu = [];
       this.showLevel2Submenu = [];
@@ -358,6 +496,7 @@ export default {
       this.activeLevel2MenuId = null;
       this.submenuStyle = {};
       this.level2SubmenuStyle = {};
+      this.expandedMenuIds = [];
     },
 
     closeSubmenu() {
@@ -367,12 +506,51 @@ export default {
       this.activeLevel2MenuId = null;
       this.submenuStyle = {};
       this.level2SubmenuStyle = {};
+      this.expandedMenuIds = [];
     },
 
     closeLevel2Submenu() {
       this.showLevel2Submenu = [];
       this.activeLevel2MenuId = null;
       this.level2SubmenuStyle = {};
+    },
+
+    getChildren(menuId, menuItem = null) {
+      if (!this.getlayoutmenuweb || !this.getlayoutmenuweb.dbmenu2) {
+        return this.getDummyChildren(menuItem);
+      }
+
+      const backendChildren = this.getlayoutmenuweb.dbmenu2.filter((item) => {
+        return String(item.Parent) === String(menuId) && item.HASACCESS === "1";
+      });
+
+      if (backendChildren.length > 0) {
+        return backendChildren;
+      }
+
+      return this.getDummyChildren(menuItem);
+    },
+
+    hasChildren(menuItem) {
+      return this.getChildren(menuItem.L1, menuItem).length > 0;
+    },
+
+    childHasChildren(item) {
+      return this.getChildren(item.L1, item).length > 0;
+    },
+
+    isMenuExpanded(menuId) {
+      return this.expandedMenuIds.includes(String(menuId));
+    },
+
+    toggleMenuExpand(menuId) {
+      const id = String(menuId);
+      if (this.expandedMenuIds.includes(id)) {
+        this.expandedMenuIds = [];
+        return;
+      }
+
+      this.expandedMenuIds = [id];
     },
 
     toggleSubmenu(menuId, menuIndex = null) {

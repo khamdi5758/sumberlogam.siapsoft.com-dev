@@ -4,7 +4,7 @@
       <button
         class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition shrink-0"
       >
-        <Filter :size="20" class="text-dark-base" />
+        <Filter :size="20" class="text-main-text" />
       </button>
 
       <div class="relative min-w-0 flex-1">
@@ -21,13 +21,13 @@
         @click="$emit('search')"
         class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition shrink-0"
       >
-        <Search :size="20" class="text-dark-base" />
+        <Search :size="20" class="text-main-text" />
       </button>
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-2">
-        <span class="text-xs text-dark-base sm:text-sm">Show</span>
+        <span class="text-xs text-main-text sm:text-sm">Show</span>
         <select
           :value="itemsPerPage"
           @change="$emit('update:itemsPerPage', Number($event.target.value))"

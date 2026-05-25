@@ -227,7 +227,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-sm"
       >
-        <h2 class="text-xl font-bold text-dark-base">My Profile</h2>
+        <h2 class="text-xl font-bold text-main-text">My Profile</h2>
         <button
           @click="handleClose"
           class="p-2 hover:bg-light-base rounded-lg transition-colors"
@@ -272,7 +272,7 @@ export default {
           <!-- Names -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 First Name
               </label>
               <input
@@ -284,7 +284,7 @@ export default {
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Last Name
               </label>
               <input
@@ -300,7 +300,7 @@ export default {
           <!-- NIK & Telephone -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 NIK
               </label>
               <input
@@ -312,7 +312,7 @@ export default {
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Telephone
               </label>
               <input
@@ -328,7 +328,7 @@ export default {
           <!-- Email & Password -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Email Address
               </label>
               <input
@@ -345,7 +345,7 @@ export default {
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Update Password
               </label>
               <input
@@ -361,7 +361,7 @@ export default {
           <!-- Primary & Secondary Team -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Primary Team
               </label>
               <div class="relative">
@@ -372,7 +372,7 @@ export default {
                   :class="{
                     'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200':
                       !isAdmin,
-                    'text-dark-base bg-white pr-10 cursor-pointer': isAdmin,
+                    'text-main-text bg-white pr-10 cursor-pointer': isAdmin,
                   }"
                   required
                 >
@@ -392,7 +392,7 @@ export default {
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Secondary Team
               </label>
               <div class="relative">
@@ -403,7 +403,7 @@ export default {
                   :class="{
                     'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200':
                       !isAdmin,
-                    'text-dark-base bg-white pr-10 cursor-pointer': isAdmin,
+                    'text-main-text bg-white pr-10 cursor-pointer': isAdmin,
                   }"
                 >
                   <option
@@ -426,7 +426,7 @@ export default {
           <!-- Staff Level & Role -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Staff Level
               </label>
               <div class="relative">
@@ -437,7 +437,7 @@ export default {
                   :class="{
                     'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200':
                       !isAdmin,
-                    'text-dark-base bg-white pr-10 cursor-pointer': isAdmin,
+                    'text-main-text bg-white pr-10 cursor-pointer': isAdmin,
                   }"
                   required
                 >
@@ -457,7 +457,7 @@ export default {
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Role
               </label>
               <div class="relative">
@@ -468,7 +468,7 @@ export default {
                   :class="{
                     'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200':
                       !isAdmin,
-                    'text-dark-base bg-white pr-10 cursor-pointer': isAdmin,
+                    'text-main-text bg-white pr-10 cursor-pointer': isAdmin,
                   }"
                   required
                 >

@@ -205,7 +205,7 @@ const handleReset = () => {
         >
           <div class="flex items-center gap-2">
             <ArrowRight :size="18" class="text-sub-text" />
-            <h2 class="text-xl font-bold text-dark-base">Create Deal</h2>
+            <h2 class="text-xl font-bold text-main-text">Create Deal</h2>
           </div>
           <button
             @click="handleClose"
@@ -221,7 +221,7 @@ const handleReset = () => {
             <!-- Deal Name & Pipeline -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Deal Name</label
                 >
                 <input
@@ -233,7 +233,7 @@ const handleReset = () => {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Pipeline</label
                 >
                 <select
@@ -254,7 +254,7 @@ const handleReset = () => {
             <!-- Currency & Amount/Value -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Currency</label
                 >
                 <select
@@ -271,7 +271,7 @@ const handleReset = () => {
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Amount/Value</label
                 >
                 <input
@@ -286,7 +286,7 @@ const handleReset = () => {
             <!-- Expected Close Date -->
             <div class="grid grid-cols-1 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Expected Close Date</label
                 >
                 <input
@@ -301,7 +301,7 @@ const handleReset = () => {
             <!-- Priority & Source -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Priority</label
                 >
                 <select
@@ -318,7 +318,7 @@ const handleReset = () => {
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Source</label
                 >
                 <select
@@ -377,7 +377,7 @@ const handleReset = () => {
               >
                 <!-- Description -->
                 <div>
-                  <label class="block text-sm font-medium text-dark-base mb-2"
+                  <label class="block text-sm font-medium text-main-text mb-2"
                     >Description</label
                   >
                   <textarea
@@ -389,7 +389,7 @@ const handleReset = () => {
                 </div>
                 <!-- Documents -->
                 <div>
-                  <label class="block text-sm font-medium text-dark-base mb-2"
+                  <label class="block text-sm font-medium text-main-text mb-2"
                     >Documents</label
                   >
                   <select
@@ -448,7 +448,7 @@ const handleReset = () => {
                         :key="i"
                         class="flex items-center justify-between text-xs px-3 py-1.5 bg-light-base rounded-lg"
                       >
-                        <span class="truncate text-dark-base">{{
+                        <span class="truncate text-main-text">{{
                           file.name
                         }}</span>
                         <button

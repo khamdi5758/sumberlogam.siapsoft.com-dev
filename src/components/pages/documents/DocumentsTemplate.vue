@@ -21,7 +21,7 @@
         <path d="M9 21V9" />
       </svg>
     </div>
-    <h2 class="text-xl font-bold text-dark-base mb-2">Document Templates</h2>
+    <h2 class="text-xl font-bold text-main-text mb-2">Document Templates</h2>
     <p class="text-sub-text max-w-md mx-auto">
       Create and manage your reusable document templates here. This feature is
       currently under development.

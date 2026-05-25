@@ -177,7 +177,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       >
-        <h2 class="text-xl font-bold text-dark-base">{{ title }}</h2>
+        <h2 class="text-xl font-bold text-main-text">{{ title }}</h2>
         <button
           @click="handleClose"
           class="p-2 hover:bg-light-base rounded-lg transition-colors"
@@ -202,7 +202,7 @@ export default {
                 class="text-sub-text"
               />
               <span
-                class="text-sm font-semibold text-dark-base flex items-center gap-2"
+                class="text-sm font-semibold text-main-text flex items-center gap-2"
               >
                 <svg
                   width="16"
@@ -333,19 +333,19 @@ export default {
               >
                 <button
                   type="button"
-                  class="flex items-center gap-1.5 text-xs text-sub-text hover:text-dark-base"
+                  class="flex items-center gap-1.5 text-xs text-sub-text hover:text-main-text"
                 >
                   <MapPin :size="14" /> Add GPS Location
                 </button>
                 <button
                   type="button"
-                  class="flex items-center gap-1.5 text-xs text-sub-text hover:text-dark-base"
+                  class="flex items-center gap-1.5 text-xs text-sub-text hover:text-main-text"
                 >
                   <Camera :size="14" /> Add Photo
                 </button>
                 <button
                   type="button"
-                  class="flex items-center gap-1.5 text-xs text-sub-text hover:text-dark-base"
+                  class="flex items-center gap-1.5 text-xs text-sub-text hover:text-main-text"
                 >
                   <Mic :size="14" /> Start Recording
                 </button>
@@ -366,7 +366,7 @@ export default {
                 class="text-sub-text"
               />
               <span
-                class="text-sm font-semibold text-dark-base flex items-center gap-2"
+                class="text-sm font-semibold text-main-text flex items-center gap-2"
               >
                 <svg
                   width="16"
@@ -391,7 +391,7 @@ export default {
             >
               <!-- Task Name -->
               <div class="px-4 pt-4 pb-2">
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Name of Task</label
                 >
                 <input
@@ -509,7 +509,7 @@ export default {
               <!-- Status -->
               <div class="grid grid-cols-1 gap-4 px-4 pb-4">
                 <div>
-                  <label class="block text-sm font-medium text-dark-base mb-2"
+                  <label class="block text-sm font-medium text-main-text mb-2"
                     >Status</label
                   >
                   <select
@@ -530,7 +530,7 @@ export default {
               <!-- Due Date & Time -->
               <div class="grid grid-cols-2 gap-4 px-4 pb-4">
                 <div>
-                  <label class="block text-sm font-medium text-dark-base mb-2"
+                  <label class="block text-sm font-medium text-main-text mb-2"
                     >Due Date</label
                   >
                   <input
@@ -540,7 +540,7 @@ export default {
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-dark-base mb-2"
+                  <label class="block text-sm font-medium text-main-text mb-2"
                     >Time</label
                   >
                   <div class="relative">
@@ -555,7 +555,7 @@ export default {
 
               <!-- Priority -->
               <div class="px-4 pb-4">
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Priority</label
                 >
                 <select
@@ -587,7 +587,7 @@ export default {
                 class="text-sub-text"
               />
               <span
-                class="text-sm font-semibold text-dark-base flex items-center gap-2"
+                class="text-sm font-semibold text-main-text flex items-center gap-2"
               >
                 <svg
                   width="16"
@@ -615,7 +615,7 @@ export default {
             >
               <!-- Desc of Docs label -->
               <div class="px-4 pt-4 pb-2">
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Desc of Docs</label
                 >
               </div>
@@ -722,7 +722,7 @@ export default {
 
               <!-- Documents -->
               <div class="px-4 pb-4 border-t border-outline pt-4">
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Documents</label
                 >
                 <!-- Custom dropup -->
@@ -734,7 +734,7 @@ export default {
                   >
                     <span
                       :class="
-                        docFileSource ? 'text-dark-base' : 'text-gray-400'
+                        docFileSource ? 'text-main-text' : 'text-gray-400'
                       "
                     >
                       Select File Source
@@ -770,7 +770,7 @@ export default {
                       :class="
                         docFileSource === opt.value
                           ? 'text-sub-text font-medium bg-light-base'
-                          : 'text-dark-base'
+                          : 'text-main-text'
                       "
                     >
                       {{ opt.label }}
@@ -817,7 +817,7 @@ export default {
                       :key="i"
                       class="flex items-center justify-between text-xs px-3 py-1.5 bg-light-base rounded-lg"
                     >
-                      <span class="truncate text-dark-base">{{
+                      <span class="truncate text-main-text">{{
                         file.name
                       }}</span>
                       <button

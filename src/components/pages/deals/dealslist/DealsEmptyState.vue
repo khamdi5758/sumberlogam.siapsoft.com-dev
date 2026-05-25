@@ -14,7 +14,7 @@ import { Search } from "lucide-vue-next";
           <Search :size="32" class="text-gray-300" />
         </div>
         <div class="space-y-1">
-          <p class="text-lg font-bold text-dark-base">No deals found</p>
+          <p class="text-lg font-bold text-main-text">No deals found</p>
           <p class="text-sm text-gray-400 max-w-xs mx-auto">
             Start adding deals or adjust your search filters to see them here
           </p>

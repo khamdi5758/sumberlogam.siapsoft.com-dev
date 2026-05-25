@@ -4,10 +4,10 @@
   >
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-lg font-bold text-dark-base">Task List</h2>
+      <h2 class="text-lg font-bold text-main-text">Task List</h2>
 
       <button
-        class="flex items-center gap-2 text-sm text-slate-400 hover:text-dark-base transition"
+        class="flex items-center gap-2 text-sm text-slate-400 hover:text-main-text transition"
       >
         <span>{{ monthLabel }}</span>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24">
@@ -188,7 +188,8 @@ export default {
       if (status === "Overdue") return "bg-red-500/10 text-red-500";
       if (status === "Process") return "bg-amber-500/10 text-amber-500";
       if (status === "Waiting") return "bg-yellow-500/10 text-yellow-600";
-      if (status === "Deferred") return "bg-slate-500/10 text-slate-600";
+      if (status === "Deferred")
+        return "bg-deffered-color/10 text-deffered-color";
       return "bg-gray-200 text-gray-700";
     },
   },

@@ -61,7 +61,10 @@ export default {
 
       return source.map((item) => {
         // Robust mapping for database fields
-        const isNote = item.notes !== undefined || item.body !== undefined || item.content !== undefined;
+        const isNote =
+          item.notes !== undefined ||
+          item.body !== undefined ||
+          item.content !== undefined;
         return {
           ...item,
           type: item.type || (isNote ? "note" : "doc"),
@@ -191,9 +194,9 @@ export default {
       <button
         type="button"
         @click="$emit('add-note')"
-        class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-outline rounded-xl text-sm font-semibold text-dark-base hover:bg-light-base hover:border-dark-base/20 transition-all duration-200 shadow-sm"
+        class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-outline rounded-xl text-sm font-semibold text-main-text hover:bg-light-base hover:border-dark-base/20 transition-all duration-200 shadow-sm"
       >
-        <Plus :size="18" class="text-dark-base" />
+        <Plus :size="18" class="text-main-text" />
         Tambah Notes
       </button>
     </div>
@@ -221,7 +224,7 @@ export default {
         >
           <MessageSquare :size="32" class="text-outline" />
         </div>
-        <h3 class="text-base font-semibold text-dark-base">
+        <h3 class="text-base font-semibold text-main-text">
           Belum ada histori
         </h3>
         <p class="text-sm text-sub-text mt-1">
@@ -275,7 +278,7 @@ export default {
                 <button
                   type="button"
                   @click="$emit('edit', { item, index })"
-                  class="p-1.5 hover:bg-light-base rounded-lg text-sub-text hover:text-dark-base transition-colors"
+                  class="p-1.5 hover:bg-light-base rounded-lg text-sub-text hover:text-main-text transition-colors"
                   title="Edit"
                 >
                   <Pencil :size="14" />
@@ -295,12 +298,12 @@ export default {
             <div class="space-y-4">
               <h4
                 v-if="item.title"
-                class="text-base font-bold text-dark-base leading-tight"
+                class="text-base font-bold text-main-text leading-tight"
               >
                 {{ item.title }}
               </h4>
               <div
-                class="text-[14px] text-dark-base/90 leading-relaxed prose prose-sm max-w-none break-words"
+                class="text-[14px] text-main-text/90 leading-relaxed prose prose-sm max-w-none break-words"
                 v-html="
                   item.notes || item.body || item.content || item.description
                 "
@@ -329,7 +332,7 @@ export default {
               <div
                 v-for="(file, fi) in item.files"
                 :key="fi"
-                class="flex items-center gap-3 p-3 bg-light-base rounded-xl border border-outline text-[13px] text-dark-base hover:bg-outline/20 transition-colors cursor-pointer group/file"
+                class="flex items-center gap-3 p-3 bg-light-base rounded-xl border border-outline text-[13px] text-main-text hover:bg-outline/20 transition-colors cursor-pointer group/file"
               >
                 <div
                   class="w-8 h-8 rounded-lg bg-white/50 flex items-center justify-center group-hover/file:bg-white transition-colors"
@@ -360,7 +363,7 @@ export default {
         <div
           class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10"
         >
-          <h2 class="text-xl font-bold text-dark-base">
+          <h2 class="text-xl font-bold text-main-text">
             {{ editingItemIndex !== null ? "Edit Note" : "Tambah Note" }}
           </h2>
           <button

@@ -7,10 +7,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Montserrat", "sans-serif"],
+        sans: ["var(--font-sans)", "sans-serif"],
       },
       colors: {
-        primary: "#1C2434", 
+        primary: "var(--color-dark-base)",
       },
     },
   },

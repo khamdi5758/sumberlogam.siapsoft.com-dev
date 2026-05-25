@@ -120,30 +120,30 @@
               {{ company.company_name }}
             </td>
             <td
-              class="px-6 py-4 text-sm text-dark-base whitespace-nowrap overflow-hidden text-ellipsis"
+              class="px-6 py-4 text-sm text-main-text whitespace-nowrap overflow-hidden text-ellipsis"
             >
               {{ company.address }}
             </td>
             <td
-              class="px-6 py-4 text-sm text-dark-base whitespace-nowrap overflow-hidden text-ellipsis"
+              class="px-6 py-4 text-sm text-main-text whitespace-nowrap overflow-hidden text-ellipsis"
             >
               {{ company.province }}
             </td>
             <td
-              class="px-6 py-4 text-sm text-dark-base whitespace-nowrap overflow-hidden text-ellipsis"
+              class="px-6 py-4 text-sm text-main-text whitespace-nowrap overflow-hidden text-ellipsis"
             >
               {{ company.city }}
             </td>
-            <td class="px-6 py-4 text-sm text-dark-base leading-5">
+            <td class="px-6 py-4 text-sm text-main-text leading-5">
               <div class="whitespace-nowrap overflow-hidden text-ellipsis">
                 {{ company.telephone }}
               </div>
             </td>
-            <td class="px-6 py-4 text-sm text-dark-base">
+            <td class="px-6 py-4 text-sm text-main-text">
               {{ company.typeName || company.type }}
             </td>
             <td
-              class="px-6 py-4 text-sm text-dark-base whitespace-nowrap overflow-hidden text-ellipsis"
+              class="px-6 py-4 text-sm text-main-text whitespace-nowrap overflow-hidden text-ellipsis"
             >
               {{ company.company_owner || "-" }}
             </td>

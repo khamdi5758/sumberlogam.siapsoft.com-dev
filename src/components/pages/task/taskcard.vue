@@ -10,7 +10,7 @@
           <button
             class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition"
           >
-            <Filter :size="20" class="text-dark-base" />
+            <Filter :size="20" class="text-main-text" />
           </button>
 
           <!-- Search Input -->
@@ -25,12 +25,12 @@
           <button
             class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition"
           >
-            <Search :size="20" class="text-dark-base" />
+            <Search :size="20" class="text-main-text" />
           </button>
 
           <!-- Show Pagination -->
           <div class="flex items-center gap-2">
-            <span class="text-sm text-dark-base">Show</span>
+            <span class="text-sm text-main-text">Show</span>
             <select class="px-3 py-2 border border-outline rounded-lg text-sm">
               <option>10</option>
               <option>25</option>
@@ -217,7 +217,12 @@ export default {
       );
 
       let key = "not_started";
-      const label = match?.status_name || match?.name || match?.label || statusRaw || "Not Started";
+      const label =
+        match?.status_name ||
+        match?.name ||
+        match?.label ||
+        statusRaw ||
+        "Not Started";
       const statusText = String(label).toLowerCase().replace(/\s+/g, "_");
 
       if (statusText.includes("progress")) key = "in_progress";
@@ -226,7 +231,11 @@ export default {
         key = "completed";
       else if (statusText.includes("defer") || statusText.includes("cancel"))
         key = "deferred";
-      else if (statusText.includes("started") || statusText.includes("todo") || statusText.includes("to_do"))
+      else if (
+        statusText.includes("started") ||
+        statusText.includes("todo") ||
+        statusText.includes("to_do")
+      )
         key = "not_started";
 
       return { key: String(match?.id || match?.value || key), label };
@@ -301,7 +310,11 @@ export default {
       if (name.includes("wait")) return "bg-yellow-100 text-yellow-700";
       if (name.includes("complete") || name.includes("done"))
         return "bg-emerald-100 text-emerald-700";
-      if (name.includes("defer") || name.includes("cancel") || name.includes("reject"))
+      if (
+        name.includes("defer") ||
+        name.includes("cancel") ||
+        name.includes("reject")
+      )
         return "bg-red-100 text-red-700";
       return "bg-slate-100 text-slate-700";
     },

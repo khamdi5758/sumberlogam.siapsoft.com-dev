@@ -17,7 +17,7 @@
         <button
           class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition"
         >
-          <Filter :size="18" class="text-dark-base" />
+          <Filter :size="18" class="text-main-text" />
         </button>
 
         <input
@@ -30,13 +30,13 @@
         <button
           class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition"
         >
-          <Search :size="18" class="text-dark-base" />
+          <Search :size="18" class="text-main-text" />
         </button>
       </div>
 
       <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-2">
-          <span class="text-sm text-dark-base">Show</span>
+          <span class="text-sm text-main-text">Show</span>
           <select
             v-model="pageSize"
             class="px-3 py-2 border border-outline rounded-lg text-sm bg-white"
@@ -159,7 +159,7 @@
             <button
               class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition"
             >
-              <Filter :size="20" class="text-dark-base" />
+              <Filter :size="20" class="text-main-text" />
             </button>
 
             <!-- Search Input -->
@@ -174,12 +174,12 @@
             <button
               class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition"
             >
-              <Search :size="20" class="text-dark-base" />
+              <Search :size="20" class="text-main-text" />
             </button>
 
             <!-- Show Pagination -->
             <div class="flex items-center gap-2">
-              <span class="text-sm text-dark-base">Show</span>
+              <span class="text-sm text-main-text">Show</span>
               <select
                 v-model="pageSize"
                 class="px-3 py-2 border border-outline rounded-lg text-sm"

@@ -74,12 +74,15 @@ export default {
 
     isValidUrl(url) {
       if (!url) return true;
-      const pattern =new RegExp('^(https?:\\/\\/)?'+ // protocol
-        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
-        '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
-        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
-        '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
-        '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+      const pattern = new RegExp(
+        "^(https?:\\/\\/)?" + // protocol
+          "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
+          "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
+          "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
+          "(\\?[;&a-z\\d%_.~+=-]*)?" + // query string
+          "(\\#[-a-z\\d_]*)?$",
+        "i",
+      ); // fragment locator
       return !!pattern.test(url);
     },
 
@@ -276,7 +279,7 @@ export default {
       <component :is="currentIcon" :size="16" class="text-sub-text" />
 
       <span
-        class="text-sm font-semibold text-dark-base flex items-center gap-2"
+        class="text-sm font-semibold text-main-text flex items-center gap-2"
       >
         <svg
           width="16"
@@ -302,7 +305,7 @@ export default {
     >
       <!-- Description -->
       <div class="px-4 pt-4 pb-2">
-        <label class="block text-sm font-medium text-dark-base mb-2">
+        <label class="block text-sm font-medium text-main-text mb-2">
           Desc of Docs
         </label>
       </div>
@@ -339,7 +342,7 @@ export default {
 
       <!-- FILE SECTION -->
       <div class="px-4 pb-4 border-t border-outline pt-4">
-        <label class="block text-sm font-medium text-dark-base mb-2">
+        <label class="block text-sm font-medium text-main-text mb-2">
           Documents
         </label>
 
@@ -351,7 +354,7 @@ export default {
             class="w-full flex items-center justify-between px-3 py-2 border border-outline rounded-lg text-sm bg-white"
           >
             <span
-              :class="localDocs.fileSource ? 'text-dark-base' : 'text-gray-400'"
+              :class="localDocs.fileSource ? 'text-main-text' : 'text-gray-400'"
             >
               {{ selectedSourceLabel }}
             </span>
@@ -400,65 +403,73 @@ export default {
         </div>
 
         <!-- URL / Drive Input -->
-        <div v-if="localDocs.fileSource === 'url' || localDocs.fileSource === 'drive'" class="mt-3">
+        <div
+          v-if="
+            localDocs.fileSource === 'url' || localDocs.fileSource === 'drive'
+          "
+          class="mt-3"
+        >
           <input
             v-model="localDocs.fileUrl"
             type="text"
             placeholder="Masukkan URL atau Link Google Drive..."
             class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-1 transition-all"
             :class="[
-              isValidUrl(localDocs.fileUrl) && localDocs.fileUrl 
-                ? 'border-green-500 focus:ring-green-200' 
-                : localDocs.fileUrl 
-                  ? 'border-red-500 focus:ring-red-200' 
-                  : 'border-outline focus:ring-sub-text'
+              isValidUrl(localDocs.fileUrl) && localDocs.fileUrl
+                ? 'border-green-500 focus:ring-green-200'
+                : localDocs.fileUrl
+                  ? 'border-red-500 focus:ring-red-200'
+                  : 'border-outline focus:ring-sub-text',
             ]"
           />
-          <p v-if="localDocs.fileUrl && !isValidUrl(localDocs.fileUrl)" class="text-[10px] text-red-500 mt-1 ml-1">
+          <p
+            v-if="localDocs.fileUrl && !isValidUrl(localDocs.fileUrl)"
+            class="text-[10px] text-red-500 mt-1 ml-1"
+          >
             Format URL tidak valid (Gunakan http:// atau https://)
           </p>
         </div>
 
         <ul v-if="localDocs.files.length" class="mt-2 space-y-1">
-            <li
-              v-for="(file, i) in localDocs.files"
-              :key="i"
-              class="flex items-center justify-between gap-3 text-xs px-3 py-2 bg-light-base rounded-lg"
-            >
-              <div class="flex min-w-0 items-center gap-2">
-                <span
-                  class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white border border-outline text-[10px] font-semibold text-dark-base uppercase"
-                >
-                  {{ getDocKind(file) }}
-                </span>
+          <li
+            v-for="(file, i) in localDocs.files"
+            :key="i"
+            class="flex items-center justify-between gap-3 text-xs px-3 py-2 bg-light-base rounded-lg"
+          >
+            <div class="flex min-w-0 items-center gap-2">
+              <span
+                class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white border border-outline text-[10px] font-semibold text-main-text uppercase"
+              >
+                {{ getDocKind(file) }}
+              </span>
 
-                <div class="min-w-0">
-                  <p class="truncate text-dark-base">{{ getDocLabel(file) }}</p>
-                  <p class="text-[10px] text-sub-text">
-                    {{ formatFileSize(file) }}
-                  </p>
-                </div>
+              <div class="min-w-0">
+                <p class="truncate text-main-text">{{ getDocLabel(file) }}</p>
+                <p class="text-[10px] text-sub-text">
+                  {{ formatFileSize(file) }}
+                </p>
               </div>
+            </div>
 
-              <div class="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  class="text-xs text-sub-text hover:text-dark-base"
-                  @click="openDocFile(file)"
-                >
-                  Open
-                </button>
-                <button
-                  type="button"
-                  class="text-xs text-sub-text hover:text-red-600"
-                  @click="removeDocFile(i)"
-                >
-                  ✕
-                </button>
-              </div>
-            </li>
-          </ul>
-        </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                class="text-xs text-sub-text hover:text-main-text"
+                @click="openDocFile(file)"
+              >
+                Open
+              </button>
+              <button
+                type="button"
+                class="text-xs text-sub-text hover:text-red-600"
+                @click="removeDocFile(i)"
+              >
+                ✕
+              </button>
+            </div>
+          </li>
+        </ul>
       </div>
     </div>
+  </div>
 </template>

@@ -342,7 +342,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       >
-        <h2 class="text-xl font-bold text-dark-base">Add Team</h2>
+        <h2 class="text-xl font-bold text-main-text">Add Team</h2>
         <button
           @click="handleClose"
           class="p-2 hover:bg-light-base rounded-lg transition-colors"
@@ -356,7 +356,7 @@ export default {
         <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
           <!-- Team Name -->
           <div>
-            <label class="block text-sm font-medium text-dark-base mb-2">
+            <label class="block text-sm font-medium text-main-text mb-2">
               Team Name
             </label>
             <input
@@ -370,7 +370,7 @@ export default {
 
           <!-- Parent Team Name (Searchable Dropdown) -->
           <div class="relative" ref="parentDropdownRef">
-            <label class="block text-sm font-medium text-dark-base mb-2">
+            <label class="block text-sm font-medium text-main-text mb-2">
               Parent Team Name
             </label>
 
@@ -383,7 +383,7 @@ export default {
               </div>
               <div
                 v-else
-                class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-dark-base border border-outline"
+                class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-main-text border border-outline"
                 @click.stop
               >
                 {{ formData.parentTeam.name }}
@@ -423,7 +423,7 @@ export default {
                   @click="selectParentTeam(team)"
                   class="px-4 py-2 hover:bg-light-base cursor-pointer flex items-center justify-between text-sm transition"
                 >
-                  <span class="font-medium text-dark-base">{{
+                  <span class="font-medium text-main-text">{{
                     team.name
                   }}</span>
                   <div
@@ -445,7 +445,7 @@ export default {
 
           <!-- Add Team Member (Searchable Dropdown) -->
           <div class="relative" ref="dropdownRef">
-            <label class="block text-sm font-medium text-dark-base mb-2">
+            <label class="block text-sm font-medium text-main-text mb-2">
               Add Team Member
             </label>
 
@@ -462,7 +462,7 @@ export default {
               <div
                 v-for="member in formData.selectedMembers"
                 :key="member.id"
-                class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-dark-base border border-outline"
+                class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-main-text border border-outline"
                 @click.stop
               >
                 {{ member.name }}
@@ -503,7 +503,7 @@ export default {
                   class="px-4 py-2 hover:bg-light-base cursor-pointer flex items-center justify-between text-sm transition"
                 >
                   <div class="flex flex-col">
-                    <span class="font-medium text-dark-base">{{
+                    <span class="font-medium text-main-text">{{
                       member.name
                     }}</span>
                     <span class="text-xs text-sub-text">{{

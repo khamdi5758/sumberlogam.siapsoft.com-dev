@@ -288,8 +288,8 @@ const handleBoardChange = async (event, targetBoard) => {
            <p>dari <strong>${currentStageTitle}</strong> ke <strong>${targetStageTitle}</strong>?</p>`,
     icon: "question",
     showCancelButton: true,
-    confirmButtonColor: "#3b82f6",
-    cancelButtonColor: "#ef4444",
+    confirmButtonColor: "var(--color-progress-color)",
+    cancelButtonColor: "var(--color-red)",
     cancelButtonText: "Batal",
     confirmButtonText: "Ya",
   });
@@ -514,7 +514,7 @@ onBeforeUnmount(() => {
             <header
               class="h-12 bg-white border-b border-outline flex items-center justify-between px-4 rounded-t-lg"
             >
-              <h3 class="text-dark-base text-sm font-bold">
+              <h3 class="text-main-text text-sm font-bold">
                 {{ board.title }}
               </h3>
               <div
@@ -547,7 +547,7 @@ onBeforeUnmount(() => {
 
             <!-- Board Footer with Total Amount -->
             <footer
-              class="h-12 bg-white border-t border-outline flex items-center justify-center rounded-b-lg text-[11px] font-bold text-dark-base"
+              class="h-12 bg-white border-t border-outline flex items-center justify-center rounded-b-lg text-[11px] font-bold text-main-text"
             >
               TOTAL: Rp
               {{
@@ -576,18 +576,18 @@ onBeforeUnmount(() => {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-outline);
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--color-sub-text);
 }
 
 .ghost-card {
   opacity: 0.3;
-  background: #f8fafc;
-  border: 2px dashed #cbd5e1;
+  background: var(--color-light-base);
+  border: 2px dashed var(--color-outline);
 }
 
 .chosen-card {

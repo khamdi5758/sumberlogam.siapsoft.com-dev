@@ -26,7 +26,7 @@ const isPipelineOpen = ref(false);
         <button
           class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition flex-shrink-0"
         >
-          <Filter :size="20" class="text-dark-base" />
+          <Filter :size="20" class="text-main-text" />
         </button>
 
         <div class="relative flex-1 min-w-0">
@@ -45,7 +45,7 @@ const isPipelineOpen = ref(false);
         <button
           class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition flex-shrink-0"
         >
-          <Search :size="20" class="text-dark-base" />
+          <Search :size="20" class="text-main-text" />
         </button>
       </div>
 
@@ -55,11 +55,11 @@ const isPipelineOpen = ref(false);
         <div class="relative">
           <button
             @click="isCurrencyOpen = !isCurrencyOpen"
-            class="flex items-center gap-1 hover:text-dark-base transition whitespace-nowrap"
+            class="flex items-center gap-1 hover:text-main-text transition whitespace-nowrap"
           >
             <span>
               Currency:
-              <span class="text-dark-base font-bold">{{
+              <span class="text-main-text font-bold">{{
                 selectedCurrency
               }}</span>
             </span>
@@ -82,7 +82,7 @@ const isPipelineOpen = ref(false);
                   selectedCurrency = curr;
                   isCurrencyOpen = false;
                 "
-                class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-dark-base"
+                class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-main-text"
               >
                 {{ curr }}
               </li>
@@ -95,11 +95,11 @@ const isPipelineOpen = ref(false);
         <div class="relative">
           <button
             @click="isPipelineOpen = !isPipelineOpen"
-            class="flex items-center gap-1 hover:text-dark-base transition whitespace-nowrap"
+            class="flex items-center gap-1 hover:text-main-text transition whitespace-nowrap"
           >
             <span>
               Pipeline:
-              <span class="text-dark-base font-bold">{{
+              <span class="text-main-text font-bold">{{
                 selectedPipeline
               }}</span>
             </span>
@@ -122,7 +122,7 @@ const isPipelineOpen = ref(false);
                   selectedPipeline = pipe;
                   isPipelineOpen = false;
                 "
-                class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-dark-base"
+                class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-main-text"
               >
                 {{ pipe }}
               </li>
@@ -140,7 +140,7 @@ const isPipelineOpen = ref(false);
         <button
           class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition flex-shrink-0"
         >
-          <Filter :size="20" class="text-dark-base" />
+          <Filter :size="20" class="text-main-text" />
         </button>
 
         <!-- Search Input -->
@@ -161,7 +161,7 @@ const isPipelineOpen = ref(false);
         <button
           class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition"
         >
-          <Search :size="20" class="text-dark-base" />
+          <Search :size="20" class="text-main-text" />
         </button>
       </div>
 
@@ -171,11 +171,11 @@ const isPipelineOpen = ref(false);
         <div class="relative">
           <button
             @click="isCurrencyOpen = !isCurrencyOpen"
-            class="flex items-center gap-1 hover:text-dark-base transition"
+            class="flex items-center gap-1 hover:text-main-text transition"
           >
             <span class="whitespace-nowrap">
               Currency:
-              <span class="text-dark-base font-bold">{{
+              <span class="text-main-text font-bold">{{
                 selectedCurrency
               }}</span>
             </span>
@@ -198,7 +198,7 @@ const isPipelineOpen = ref(false);
                   selectedCurrency = curr;
                   isCurrencyOpen = false;
                 "
-                class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-dark-base"
+                class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-main-text"
               >
                 {{ curr }}
               </li>
@@ -213,11 +213,11 @@ const isPipelineOpen = ref(false);
         <div class="relative">
           <button
             @click="isPipelineOpen = !isPipelineOpen"
-            class="flex items-center gap-1 hover:text-dark-base transition"
+            class="flex items-center gap-1 hover:text-main-text transition"
           >
             <span class="whitespace-nowrap">
               Pipeline:
-              <span class="text-dark-base font-bold">{{
+              <span class="text-main-text font-bold">{{
                 selectedPipeline
               }}</span>
             </span>
@@ -240,7 +240,7 @@ const isPipelineOpen = ref(false);
                   selectedPipeline = pipe;
                   isPipelineOpen = false;
                 "
-                class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-dark-base"
+                class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-main-text"
               >
                 {{ pipe }}
               </li>

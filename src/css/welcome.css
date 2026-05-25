@@ -1,31 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --app-bg: #f7f9fc;
-  --app-surface: #ffffff;
-  --app-text: #1c2434;
-  --app-muted: #64728b;
-  --app-border: #d6dae5;
-  --app-ring: rgba(59, 130, 246, 0.18);
-}
-
-html,
-body,
-#app {
-  font-family: "Montserrat", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  background-color: var(--app-bg);
-  color: var(--app-text);
-}
-
-@theme {
   --font-sans: "Montserrat", sans-serif;
 
-  --color-*: initial;
   --color-white: #ffffff;
   --color-red: #d34053;
   --color-dark-red: #330405;
@@ -38,67 +15,147 @@ body {
   --color-dark-base: #1c2434;
   --color-light-base: #eff1f6;
   --color-dark-hover: #333848;
+
+  --color-main-text: #1c2434;
+  --color-light-base: #eff1f6;
   --color-sub-text: #64728b;
   --color-outline: #d6dae5;
   --color-baris-genap: #f9f9fd;
   --color-cool-grey-bg: #e5e7eb;
-  --color-deffered-color: #2e334a;
+
+  --color-deffered-color: var(--color-red);
   --color-progress-color: #525e75;
   --color-waiting-color: #404460;
+
   --color-pipeline: #f4f5fb;
   --color-points: #64788b;
+
+  --layout-shell-bg: #eff1f6;
+  --layout-navbar-bg: #ffffff;
+  --layout-navbar-border: #d6dae5;
+  --layout-navbar-text: #1c2434;
+  --layout-navbar-muted: #64728b;
+
+  --layout-sidebar-bg: #1c2434;
+  --layout-sidebar-border: #333848;
+  --layout-sidebar-text: #eff1f6;
+  --layout-sidebar-muted: #64788b;
+  --layout-sidebar-hover: #333848;
+  --layout-sidebar-accent: #eff1f6;
+  --layout-sidebar-subtext: #64788b;
+  --layout-sidebar-danger: #330405;
+
+  --layout-tab-header-bg: #eff1f6;
+  --layout-content-bg: #eff1f6;
+  --layout-content-panel: #ffffff;
+  --layout-content-border: #d6dae5;
+  --layout-content-text: #1c2434;
+  --layout-content-muted: #64728b;
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+
+  --color-white: var(--color-white);
+  --color-red: var(--color-red);
+  --color-dark-red: var(--color-dark-red);
+  --color-green: var(--color-green);
+  --color-good-green: var(--color-good-green);
+  --color-yellow: var(--color-yellow);
+  --color-orange: var(--color-orange);
+  --color-fecbuk: var(--color-fecbuk);
+
+  --color-dark-base: var(--color-dark-base);
+  --color-light-base: var(--color-light-base);
+  --color-dark-hover: var(--color-dark-hover);
+
+  --color-main-text: var(--color-main-text);
+  --color-sub-text: var(--color-sub-text);
+  --color-outline: var(--color-outline);
+  --color-baris-genap: var(--color-baris-genap);
+  --color-cool-grey-bg: var(--color-cool-grey-bg);
+
+  --color-deffered-color: var(--color-deffered-color);
+  --color-progress-color: var(--color-progress-color);
+  --color-waiting-color: var(--color-waiting-color);
+
+  --color-pipeline: var(--color-pipeline);
+  --color-points: var(--color-points);
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  background: var(--layout-shell-bg);
+  color: var(--color-main-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .ccard {
   @apply bg-white h-28 relative rounded-2xl p-6 flex items-center justify-between shadow-sm;
 }
 
-/* 🔥 Global V-Select Font Synchronization */
 .v-select,
 .v-select * {
-  font-family: "Montserrat", sans-serif !important;
+  font-family: var(--font-sans) !important;
 }
 
 .vs__dropdown-toggle {
   border-radius: 0.5rem !important;
-  /* rounded-lg */
-  border-color: #e2e8f0 !important;
-  /* border-outline */
+  border-color: var(--color-outline) !important;
   padding: 4px 0 !important;
 }
 
 .vs__selected {
   font-size: 0.875rem !important;
-  /* text-sm */
-  color: #1c2434 !important;
-  /* text-dark-base */
+  color: var(--color-main-text) !important;
 }
 
 .vs__search {
   font-size: 0.875rem !important;
-  color: #1c2434 !important;
+  color: var(--color-main-text) !important;
 }
 
 .vs__search::placeholder {
   font-size: 0.875rem !important;
-  color: #94a3b8 !important;
-  /* text-sub-text placeholder */
+  color: var(--color-main-text) !important;
+  opacity: 0.5 !important;
 }
 
 .vs__dropdown-menu {
   font-size: 0.875rem !important;
   border-radius: 0.5rem !important;
-  border-color: #e2e8f0 !important;
+  border-color: var(--color-outline) !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
 }
 
 .vs__dropdown-option {
   padding: 8px 12px !important;
-  color: #1c2434 !important;
+  color: var(--color-main-text) !important;
 }
 
 .vs__dropdown-option--highlight {
-  background: #eff1f6 !important;
-  /* light-base color */
-  color: #1c2434 !important;
+  background: var(--color-light-base) !important;
+  color: var(--color-main-text) !important;
+}
+
+/* global placeholder = main text color */
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+  color: var(--color-main-text);
+  opacity: 0.3;
+}
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+  color: var(--color-main-text);
+  opacity: 0.3;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-main-text);
+  opacity: 0.3;
 }

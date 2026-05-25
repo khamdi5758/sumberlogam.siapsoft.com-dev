@@ -59,7 +59,7 @@ const handleSearchInput = (e) => {
         <button
           class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition shrink-0"
         >
-          <Filter :size="20" class="text-dark-base" />
+          <Filter :size="20" class="text-main-text" />
         </button>
 
         <input
@@ -73,13 +73,13 @@ const handleSearchInput = (e) => {
         <button
           class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition shrink-0"
         >
-          <Search :size="20" class="text-dark-base" />
+          <Search :size="20" class="text-main-text" />
         </button>
       </div>
 
       <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-2 min-w-0">
-          <span class="text-xs text-dark-base whitespace-nowrap">Show</span>
+          <span class="text-xs text-main-text whitespace-nowrap">Show</span>
           <select
             :value="itemsPerPage"
             @change="emit('update:itemsPerPage', Number($event.target.value))"
@@ -97,11 +97,11 @@ const handleSearchInput = (e) => {
           <div class="relative">
             <button
               @click="emit('toggleCurrency')"
-              class="flex items-center gap-1 hover:text-dark-base transition whitespace-nowrap"
+              class="flex items-center gap-1 hover:text-main-text transition whitespace-nowrap"
             >
               <span>
                 Curr:
-                <span class="text-dark-base font-bold">{{
+                <span class="text-main-text font-bold">{{
                   selectedCurrency
                 }}</span>
               </span>
@@ -121,7 +121,7 @@ const handleSearchInput = (e) => {
                   v-for="curr in currencies"
                   :key="curr"
                   @click="emit('selectCurrency', curr)"
-                  class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-dark-base font-normal"
+                  class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-main-text font-normal"
                 >
                   {{ curr }}
                 </li>
@@ -134,11 +134,11 @@ const handleSearchInput = (e) => {
           <div class="relative">
             <button
               @click="emit('togglePipeline')"
-              class="flex items-center gap-1 hover:text-dark-base transition whitespace-nowrap"
+              class="flex items-center gap-1 hover:text-main-text transition whitespace-nowrap"
             >
               <span>
                 Pipe:
-                <span class="text-dark-base font-bold">{{
+                <span class="text-main-text font-bold">{{
                   selectedPipeline
                 }}</span>
               </span>
@@ -158,7 +158,7 @@ const handleSearchInput = (e) => {
                   v-for="pipe in pipelines"
                   :key="pipe"
                   @click="emit('selectPipeline', pipe)"
-                  class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-dark-base font-normal"
+                  class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-main-text font-normal"
                 >
                   {{ pipe }}
                 </li>
@@ -177,7 +177,7 @@ const handleSearchInput = (e) => {
         <button
           class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition"
         >
-          <Filter :size="20" class="text-dark-base" />
+          <Filter :size="20" class="text-main-text" />
         </button>
 
         <!-- Search -->
@@ -193,12 +193,12 @@ const handleSearchInput = (e) => {
         <button
           class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition"
         >
-          <Search :size="20" class="text-dark-base" />
+          <Search :size="20" class="text-main-text" />
         </button>
 
         <!-- Show -->
         <div class="flex items-center gap-2">
-          <span class="text-sm text-dark-base">Show</span>
+          <span class="text-sm text-main-text">Show</span>
           <select
             :value="itemsPerPage"
             @change="emit('update:itemsPerPage', $event.target.value)"
@@ -217,11 +217,11 @@ const handleSearchInput = (e) => {
         <div class="relative">
           <button
             @click="emit('toggleCurrency')"
-            class="flex items-center gap-1 hover:text-dark-base transition"
+            class="flex items-center gap-1 hover:text-main-text transition"
           >
             <span
               >Currency:
-              <span class="text-dark-base font-bold">{{
+              <span class="text-main-text font-bold">{{
                 selectedCurrency
               }}</span></span
             >
@@ -241,7 +241,7 @@ const handleSearchInput = (e) => {
                 v-for="curr in currencies"
                 :key="curr"
                 @click="emit('selectCurrency', curr)"
-                class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-dark-base font-normal"
+                class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-main-text font-normal"
               >
                 {{ curr }}
               </li>
@@ -256,11 +256,11 @@ const handleSearchInput = (e) => {
         <div class="relative">
           <button
             @click="emit('togglePipeline')"
-            class="flex items-center gap-1 hover:text-dark-base transition"
+            class="flex items-center gap-1 hover:text-main-text transition"
           >
             <span
               >Pipeline:
-              <span class="text-dark-base font-bold">{{
+              <span class="text-main-text font-bold">{{
                 selectedPipeline
               }}</span></span
             >
@@ -280,7 +280,7 @@ const handleSearchInput = (e) => {
                 v-for="pipe in pipelines"
                 :key="pipe"
                 @click="emit('selectPipeline', pipe)"
-                class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-dark-base font-normal"
+                class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-main-text font-normal"
               >
                 {{ pipe }}
               </li>

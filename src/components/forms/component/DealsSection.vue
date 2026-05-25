@@ -63,7 +63,7 @@
             class="px-3 py-2 rounded-lg bg-light-base border border-outline flex items-center justify-between group"
           >
             <div class="min-w-0 flex-1">
-              <p class="text-sm font-medium text-dark-base">
+              <p class="text-sm font-medium text-main-text">
                 {{ data.deal_name }}
               </p>
               <p class="text-xs text-sub-text">Due Date: {{ data.due_date }}</p>

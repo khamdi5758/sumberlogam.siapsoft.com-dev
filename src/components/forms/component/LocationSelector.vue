@@ -2,7 +2,7 @@
   <div class="space-y-4">
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-dark-base mb-2"
+        <label class="block text-sm font-medium text-main-text mb-2"
           >Province</label
         >
         <div class="relative">
@@ -17,7 +17,7 @@
         </div>
       </div>
       <div>
-        <label class="block text-sm font-medium text-dark-base mb-2"
+        <label class="block text-sm font-medium text-main-text mb-2"
           >City</label
         >
         <div class="relative">
@@ -34,7 +34,7 @@
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-dark-base mb-2"
+        <label class="block text-sm font-medium text-main-text mb-2"
           >Kecamatan</label
         >
         <div class="relative">
@@ -49,7 +49,7 @@
         </div>
       </div>
       <div>
-        <label class="block text-sm font-medium text-dark-base mb-2"
+        <label class="block text-sm font-medium text-main-text mb-2"
           >Kelurahan</label
         >
         <div class="relative">
@@ -67,7 +67,7 @@
 
     <div class="grid gap-4">
       <!-- <div>
-        <label class="block text-sm font-medium text-dark-base mb-2"
+        <label class="block text-sm font-medium text-main-text mb-2"
           >Pos Code</label
         >
        
@@ -83,7 +83,7 @@
       </div> -->
 
       <div>
-        <label class="block text-sm font-medium text-dark-base mb-2"
+        <label class="block text-sm font-medium text-main-text mb-2"
           >Address</label
         >
         <!-- <input

@@ -626,7 +626,7 @@ export default {
     <!-- Header Refresh -->
     <div class="flex items-center justify-between mb-5">
       <div>
-        <h1 class="text-2xl font-bold text-dark-base">Dashboard</h1>
+        <h1 class="text-2xl font-bold text-main-text">Dashboard</h1>
         <p v-if="dashboardError" class="mt-1 text-sm text-amber-600">
           {{ dashboardError }}
         </p>

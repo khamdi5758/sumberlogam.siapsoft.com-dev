@@ -110,7 +110,7 @@ export default {
       <component :is="currentIcon" :size="16" class="text-sub-text" />
 
       <span
-        class="text-sm font-semibold text-dark-base flex items-center gap-2"
+        class="text-sm font-semibold text-main-text flex items-center gap-2"
       >
         <svg
           width="16"
@@ -134,7 +134,7 @@ export default {
     >
       <!-- Task Name -->
       <div class="px-4 pt-4 pb-2">
-        <label class="block text-sm font-medium text-dark-base mb-2">
+        <label class="block text-sm font-medium text-main-text mb-2">
           Name of Task
         </label>
         <input
@@ -142,8 +142,9 @@ export default {
           type="text"
           placeholder="Task name..."
           :class="[
-              'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm',
-              isNameInvalid ? 'border-red-500' : 'border-outline']"
+            'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm',
+            isNameInvalid ? 'border-red-500' : 'border-outline',
+          ]"
         />
         <p v-if="isNameInvalid" class="text-red-500 text-xs mt-1">
           Nama task wajib diisi jika field lain diisi
@@ -189,7 +190,7 @@ export default {
 
       <!-- Status -->
       <div class="px-4 pb-4">
-        <label class="block text-sm font-medium text-dark-base mb-2">
+        <label class="block text-sm font-medium text-main-text mb-2">
           Status
         </label>
         <select
@@ -222,7 +223,7 @@ export default {
 
       <!-- Priority -->
       <div class="px-4 pb-4">
-        <label class="block text-sm font-medium text-dark-base mb-2">
+        <label class="block text-sm font-medium text-main-text mb-2">
           Priority
         </label>
         <select

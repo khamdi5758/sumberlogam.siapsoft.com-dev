@@ -9,7 +9,7 @@
           <button
             class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition shrink-0"
           >
-            <Filter :size="20" class="text-dark-base" />
+            <Filter :size="20" class="text-main-text" />
           </button>
 
           <input
@@ -22,13 +22,13 @@
           <button
             class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition shrink-0"
           >
-            <Search :size="20" class="text-dark-base" />
+            <Search :size="20" class="text-main-text" />
           </button>
         </div>
 
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-2 min-w-0">
-            <span class="text-sm text-dark-base whitespace-nowrap">Show</span>
+            <span class="text-sm text-main-text whitespace-nowrap">Show</span>
             <select
               v-model.number="itemsPerPage"
               class="px-2 py-1.5 border border-outline rounded-lg text-sm bg-white focus:outline-none focus:ring-1 focus:ring-sub-text"
@@ -109,7 +109,7 @@
             <button
               class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition"
             >
-              <Filter :size="20" class="text-dark-base" />
+              <Filter :size="20" class="text-main-text" />
             </button>
 
             <!-- Delete Btn -->
@@ -135,12 +135,12 @@
             <button
               class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition"
             >
-              <Search :size="20" class="text-dark-base" />
+              <Search :size="20" class="text-main-text" />
             </button>
 
             <!-- Show -->
             <div class="flex items-center gap-2">
-              <span class="text-sm text-dark-base">Show</span>
+              <span class="text-sm text-main-text">Show</span>
               <select
                 v-model.number="itemsPerPage"
                 class="px-3 py-2 border border-outline rounded-lg text-sm"

@@ -302,7 +302,7 @@ export default {
             >
               <span class="text-2xl">📋</span>
             </div>
-            <p class="text-lg font-medium text-dark-base">No invoices found</p>
+            <p class="text-lg font-medium text-main-text">No invoices found</p>
             <p class="text-sm text-gray-400">
               Create your first invoice to get started
             </p>

@@ -1,6 +1,6 @@
 <template>
   <div class="relative" ref="CompaniesDropdownRef">
-    <label class="block text-sm font-medium text-dark-base mb-2">
+    <label class="block text-sm font-medium text-main-text mb-2">
       Companies Association
     </label>
     <div
@@ -13,7 +13,7 @@
       <div
         v-for="Companies in selectedCompanies"
         :key="Companies.id"
-        class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-dark-base border border-outline"
+        class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-main-text border border-outline"
         @click.stop
       >
         {{ Companies.company_name || "" }}
@@ -58,7 +58,7 @@
           class="px-4 py-2 hover:bg-light-base cursor-pointer flex items-center justify-between text-sm transition"
         >
           <div class="flex flex-col">
-            <span class="font-medium text-dark-base">
+            <span class="font-medium text-main-text">
               {{ Companies.company_name || "" }}
             </span>
             <span class="text-xs text-sub-text">{{ Companies.email }}</span>
@@ -83,7 +83,7 @@
   <!-- <button
     type="button"
     @click="showAddCompaniesQuickForm = true"
-    class="mt-2 text-sm text-sub-text hover:text-dark-base font-medium flex items-center gap-1"
+    class="mt-2 text-sm text-sub-text hover:text-main-text font-medium flex items-center gap-1"
   >
     <Plus :size="14" />
     Create Companies

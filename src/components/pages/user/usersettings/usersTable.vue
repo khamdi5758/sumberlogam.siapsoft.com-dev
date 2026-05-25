@@ -42,7 +42,7 @@
             <div class="min-w-0">
               <div class="flex items-center gap-2">
                 <span
-                  class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-light-base px-2 text-[11px] font-semibold text-dark-base"
+                  class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-light-base px-2 text-[11px] font-semibold text-main-text"
                 >
                   {{ (currentPage - 1) * itemsPerPage + index + 1 }}
                 </span>
@@ -60,7 +60,7 @@
             </div>
 
             <span
-              class="shrink-0 rounded-full bg-light-base px-2.5 py-1 text-[11px] font-semibold text-dark-base"
+              class="shrink-0 rounded-full bg-light-base px-2.5 py-1 text-[11px] font-semibold text-main-text"
             >
               {{ user.role || "-" }}
             </span>
@@ -92,7 +92,7 @@
           >
             <button
               @click="$emit('edit', user)"
-              class="flex h-9 items-center gap-2 rounded-lg border border-outline bg-white px-3 text-xs font-medium text-sub-text transition active:scale-95 hover:bg-light-base hover:text-dark-base"
+              class="flex h-9 items-center gap-2 rounded-lg border border-outline bg-white px-3 text-xs font-medium text-sub-text transition active:scale-95 hover:bg-light-base hover:text-main-text"
               title="Edit User"
             >
               <Pencil :size="15" />
@@ -120,32 +120,32 @@
             class="border-b border-outline shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
           >
             <th
-              class="w-10 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white"
+              class="w-10 px-4 py-4 text-left text-sm font-bold text-main-text bg-white"
             >
               No
             </th>
             <th
-              class="w-auto px-4 py-4 text-left text-sm font-bold text-dark-base bg-white"
+              class="w-auto px-4 py-4 text-left text-sm font-bold text-main-text bg-white"
             >
               Name(Email)
             </th>
             <th
-              class="w-32 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white"
+              class="w-32 px-4 py-4 text-left text-sm font-bold text-main-text bg-white"
             >
               Team
             </th>
             <th
-              class="w-40 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white"
+              class="w-40 px-4 py-4 text-left text-sm font-bold text-main-text bg-white"
             >
               Last Active
             </th>
             <th
-              class="w-20 px-4 py-4 text-left text-sm font-bold text-dark-base bg-white"
+              class="w-20 px-4 py-4 text-left text-sm font-bold text-main-text bg-white"
             >
               Role
             </th>
             <th
-              class="w-28 px-4 py-4 text-sm font-bold text-dark-base bg-white text-center"
+              class="w-28 px-4 py-4 text-sm font-bold text-main-text bg-white text-center"
             >
               Actions
             </th>
@@ -189,20 +189,20 @@
               </div>
               <div class="text-xs text-gray-400 truncate">{{ user.email }}</div>
             </td>
-            <td class="px-4 py-4 text-sm text-dark-base truncate">
+            <td class="px-4 py-4 text-sm text-main-text truncate">
               {{ user.primaryteam || user.team || "-" }}
             </td>
-            <td class="px-4 py-4 text-sm text-dark-base truncate">
+            <td class="px-4 py-4 text-sm text-main-text truncate">
               {{ user.last_active || user.lastactv || user.updated_at || "-" }}
             </td>
-            <td class="px-4 py-4 text-sm text-dark-base font-medium">
+            <td class="px-4 py-4 text-sm text-main-text font-medium">
               {{ user.role }}
             </td>
             <td class="px-4 py-4 text-sm text-center">
               <div class="flex items-center justify-center gap-2">
                 <button
                   @click="$emit('edit', user)"
-                  class="p-1.5 border border-outline bg-white text-sub-text hover:text-dark-base hover:bg-light-base rounded shadow-sm transition-all active:scale-95"
+                  class="p-1.5 border border-outline bg-white text-sub-text hover:text-main-text hover:bg-light-base rounded shadow-sm transition-all active:scale-95"
                   title="Edit User"
                 >
                   <Pencil :size="16" />

@@ -4,11 +4,11 @@
     <div class="ccard">
       <div class="flex items-center gap-5">
         <div class="w-16 h-16 rounded-xl flex items-center justify-center">
-          <Users :size="45" class="text-dark-base" />
+          <Users :size="45" class="text-main-text" />
         </div>
         <div>
           <div class="flex items-left gap-4">
-            <h2 class="text-3xl font-bold text-dark-base">
+            <h2 class="text-3xl font-bold text-main-text">
               {{ displayContacts }}
             </h2>
           </div>
@@ -21,11 +21,11 @@
     <div class="ccard">
       <div class="flex items-center gap-5">
         <div class="w-16 h-16 rounded-xl flex items-center justify-center">
-          <Building2 :size="45" class="text-dark-base" />
+          <Building2 :size="45" class="text-main-text" />
         </div>
         <div>
           <div class="flex items-left gap-4">
-            <h2 class="text-3xl font-bold text-dark-base">
+            <h2 class="text-3xl font-bold text-main-text">
               {{ displayCompanies }}
             </h2>
           </div>
@@ -38,11 +38,11 @@
     <div class="ccard">
       <div class="flex items-center gap-5">
         <div class="w-16 h-16 rounded-xl flex items-center justify-center">
-          <Briefcase :size="45" class="text-dark-base" />
+          <Briefcase :size="45" class="text-main-text" />
         </div>
         <div>
           <div class="flex items-left gap-4">
-            <h2 class="text-3xl font-bold text-dark-base">
+            <h2 class="text-3xl font-bold text-main-text">
               {{ displayDeals }}
             </h2>
           </div>
@@ -55,11 +55,11 @@
     <div class="ccard">
       <div class="flex items-center gap-5">
         <div class="w-16 h-16 rounded-xl flex items-center justify-center">
-          <ClipboardClock :size="45" class="text-dark-base" />
+          <ClipboardClock :size="45" class="text-main-text" />
         </div>
         <div>
           <div class="flex items-left gap-4">
-            <h2 class="text-3xl font-bold text-dark-base">
+            <h2 class="text-3xl font-bold text-main-text">
               {{ displayTasks }}
             </h2>
           </div>

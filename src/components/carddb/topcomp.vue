@@ -2,7 +2,7 @@
   <div class="bg-white rounded-xl shadow-sm border border-outline p-6">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-lg font-bold text-gray-800">Top Company</h2>
+      <h2 class="text-lg font-bold text-main-text">Top Company</h2>
       <button class="text-slate-400 hover:text-gray-700">•••</button>
     </div>
 

@@ -1,6 +1,6 @@
 <template>
   <div class="relative" ref="CompaniesDropdownRef">
-    <label class="block text-sm font-medium text-dark-base mb-2">
+    <label class="block text-sm font-medium text-main-text mb-2">
       Companies Association
     </label>
     <div
@@ -9,14 +9,16 @@
     >
       <!-- Placeholder -->
       <div v-if="Companiesassoc.length === 0" class="text-gray-400 text-sm">
-        {{ mode === 'single' ? 'Select a Company' : 'Search and select Companies' }}
+        {{
+          mode === "single" ? "Select a Company" : "Search and select Companies"
+        }}
       </div>
 
       <!-- Selected Tags -->
       <div
         v-for="Companies in selectedCompanies"
         :key="Companies.id"
-        class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-dark-base border border-outline"
+        class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-main-text border border-outline"
         @click.stop
       >
         {{ Companies.company_name || "" }}
@@ -37,7 +39,10 @@
     >
       <div class="p-2 border-b border-outline">
         <div class="relative">
-          <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-sub-text" />
+          <Search
+            :size="14"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-sub-text"
+          />
           <input
             v-model="CompaniesSearch"
             type="text"
@@ -60,7 +65,9 @@
           class="px-4 py-2 hover:bg-light-base cursor-pointer flex items-center justify-between text-sm transition"
         >
           <div class="flex flex-col">
-            <span class="font-medium text-dark-base">{{ Companies.company_name || "" }}</span>
+            <span class="font-medium text-main-text">{{
+              Companies.company_name || ""
+            }}</span>
             <span class="text-xs text-sub-text">{{ Companies.email }}</span>
           </div>
 
@@ -141,14 +148,17 @@ export default {
     },
 
     selectedCompanies() {
-      if (!Array.isArray(this.Companiesassoc) || this.Companiesassoc.length === 0) {
+      if (
+        !Array.isArray(this.Companiesassoc) ||
+        this.Companiesassoc.length === 0
+      ) {
         return [];
       }
 
       const selected = (this.allCompanies || []).filter((company) =>
         this.Companiesassoc.some(
-          (id) => String(id).trim() === String(company.id).trim()
-        )
+          (id) => String(id).trim() === String(company.id).trim(),
+        ),
       );
 
       const foundIds = selected.map((s) => String(s.id).trim());
@@ -157,7 +167,7 @@ export default {
         this.initialData.forEach((item) => {
           const sid = String(item.id).trim();
           const isSelected = this.Companiesassoc.some(
-            (cid) => String(cid).trim() === sid
+            (cid) => String(cid).trim() === sid,
           );
           if (isSelected && !foundIds.includes(sid)) {
             selected.push(item);
@@ -215,18 +225,22 @@ export default {
 
       if (this.mode === "single") {
         // ✅ Single mode: langsung replace dengan item yang dipilih, lalu tutup
-        const isSame = this.Companiesassoc[0] && String(this.Companiesassoc[0]).trim() === CompaniesId;
+        const isSame =
+          this.Companiesassoc[0] &&
+          String(this.Companiesassoc[0]).trim() === CompaniesId;
         this.Companiesassoc = isSame ? [] : [CompaniesId]; // klik item sama = deselect
         this.isCompaniesDropdownOpen = false;
       } else {
         // ✅ Multiple mode: toggle seperti semula
         const index = this.Companiesassoc.findIndex(
-          (id) => String(id).trim() === CompaniesId
+          (id) => String(id).trim() === CompaniesId,
         );
         if (index === -1) {
           this.Companiesassoc = [...this.Companiesassoc, CompaniesId];
         } else {
-          this.Companiesassoc = this.Companiesassoc.filter((_, i) => i !== index);
+          this.Companiesassoc = this.Companiesassoc.filter(
+            (_, i) => i !== index,
+          );
         }
         this.isCompaniesDropdownOpen = false;
       }
@@ -235,7 +249,7 @@ export default {
     isCompaniesSelected(id) {
       const CompaniesId = String(id).trim();
       return this.Companiesassoc.some(
-        (cid) => String(cid).trim() === CompaniesId
+        (cid) => String(cid).trim() === CompaniesId,
       );
     },
 

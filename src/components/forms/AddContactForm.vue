@@ -4,7 +4,9 @@ import { X, Plus, ChevronDown, Loader2 } from "lucide-vue-next";
 import { toast } from "vue3-toastify";
 // import { useStatuses } from "@/composables/useStatuses";
 import { defineAsyncComponent } from "vue";
-const AddCompanyForm = defineAsyncComponent(() => import("./AddCompanyForm.vue"));
+const AddCompanyForm = defineAsyncComponent(
+  () => import("./AddCompanyForm.vue"),
+);
 const AddDealForm = defineAsyncComponent(() => import("./AddDealForm.vue"));
 import ContactDetailForm from "./DetailForm.vue";
 import NotesSection from "@/components/widgets/NotesEditor.vue";
@@ -891,7 +893,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       >
-        <h2 class="text-xl font-bold text-dark-base">
+        <h2 class="text-xl font-bold text-main-text">
           {{ formData.id ? "Edit Contact" : "Add Contact" }}
         </h2>
         <button
@@ -910,8 +912,8 @@ export default {
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 transition',
             activeTab === 'master'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
+              ? 'border-dark-base text-main-text'
+              : 'border-transparent text-sub-text hover:text-main-text',
           ]"
         >
           Master
@@ -924,8 +926,8 @@ export default {
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 transition',
             activeTab === 'detail'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
+              ? 'border-dark-base text-main-text'
+              : 'border-transparent text-sub-text hover:text-main-text',
           ]"
         >
           Notes
@@ -939,7 +941,7 @@ export default {
           <div class="p-6 space-y-6">
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   First Name <span class="text-red-600">*</span>
                 </label>
                 <input
@@ -951,7 +953,7 @@ export default {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Last Name <span class="text-red-600">*</span>
                 </label>
                 <input
@@ -967,7 +969,7 @@ export default {
             <!-- Job Title -->
             <div class="grid grid-cols-1 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Job Title
                 </label>
                 <input
@@ -982,7 +984,7 @@ export default {
             <!-- Email & Status -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Email <span class="text-red-600">*</span>
                 </label>
                 <input
@@ -994,13 +996,13 @@ export default {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Status <span class="text-red-600">*</span>
                 </label>
                 <div class="relative">
                   <select
                     v-model.number="formData.status"
-                    class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                    class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                   >
                     <option value="" disabled selected>Select Status</option>
                     <option
@@ -1022,7 +1024,7 @@ export default {
             <!--Telephone 1 & 2-->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Telephone 1
                 </label>
                 <input
@@ -1033,7 +1035,7 @@ export default {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Telephone 2
                 </label>
                 <input
@@ -1050,7 +1052,7 @@ export default {
 
             <!-- Company -->
             <div v-if="!companys_id">
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Company
               </label>
               <div class="relative">
@@ -1068,13 +1070,13 @@ export default {
             <!-- Pos Code & Source -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Source
                 </label>
                 <div class="relative">
                   <select
                     v-model="formData.source"
-                    class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                    class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                   >
                     <option value="" disabled selected>Select Source</option>
                     <option
@@ -1098,7 +1100,7 @@ export default {
 
             <!-- Deals Association 
           <div data-deals-dropdown>
-            <label class="block text-sm font-medium text-dark-base mb-2">
+            <label class="block text-sm font-medium text-main-text mb-2">
               Deals Association
             </label>
             <div class="relative">
@@ -1125,7 +1127,7 @@ export default {
                   v-for="deal in filteredDeals"
                   :key="deal.id"
                   @click="selectDeal(deal)"
-                  class="px-3 py-2 hover:bg-light-base cursor-pointer text-sm text-dark-base"
+                  class="px-3 py-2 hover:bg-light-base cursor-pointer text-sm text-main-text"
                 >
                   {{ deal.deal_name || deal.name || "Unnamed Deal" }}
                 </div>
@@ -1160,7 +1162,7 @@ export default {
               <span
                 v-for="deal in formData.selectedDeals"
                 :key="deal.id"
-                class="bg-light-base px-2 py-1 rounded text-xs text-dark-base flex items-center gap-1"
+                class="bg-light-base px-2 py-1 rounded text-xs text-main-text flex items-center gap-1"
               >
                 {{ deal.deal_name || deal.name }}
                 <button
@@ -1176,7 +1178,7 @@ export default {
             <button
               type="button"
               @click="showAddDealForm = true"
-              class="mt-2 text-sm text-sub-text hover:text-dark-base font-medium flex items-center gap-1"
+              class="mt-2 text-sm text-sub-text hover:text-main-text font-medium flex items-center gap-1"
             >
               <Plus :size="16" />
               Add Another Deal
@@ -1267,7 +1269,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10"
       >
-        <h2 class="text-xl font-bold text-dark-base">
+        <h2 class="text-xl font-bold text-main-text">
           {{ editingItemIndex !== null ? "Edit Note" : "Tambah Note" }}
         </h2>
         <button
@@ -1310,7 +1312,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10"
       >
-        <h2 class="text-xl font-bold text-dark-base">
+        <h2 class="text-xl font-bold text-main-text">
           {{ editingItemIndex !== null ? "Edit Document" : "Tambah Document" }}
         </h2>
         <button
@@ -1378,8 +1380,8 @@ input:-webkit-autofill:active,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px white inset !important;
-  -webkit-text-fill-color: #1c2434 !important;
+  -webkit-box-shadow: 0 0 0 30px var(--color-white) inset !important;
+  -webkit-text-fill-color: var(--color-main-text) !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -1387,9 +1389,9 @@ select:-webkit-autofill:active {
 input:-webkit-autofill:focus,
 select:-webkit-autofill:focus {
   -webkit-box-shadow:
-    0 0 0 30px white inset,
-    0 0 0 1px #64728b !important;
-  -webkit-text-fill-color: #1c2434 !important;
+    0 0 0 30px var(--color-white) inset,
+    0 0 0 1px var(--color-sub-text) !important;
+  -webkit-text-fill-color: var(--color-main-text) !important;
 }
 
 /* Mobile Responsive - Footer Sticky/Fixed Behavior */

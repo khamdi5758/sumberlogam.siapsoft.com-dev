@@ -353,7 +353,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       >
-        <h2 class="text-xl font-bold text-dark-base">
+        <h2 class="text-xl font-bold text-main-text">
           {{ user ? "User Details" : "Add User" }}
         </h2>
         <button
@@ -399,7 +399,7 @@ export default {
           <!-- Name Section -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 First Name
               </label>
               <input
@@ -411,7 +411,7 @@ export default {
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Last Name
               </label>
               <input
@@ -427,7 +427,7 @@ export default {
           <!-- Telephone & NIK -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Telephone
               </label>
               <input
@@ -439,7 +439,7 @@ export default {
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 NIK
               </label>
               <input
@@ -455,7 +455,7 @@ export default {
           <!-- Email & Password -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Email Address
               </label>
               <input
@@ -467,7 +467,7 @@ export default {
               />
             </div>
             <!-- <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Password
               </label>
               <input
@@ -479,7 +479,7 @@ export default {
               />
             </div> -->
             <div class="relative w-full">
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Password
               </label>
               <div class="relative">
@@ -508,13 +508,13 @@ export default {
           <!-- Primary & Secondary Team -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Primary Team
               </label>
               <div class="relative">
                 <select
                   v-model="formData.primaryteam"
-                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                   required
                 >
                   <option
@@ -532,13 +532,13 @@ export default {
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Secondary Team
               </label>
               <div class="relative">
                 <select
                   v-model="formData.secondaryteam"
-                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                 >
                   <option
                     v-for="option in teamOptions"
@@ -559,13 +559,13 @@ export default {
           <!-- Staff Level & Role -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Staff Level
               </label>
               <div class="relative">
                 <select
                   v-model="formData.stafflevel"
-                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                   required
                 >
                   <option
@@ -583,13 +583,13 @@ export default {
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Role
               </label>
               <div class="relative">
                 <select
                   v-model="formData.role"
-                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                   required
                 >
                   <option
@@ -691,8 +691,8 @@ input:-webkit-autofill:active,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px white inset !important;
-  -webkit-text-fill-color: #1c2434 !important;
+  -webkit-box-shadow: 0 0 0 30px var(--color-white) inset !important;
+  -webkit-text-fill-color: var(--color-main-text) !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -700,9 +700,9 @@ select:-webkit-autofill:active {
 input:-webkit-autofill:focus,
 select:-webkit-autofill:focus {
   -webkit-box-shadow:
-    0 0 0 30px white inset,
-    0 0 0 1px #64728b !important;
-  -webkit-text-fill-color: #1c2434 !important;
+    0 0 0 30px var(--color-white) inset,
+    0 0 0 1px var(--color-sub-text) !important;
+  -webkit-text-fill-color: var(--color-main-text) !important;
 }
 
 /* Mobile Responsive - Footer Sticky/Fixed Behavior */

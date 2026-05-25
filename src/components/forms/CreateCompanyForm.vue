@@ -1086,7 +1086,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       >
-        <h2 class="text-xl font-bold text-dark-base">
+        <h2 class="text-xl font-bold text-main-text">
           {{ isEditMode ? "Edit Company" : "Create Company" }}
         </h2>
         <button
@@ -1105,8 +1105,8 @@ export default {
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 transition',
             activeTab === 'master'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
+              ? 'border-dark-base text-main-text'
+              : 'border-transparent text-sub-text hover:text-main-text',
           ]"
         >
           Master
@@ -1119,8 +1119,8 @@ export default {
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 transition',
             activeTab === 'Contacts'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
+              ? 'border-dark-base text-main-text'
+              : 'border-transparent text-sub-text hover:text-main-text',
           ]"
         >
           Contacts
@@ -1132,8 +1132,8 @@ export default {
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 transition',
             activeTab === 'Deals'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
+              ? 'border-dark-base text-main-text'
+              : 'border-transparent text-sub-text hover:text-main-text',
           ]"
         >
           Deals
@@ -1145,8 +1145,8 @@ export default {
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 transition',
             activeTab === 'detail'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
+              ? 'border-dark-base text-main-text'
+              : 'border-transparent text-sub-text hover:text-main-text',
           ]"
         >
           Notes
@@ -1166,7 +1166,7 @@ export default {
             <!-- Company Name & Owner -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Company Name <span class="text-red-600">*</span></label
                 >
                 <input
@@ -1178,7 +1178,7 @@ export default {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Company Owner <span class="text-red-600">*</span></label
                 >
                 <input
@@ -1192,7 +1192,7 @@ export default {
 
             <!-- Description -->
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Description</label
               >
               <textarea
@@ -1206,7 +1206,7 @@ export default {
             <!-- Email & Telephone -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Email <span class="text-red-600">*</span></label
                 >
                 <input
@@ -1217,7 +1217,7 @@ export default {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Telephone</label
                 >
                 <input
@@ -1232,7 +1232,7 @@ export default {
             <!-- Website & Industry -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Website</label
                 >
                 <input
@@ -1243,7 +1243,7 @@ export default {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Industry</label
                 >
                 <div class="relative">
@@ -1263,7 +1263,7 @@ export default {
 
             <div class="space-y-3 rounded-xl border border-outline p-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Search Location</label
                 >
                 <div class="flex gap-2">
@@ -1285,7 +1285,7 @@ export default {
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Location Map</label
                 >
                 <p class="text-xs text-sub-text mb-2">
@@ -1294,13 +1294,13 @@ export default {
                 </p>
                 <div
                   ref="companyLocationMap"
-                  class="w-full h-[260px] rounded-lg border border-outline bg-white overflow-hidden"
+                  class="w-full h-65 rounded-lg border border-outline bg-white overflow-hidden"
                 ></div>
               </div>
 
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-dark-base mb-2"
+                  <label class="block text-sm font-medium text-main-text mb-2"
                     >Latitude</label
                   >
                   <input
@@ -1311,7 +1311,7 @@ export default {
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-dark-base mb-2"
+                  <label class="block text-sm font-medium text-main-text mb-2"
                     >Longitude</label
                   >
                   <input
@@ -1328,7 +1328,7 @@ export default {
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label
-                  class="block border-outline text-sm font-medium text-dark-base mb-2"
+                  class="block border-outline text-sm font-medium text-main-text mb-2"
                   >Source</label
                 >
                 <div class="relative">
@@ -1344,7 +1344,7 @@ export default {
               <!-- Type -->
               <div>
                 <label
-                  class="block border-outline text-sm font-medium text-dark-base mb-2"
+                  class="block border-outline text-sm font-medium text-main-text mb-2"
                   >Type</label
                 >
                 <div class="relative">
@@ -1490,7 +1490,7 @@ export default {
         <div
           class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10"
         >
-          <h2 class="text-xl font-bold text-dark-base">
+          <h2 class="text-xl font-bold text-main-text">
             {{ editingItemIndex !== null ? "Edit Note" : "Tambah Note" }}
           </h2>
           <button
@@ -1557,7 +1557,7 @@ export default {
   background: transparent;
 }
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-outline);
   border-radius: 10px;
 }
 
@@ -1568,17 +1568,17 @@ input:-webkit-autofill:active,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px white inset !important;
-  -webkit-text-fill-color: #1c2434 !important;
+  -webkit-box-shadow: 0 0 0 30px var(--color-white) inset !important;
+  -webkit-text-fill-color: var(--color-main-text) !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
 input:-webkit-autofill:focus,
 select:-webkit-autofill:focus {
   -webkit-box-shadow:
-    0 0 0 30px white inset,
-    0 0 0 1px #64728b !important;
-  -webkit-text-fill-color: #1c2434 !important;
+    0 0 0 30px var(--color-white) inset,
+    0 0 0 1px var(--color-sub-text) !important;
+  -webkit-text-fill-color: var(--color-main-text) !important;
 }
 
 /* Mobile Responsive - Footer Sticky/Fixed Behavior */

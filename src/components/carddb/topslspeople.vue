@@ -4,7 +4,7 @@
   >
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-xl font-bold text-gray-800">Top Salespeople</h2>
+      <h2 class="text-xl font-bold text-main-text">Top Salespeople</h2>
       <button class="text-slate-400 hover:text-gray-700">•••</button>
     </div>
 

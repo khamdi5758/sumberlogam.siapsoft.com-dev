@@ -789,7 +789,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       >
-        <h2 class="text-xl font-bold text-dark-base">
+        <h2 class="text-xl font-bold text-main-text">
           {{ deal ? "Deal Details" : "Add Deal / Details" }}
         </h2>
         <button
@@ -806,11 +806,11 @@ export default {
         <div class="p-6 pb-10 space-y-6">
           <!-- Deal Info Section -->
           <div class="border border-outline rounded-lg p-4 space-y-4">
-            <h3 class="text-sm font-semibold text-dark-base">Deal Info</h3>
+            <h3 class="text-sm font-semibold text-main-text">Deal Info</h3>
 
             <!-- Deal Name -->
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Deal Name
               </label>
               <input
@@ -823,7 +823,7 @@ export default {
             <!-- Pipeline & Currency -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Pipeline
                 </label>
                 <select
@@ -840,7 +840,7 @@ export default {
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Currency
                 </label>
                 <select
@@ -861,7 +861,7 @@ export default {
             <!-- Amount & Close Date -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Amount
                 </label>
                 <input
@@ -871,7 +871,7 @@ export default {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Expected Close Date
                 </label>
                 <input
@@ -885,7 +885,7 @@ export default {
             <!-- Owner & Priority -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Owner
                 </label>
                 <input
@@ -895,7 +895,7 @@ export default {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Priority
                 </label>
                 <select
@@ -916,7 +916,7 @@ export default {
             <!-- Source & Description -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Source
                 </label>
                 <select
@@ -936,7 +936,7 @@ export default {
 
             <!-- Description -->
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Description
               </label>
               <textarea
@@ -948,7 +948,7 @@ export default {
 
             <!-- Contact Association -->
             <div class="relative" ref="contactDropdownRef">
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Contact Association
               </label>
               <div
@@ -999,7 +999,7 @@ export default {
 
             <!-- Company Association -->
             <div class="relative" ref="companyDropdownRef">
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Companies Association
               </label>
               <div
@@ -1061,7 +1061,7 @@ export default {
                 :class="{ 'rotate-90': showNotes }"
                 class="text-sub-text transition"
               />
-              <span class="text-sm font-semibold text-dark-base">Notes</span>
+              <span class="text-sm font-semibold text-main-text">Notes</span>
             </button>
 
             <div
@@ -1089,7 +1089,7 @@ export default {
                 :class="{ 'rotate-90': showTasks }"
                 class="text-sub-text transition"
               />
-              <span class="text-sm font-semibold text-dark-base">Tasks</span>
+              <span class="text-sm font-semibold text-main-text">Tasks</span>
             </button>
 
             <div
@@ -1098,7 +1098,7 @@ export default {
             >
               <!-- Task Name -->
               <div class="px-4 pt-4 pb-2">
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Task Name
                 </label>
                 <input
@@ -1110,7 +1110,7 @@ export default {
 
               <!-- Task Content -->
               <div class="px-4 pb-4">
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Description
                 </label>
                 <textarea
@@ -1122,7 +1122,7 @@ export default {
 
               <!-- Task Status -->
               <div class="px-4 pb-4">
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Status
                 </label>
                 <select
@@ -1142,7 +1142,7 @@ export default {
               <!-- Task Due Date & Time -->
               <div class="grid grid-cols-2 gap-4 px-4 pb-4">
                 <div>
-                  <label class="block text-sm font-medium text-dark-base mb-2">
+                  <label class="block text-sm font-medium text-main-text mb-2">
                     Due Date
                   </label>
                   <input
@@ -1152,7 +1152,7 @@ export default {
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-dark-base mb-2">
+                  <label class="block text-sm font-medium text-main-text mb-2">
                     Time
                   </label>
                   <input
@@ -1165,7 +1165,7 @@ export default {
 
               <!-- Task Priority -->
               <div class="px-4 pb-4">
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Priority
                 </label>
                 <select
@@ -1196,7 +1196,7 @@ export default {
                 :class="{ 'rotate-90': showDocs }"
                 class="text-sub-text transition"
               />
-              <span class="text-sm font-semibold text-dark-base"
+              <span class="text-sm font-semibold text-main-text"
                 >Documents</span
               >
             </button>
@@ -1207,7 +1207,7 @@ export default {
             >
               <!-- Document Description -->
               <div class="px-4 pt-4 pb-2">
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Description
                 </label>
               </div>
@@ -1220,7 +1220,7 @@ export default {
 
               <!-- File Source -->
               <div class="px-4 pb-4 border-t border-outline">
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   File Source
                 </label>
                 <select
@@ -1239,7 +1239,7 @@ export default {
 
               <!-- File Upload -->
               <div class="px-4 pb-4">
-                <label class="block text-sm font-medium text-dark-base mb-2">
+                <label class="block text-sm font-medium text-main-text mb-2">
                   Upload Files
                 </label>
                 <input
@@ -1286,7 +1286,7 @@ export default {
             type="button"
             @click="handleBack"
             :disabled="isSubmitting"
-            class="px-4 py-2 text-sm font-medium text-sub-text hover:text-dark-base transition-colors"
+            class="px-4 py-2 text-sm font-medium text-sub-text hover:text-main-text transition-colors"
           >
             Back
           </button>

@@ -10,7 +10,7 @@
 }
 
 .resize-handle:hover {
-  background-color: #1c2434b2;
+  background-color: color-mix(in srgb, var(--color-dark-base) 70%, transparent);
 }
 </style>
 <template>
@@ -43,7 +43,10 @@
                 @change="$emit('toggle-select-all', $event.target.checked)"
               />
 
-              <div class="resize-handle" @mousedown="startResize($event, 0)"></div>
+              <div
+                class="resize-handle"
+                @mousedown="startResize($event, 0)"
+              ></div>
             </th>
 
             <!-- CONTACT NAME -->
@@ -56,7 +59,10 @@
                 <ChevronDown :size="16" class="text-gray-400" />
               </div>
 
-              <div class="resize-handle" @mousedown="startResize($event, 1)"></div>
+              <div
+                class="resize-handle"
+                @mousedown="startResize($event, 1)"
+              ></div>
             </th>
 
             <!-- CONTACT INFO -->
@@ -69,7 +75,10 @@
                 <ChevronDown :size="16" class="text-gray-400" />
               </div>
 
-              <div class="resize-handle" @mousedown="startResize($event, 2)"></div>
+              <div
+                class="resize-handle"
+                @mousedown="startResize($event, 2)"
+              ></div>
             </th>
 
             <!-- ASSOCIATED -->
@@ -82,7 +91,10 @@
                 <ChevronDown :size="16" class="text-gray-400" />
               </div>
 
-              <div class="resize-handle" @mousedown="startResize($event, 3)"></div>
+              <div
+                class="resize-handle"
+                @mousedown="startResize($event, 3)"
+              ></div>
             </th>
 
             <!-- STATUS -->
@@ -95,7 +107,10 @@
                 <ChevronDown :size="16" class="text-gray-400" />
               </div>
 
-              <div class="resize-handle" @mousedown="startResize($event, 4)"></div>
+              <div
+                class="resize-handle"
+                @mousedown="startResize($event, 4)"
+              ></div>
             </th>
 
             <!-- CREATED -->
@@ -108,7 +123,10 @@
                 <ChevronDown :size="16" class="text-gray-400" />
               </div>
 
-              <div class="resize-handle" @mousedown="startResize($event, 5)"></div>
+              <div
+                class="resize-handle"
+                @mousedown="startResize($event, 5)"
+              ></div>
             </th>
 
             <!-- OWNER -->
@@ -121,7 +139,10 @@
                 <ChevronDown :size="16" class="text-gray-400" />
               </div>
 
-              <div class="resize-handle" @mousedown="startResize($event, 6)"></div>
+              <div
+                class="resize-handle"
+                @mousedown="startResize($event, 6)"
+              ></div>
             </th>
           </tr>
         </thead>
@@ -155,9 +176,11 @@
             class="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
             @click="$emit('row-click', contact)"
           >
-            <td class="px-6 py-4" 
-            :style="{ width: columns[0] + 'px' }"
-            @click.stop>
+            <td
+              class="px-6 py-4"
+              :style="{ width: columns[0] + 'px' }"
+              @click.stop
+            >
               <input
                 type="checkbox"
                 class="w-4 h-4 text-blue-600 rounded focus:ring-sub-text border-gray-300"
@@ -166,19 +189,19 @@
               />
             </td>
 
-            <td 
+            <td
               class="px-6 py-4 text-sm text-gray-800 font-medium"
               :style="{ width: columns[1] + 'px' }"
             >
               {{ contact.first_name }} {{ contact.last_name }}
             </td>
 
-            <td 
-              class="px-6 py-4 text-sm text-dark-base"
+            <td
+              class="px-6 py-4 text-sm text-main-text"
               :style="{ width: columns[2] + 'px' }"
-              >
+            >
               <div>{{ contact.email || "-" }}</div>
-              <div 
+              <div
                 class="text-xs text-sub-text"
                 :style="{ width: columns[2] + 'px' }"
               >
@@ -186,18 +209,15 @@
               </div>
             </td>
 
-            <td 
-              class="px-6 py-4 text-sm text-dark-base leading-5"
+            <td
+              class="px-6 py-4 text-sm text-main-text leading-5"
               :style="{ width: columns[3] + 'px' }"
             >
               <div>{{ contact.companyLabelsText }}</div>
               <div>{{ contact.dealLabelsText }}</div>
             </td>
 
-            <td 
-              class="px-6 py-4"
-              :style="{ width: columns[4] + 'px' }"  
-            >
+            <td class="px-6 py-4" :style="{ width: columns[4] + 'px' }">
               <span
                 class="px-3 py-1 rounded-full text-xs font-medium"
                 :class="contact.statusClass"
@@ -206,15 +226,15 @@
               </span>
             </td>
 
-            <td 
-              class="px-6 py-4 text-sm text-dark-base"
+            <td
+              class="px-6 py-4 text-sm text-main-text"
               :style="{ width: columns[5] + 'px' }"
-              >
+            >
               {{ contact.updatedAtText }}
             </td>
 
-            <td 
-              class="px-6 py-4 text-sm text-dark-base"
+            <td
+              class="px-6 py-4 text-sm text-main-text"
               :style="{ width: columns[6] + 'px' }"
             >
               {{ contact.owner || "-" }}
@@ -267,8 +287,7 @@ export default {
       const diff = e.clientX - this.resizing.startX;
       const newWidth = this.resizing.startWidth + diff;
 
-      this.columns[this.resizing.index] =
-        newWidth < 80 ? 80 : newWidth;
+      this.columns[this.resizing.index] = newWidth < 80 ? 80 : newWidth;
     },
 
     stopResize() {
@@ -285,13 +304,13 @@ export default {
   data() {
     return {
       columns: [
-        70,   // checkbox
-        220,  // name
-        260,  // info
-        240,  // associated
-        140,  // status
-        200,  // created
-        180,  // owner
+        70, // checkbox
+        220, // name
+        260, // info
+        240, // associated
+        140, // status
+        200, // created
+        180, // owner
       ],
       resizing: null,
     };

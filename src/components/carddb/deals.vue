@@ -2,7 +2,7 @@
   <div class="bg-white rounded-2xl w-full shadow-sm border border-outline p-6">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-lg font-bold text-dark-base">Deals Overview</h2>
+      <h2 class="text-lg font-bold text-main-text">Deals Overview</h2>
       <div ref="filterMenuRef" class="relative">
         <button
           @click="toggleFilterMenu"
@@ -23,7 +23,7 @@
             class="w-full text-left px-3 py-2 text-sm hover:bg-outline/20 transition"
             :class="
               option.value === selectedRange
-                ? 'text-dark-base font-semibold'
+                ? 'text-main-text font-semibold'
                 : 'text-sub-text'
             "
           >
@@ -55,14 +55,14 @@
               :style="{ width: getBarWidth(item.total) }"
             ></div>
             <span
-              class="absolute inset-y-0 left-3 flex items-center text-sm font-medium text-dark-base"
+              class="absolute inset-y-0 left-3 flex items-center text-sm font-medium text-main-text"
             >
               {{ item.label }}
             </span>
           </div>
         </div>
         <span
-          class="text-sm font-medium text-dark-base text-right tabular-nums"
+          class="text-sm font-medium text-main-text text-right tabular-nums"
         >
           {{ displayCount(item.total) }}
         </span>

@@ -3,7 +3,7 @@
     class="mb-4 flex items-center justify-between gap-3 sm:flex-wrap sm:items-start"
   >
     <div class="flex min-w-0 items-baseline gap-3">
-      <h1 class="text-2xl font-bold text-dark-base">Tasks</h1>
+      <h1 class="text-2xl font-bold text-main-text">Tasks</h1>
       <span class="hidden text-sm sm:inline" :class="tasksStatusClass">{{
         tasksStatusText
       }}</span>
@@ -58,7 +58,7 @@
           <button
             @click="runMobileAction('refresh')"
             :disabled="isLoading"
-            class="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-dark-base hover:bg-gray-100 disabled:opacity-50"
+            class="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-main-text hover:bg-gray-100 disabled:opacity-50"
           >
             <RefreshCw :size="16" :class="{ 'animate-spin': isLoading }" />
             <span>Refresh</span>
@@ -66,7 +66,7 @@
 
           <button
             @click="runMobileAction('toggle-add')"
-            class="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-dark-base hover:bg-gray-100"
+            class="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-main-text hover:bg-gray-100"
           >
             <FilePlus :size="16" />
             <span>Single Task</span>
@@ -74,7 +74,7 @@
 
           <button
             @click="runMobileAction('bulk-add')"
-            class="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-dark-base hover:bg-gray-100"
+            class="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-main-text hover:bg-gray-100"
           >
             <FolderPlus :size="16" />
             <span>Bulk Task</span>
@@ -82,7 +82,7 @@
 
           <button
             @click="runMobileAction('download-all')"
-            class="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-dark-base hover:bg-gray-100"
+            class="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-main-text hover:bg-gray-100"
           >
             <FolderDown :size="16" />
             <span>Download All</span>
@@ -90,7 +90,7 @@
 
           <button
             @click="runMobileAction('download')"
-            class="flex w-full items-center gap-2 border-t border-gray-50 px-4 py-3 text-left text-sm text-dark-base hover:bg-gray-100"
+            class="flex w-full items-center gap-2 border-t border-gray-50 px-4 py-3 text-left text-sm text-main-text hover:bg-gray-100"
           >
             <FileDown :size="16" />
             <span>Download</span>
@@ -98,7 +98,7 @@
 
           <button
             @click="runMobileAction('bulk-edit')"
-            class="flex w-full items-center gap-2 border-t border-gray-50 px-4 py-3 text-left text-sm text-dark-base hover:bg-gray-100"
+            class="flex w-full items-center gap-2 border-t border-gray-50 px-4 py-3 text-left text-sm text-main-text hover:bg-gray-100"
           >
             <Edit :size="16" />
             <span>Bulk Edit</span>

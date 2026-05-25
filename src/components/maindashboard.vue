@@ -1,15 +1,26 @@
 <template>
-  <div class="flex h-screen w-full overflow-hidden font-sans">
+  <div
+    class="flex h-screen w-full overflow-hidden font-sans"
+    :style="{ backgroundColor: 'var(--layout-shell-bg)' }"
+  >
     <!-- SIDEBAR -->
     <Sidebar v-model:collapsed="collapsed" @opentabchange="handleOpenTab" />
 
-    <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+    <div
+      class="flex min-w-0 flex-1 flex-col overflow-hidden"
+      :style="{ backgroundColor: 'var(--layout-content-bg)' }"
+    >
       <!-- HEADER -->
       <Kepala />
 
       <!-- TAB HEADER -->
       <div
         class="flex items-center gap-2 bg-gray-100 px-4 py-2 border-b overflow-x-auto"
+        :style="{
+          backgroundColor: 'var(--layout-tab-header-bg)',
+          borderBottomColor: 'var(--dark-base)',
+          color: 'var(--layout-content-text)',
+        }"
       >
         <div
           v-for="tab in tabsflmenu"
@@ -34,7 +45,10 @@
       </div>
 
       <!-- CONTENT -->
-      <main class="flex-1 overflow-y-auto overflow-x-hidden bg-light-base p-4">
+      <main
+        class="flex-1 overflow-y-auto overflow-x-hidden p-4"
+        :style="{ backgroundColor: 'var(--layout-content-bg)' }"
+      >
         <router-view v-slot="{ Component, route }">
           <!-- <keep-alive>  -->
           <keep-alive :include="this.nametabs">
@@ -42,6 +56,8 @@
           </keep-alive>
         </router-view>
       </main>
+
+     
     </div>
   </div>
 </template>
@@ -83,6 +99,10 @@ export default {
 
     key() {
       return this.$route.path;
+    },
+
+    currentYear() {
+      return new Date().getFullYear();
     },
 
     opentab() {

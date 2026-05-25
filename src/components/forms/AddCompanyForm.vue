@@ -191,7 +191,7 @@ const handleReset = () => {
         >
           <div class="flex items-center gap-2">
             <ArrowRight :size="18" class="text-sub-text" />
-            <h2 class="text-xl font-bold text-dark-base">Create Company</h2>
+            <h2 class="text-xl font-bold text-main-text">Create Company</h2>
           </div>
           <button
             @click="handleClose"
@@ -207,7 +207,7 @@ const handleReset = () => {
             <!-- Company Name -->
             <div class="grid grid-cols-1 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Company Name <span class="text-red-600">*</span></label
                 >
                 <input
@@ -222,7 +222,7 @@ const handleReset = () => {
 
             <!-- Description -->
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Description</label
               >
               <textarea
@@ -236,7 +236,7 @@ const handleReset = () => {
             <!-- Email & Telephone -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Email <span class="text-red-600">*</span></label
                 >
                 <input
@@ -247,7 +247,7 @@ const handleReset = () => {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Telephone</label
                 >
                 <input
@@ -262,7 +262,7 @@ const handleReset = () => {
             <!-- Website & Industry -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Website</label
                 >
                 <input
@@ -273,7 +273,7 @@ const handleReset = () => {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Industry</label
                 >
                 <select
@@ -296,7 +296,7 @@ const handleReset = () => {
             <!-- Pos Code & Source -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Pos Code</label
                 >
                 <input
@@ -307,7 +307,7 @@ const handleReset = () => {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Source</label
                 >
                 <select
@@ -328,7 +328,7 @@ const handleReset = () => {
             <!-- Type -->
             <div class="grid grid-cols-1 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Type</label
                 >
                 <select
@@ -349,13 +349,13 @@ const handleReset = () => {
 
             <!-- Deals Association 
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Deals Association</label
               >
               <div class="relative">
                 <select
                   v-model="formData.dealsassoc"
-                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                 >
                   <option
                     v-for="opt in dealOptions"
@@ -374,13 +374,13 @@ const handleReset = () => {
 
             <!-- Contact Association -->
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Contact Association</label
               >
               <div class="relative">
                 <select
                   v-model="formData.contactassoc"
-                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                 >
                   <option
                     v-for="opt in contactOptions"
@@ -398,7 +398,7 @@ const handleReset = () => {
               <button
                 type="button"
                 @click="showAddContactQuickForm = true"
-                class="mt-2 text-sm text-sub-text hover:text-dark-base font-medium flex items-center gap-1"
+                class="mt-2 text-sm text-sub-text hover:text-main-text font-medium flex items-center gap-1"
               >
                 <Plus :size="14" />
                 Create Contact

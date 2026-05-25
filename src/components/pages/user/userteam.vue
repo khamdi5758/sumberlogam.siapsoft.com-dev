@@ -254,12 +254,16 @@ export default {
       <p class="mb-3 text-xs text-sub-text sm:hidden">
         Cari tim, pilih baris, lalu kelola detailnya di sini.
       </p>
-      <div class="flex flex-col md:flex-row gap-3 md:items-center justify-between">
-        <div class="flex min-w-0 items-center gap-2 sm:gap-3 w-full md:w-auto flex-1">
+      <div
+        class="flex flex-col md:flex-row gap-3 md:items-center justify-between"
+      >
+        <div
+          class="flex min-w-0 items-center gap-2 sm:gap-3 w-full md:w-auto flex-1"
+        >
           <button
             class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition shrink-0"
           >
-            <Filter :size="20" class="text-dark-base" />
+            <Filter :size="20" class="text-main-text" />
           </button>
 
           <div class="relative min-w-0 flex-1 md:max-w-xs">
@@ -274,13 +278,15 @@ export default {
           <button
             class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition shrink-0"
           >
-            <Search :size="20" class="text-dark-base" />
+            <Search :size="20" class="text-main-text" />
           </button>
         </div>
 
-        <div class="flex flex-wrap items-center justify-between gap-3 w-full md:w-auto">
+        <div
+          class="flex flex-wrap items-center justify-between gap-3 w-full md:w-auto"
+        >
           <div class="flex items-center gap-2">
-            <span class="text-xs text-dark-base sm:text-sm">Show</span>
+            <span class="text-xs text-main-text sm:text-sm">Show</span>
             <select
               v-model="itemsPerPage"
               class="px-3 py-2 border border-outline rounded-lg text-sm"
@@ -474,7 +480,7 @@ export default {
             </td>
 
             <td
-              class="px-3 py-4 text-xs text-dark-base sm:px-6 sm:py-4 sm:text-sm"
+              class="px-3 py-4 text-xs text-main-text sm:px-6 sm:py-4 sm:text-sm"
               @click="openTeamDetail(team)"
             >
               {{ team.total_users }}

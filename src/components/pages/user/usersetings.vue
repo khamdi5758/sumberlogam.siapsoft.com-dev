@@ -193,7 +193,7 @@ export default {
           <button
             class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition shadow-sm bg-white"
           >
-            <Filter :size="20" class="text-dark-base" />
+            <Filter :size="20" class="text-main-text" />
           </button>
 
           <!-- Search Input -->
@@ -209,12 +209,12 @@ export default {
           <button
             class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition"
           >
-            <Search :size="20" class="text-dark-base" />
+            <Search :size="20" class="text-main-text" />
           </button>
 
           <!-- Show Dropdown -->
           <div class="flex items-center gap-2">
-            <span class="text-sm text-dark-base">Show</span>
+            <span class="text-sm text-main-text">Show</span>
             <select
               v-model="itemsPerPage"
               class="px-3 py-2 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm"
@@ -399,13 +399,13 @@ export default {
                 {{ user.email }}
               </div>
             </td>
-            <td class="px-6 py-4 text-sm text-dark-base">
+            <td class="px-6 py-4 text-sm text-main-text">
               {{ user.primaryteam || user.team || "-" }}
             </td>
-            <td class="px-6 py-4 text-sm text-dark-base">
+            <td class="px-6 py-4 text-sm text-main-text">
               {{ user.last_active || user.lastactv || user.updated_at || "-" }}
             </td>
-            <td class="px-6 py-4 text-sm text-dark-base font-medium">
+            <td class="px-6 py-4 text-sm text-main-text font-medium">
               {{ user.role }}
             </td>
           </tr>

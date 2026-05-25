@@ -24,7 +24,7 @@
             class="w-full text-left px-3 py-2 text-sm hover:bg-outline/20 transition"
             :class="
               option.value === selectedRange
-                ? 'text-dark-base font-semibold'
+                ? 'text-main-text font-semibold'
                 : 'text-sub-text'
             "
           >

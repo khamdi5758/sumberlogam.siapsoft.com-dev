@@ -752,7 +752,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       >
-        <h2 class="text-xl font-bold text-dark-base">
+        <h2 class="text-xl font-bold text-main-text">
           {{ company ? "Company Details" : "Add Contact / Details" }}
         </h2>
         <button
@@ -768,11 +768,11 @@ export default {
       <div class="flex-1 overflow-y-auto min-h-0">
         <div class="p-6 pb-10 space-y-6">
           <div class="border border-outline rounded-lg p-4 space-y-4">
-            <h3 class="text-sm font-semibold text-dark-base">Company Info</h3>
+            <h3 class="text-sm font-semibold text-main-text">Company Info</h3>
 
             <div class="grid grid-cols-1 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Company Name</label
                 >
                 <input
@@ -785,7 +785,7 @@ export default {
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Description</label
               >
               <textarea
@@ -798,7 +798,7 @@ export default {
 
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Email</label
                 >
                 <input
@@ -809,7 +809,7 @@ export default {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Telephone</label
                 >
                 <input
@@ -823,7 +823,7 @@ export default {
 
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Website</label
                 >
                 <input
@@ -834,7 +834,7 @@ export default {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Industry</label
                 >
                 <select
@@ -856,7 +856,7 @@ export default {
 
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Pos Code</label
                 >
                 <input
@@ -867,7 +867,7 @@ export default {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Source</label
                 >
                 <select
@@ -887,13 +887,13 @@ export default {
 
             <div class="grid grid-cols-1 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Type</label
                 >
                 <div class="relative">
                   <select
                     v-model.number="companyForm.type"
-                    class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                    class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                   >
                     <option value="" disabled selected>Select Type</option>
                     <option
@@ -913,7 +913,7 @@ export default {
             </div>
 
             <div class="relative" ref="dealDropdownRef">
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Deals Association</label
               >
               <div
@@ -929,7 +929,7 @@ export default {
                 <div
                   v-for="deal in selectedDeals"
                   :key="deal.id"
-                  class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-dark-base border border-outline"
+                  class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-main-text border border-outline"
                   @click.stop
                 >
                   {{ getDisplayNameFromDeal(deal) }}
@@ -970,7 +970,7 @@ export default {
                     class="px-4 py-2 hover:bg-light-base cursor-pointer flex items-center justify-between text-sm transition"
                   >
                     <div class="flex flex-col">
-                      <span class="font-medium text-dark-base">{{
+                      <span class="font-medium text-main-text">{{
                         getDisplayNameFromDeal(deal)
                       }}</span>
                       <span class="text-xs text-sub-text">{{
@@ -995,7 +995,7 @@ export default {
             </div>
 
             <div class="relative" ref="contactDropdownRef">
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Contact Association</label
               >
               <div
@@ -1011,7 +1011,7 @@ export default {
                 <div
                   v-for="contact in selectedContacts"
                   :key="contact.id"
-                  class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-dark-base border border-outline"
+                  class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-main-text border border-outline"
                   @click.stop
                 >
                   {{ getDisplayNameFromContact(contact) }}
@@ -1052,7 +1052,7 @@ export default {
                     class="px-4 py-2 hover:bg-light-base cursor-pointer flex items-center justify-between text-sm transition"
                   >
                     <div class="flex flex-col">
-                      <span class="font-medium text-dark-base">{{
+                      <span class="font-medium text-main-text">{{
                         getDisplayNameFromContact(contact)
                       }}</span>
                       <span class="text-xs text-sub-text">{{
@@ -1121,7 +1121,7 @@ export default {
                 class="text-sub-text"
               />
               <span
-                class="text-sm font-semibold text-dark-base flex items-center gap-2"
+                class="text-sm font-semibold text-main-text flex items-center gap-2"
               >
                 <svg
                   width="16"
@@ -1149,7 +1149,7 @@ export default {
             >
               <!-- Desc of Docs label -->
               <div class="px-4 pt-4 pb-2">
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Desc of Docs</label
                 >
               </div>
@@ -1256,7 +1256,7 @@ export default {
 
               <!-- Documents -->
               <div class="px-4 pb-4 border-t border-outline pt-4">
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Documents</label
                 >
                 <!-- Custom dropup -->
@@ -1268,7 +1268,7 @@ export default {
                   >
                     <span
                       :class="
-                        docFileSource ? 'text-dark-base' : 'text-gray-400'
+                        docFileSource ? 'text-main-text' : 'text-gray-400'
                       "
                     >
                       {{
@@ -1307,7 +1307,7 @@ export default {
                       :class="
                         docFileSource === opt.value
                           ? 'text-sub-text font-medium bg-light-base'
-                          : 'text-dark-base'
+                          : 'text-main-text'
                       "
                     >
                       {{ opt.label }}
@@ -1354,7 +1354,7 @@ export default {
                       :key="i"
                       class="flex items-center justify-between text-xs px-3 py-1.5 bg-light-base rounded-lg"
                     >
-                      <span class="truncate text-dark-base">{{
+                      <span class="truncate text-main-text">{{
                         file.name
                       }}</span>
                       <button

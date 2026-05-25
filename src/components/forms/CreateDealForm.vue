@@ -259,32 +259,52 @@ export default {
     tempCompanyObjects() {
       // Prioritaskan data asosiasi lengkap jika ada
       const deal = this.initialData?.deals?.[0] || this.initialData || {};
-      const rawAssoc = this.initialData?.companyassoc || this.initialData?.companiesassoc || deal.companyassoc || deal.companiesassoc;
-      
+      const rawAssoc =
+        this.initialData?.companyassoc ||
+        this.initialData?.companiesassoc ||
+        deal.companyassoc ||
+        deal.companiesassoc;
+
       if (rawAssoc) {
-        return this.normalizeAssocObjects(rawAssoc, 'company');
+        return this.normalizeAssocObjects(rawAssoc, "company");
       }
 
       // Fallback untuk single company (backward compatibility)
-      const id = deal.company_id || deal.id_company || deal.companies_id || deal.company;
-      const name = deal.companynm || deal.company_name || deal.associated_company || deal.companies_name;
-      if (id && name && !Array.isArray(id)) return [{ id: String(id), company_name: name }];
-      
+      const id =
+        deal.company_id || deal.id_company || deal.companies_id || deal.company;
+      const name =
+        deal.companynm ||
+        deal.company_name ||
+        deal.associated_company ||
+        deal.companies_name;
+      if (id && name && !Array.isArray(id))
+        return [{ id: String(id), company_name: name }];
+
       return [];
     },
     tempContactObjects() {
       // Prioritaskan data asosiasi lengkap jika ada
       const deal = this.initialData?.deals?.[0] || this.initialData || {};
-      const rawAssoc = this.initialData?.contactassoc || this.initialData?.contactsassoc || deal.contactassoc || deal.contactsassoc;
+      const rawAssoc =
+        this.initialData?.contactassoc ||
+        this.initialData?.contactsassoc ||
+        deal.contactassoc ||
+        deal.contactsassoc;
 
       if (rawAssoc) {
-        return this.normalizeAssocObjects(rawAssoc, 'contact');
+        return this.normalizeAssocObjects(rawAssoc, "contact");
       }
 
       // Fallback untuk single contact (backward compatibility)
-      const id = deal.contact_id || deal.id_contact || deal.contacts_id || deal.contact;
-      const name = deal.contactnm || deal.contact_name || deal.associated_contact || deal.contact_name;
-      if (id && name && !Array.isArray(id)) return [{ id: String(id), first_name: name, last_name: "" }];
+      const id =
+        deal.contact_id || deal.id_contact || deal.contacts_id || deal.contact;
+      const name =
+        deal.contactnm ||
+        deal.contact_name ||
+        deal.associated_contact ||
+        deal.contact_name;
+      if (id && name && !Array.isArray(id))
+        return [{ id: String(id), first_name: name, last_name: "" }];
 
       return [];
     },
@@ -302,13 +322,15 @@ export default {
     displayHistoryItems() {
       // Prioritaskan history dari store jika ada, gabungkan dengan local historyitems untuk data baru yang belum tersimpan
       const storeHistory = (this.history || []).map((h) => {
-        const isNote = h.notes !== undefined || h.idnote !== undefined || h.type === 'note';
+        const isNote =
+          h.notes !== undefined || h.idnote !== undefined || h.type === "note";
         return {
           ...h,
           id: h.idnote || h.id,
           idnote: h.idnote || h.id,
           type: h.type || (isNote ? "note" : "doc"),
-          body: h.notes || h.body || h.descdocs || h.description || h.content || "",
+          body:
+            h.notes || h.body || h.descdocs || h.description || h.content || "",
           timestamp: h.created_at || h.update_at || h.timestamp,
         };
       });
@@ -462,53 +484,89 @@ export default {
     // Helper untuk mengekstrak array of IDs dari association array of objects
     extractIdsFromAssoc(assocArray) {
       if (!Array.isArray(assocArray)) {
-        if (assocArray && (typeof assocArray === "string" || typeof assocArray === "number")) {
-           return [String(assocArray).trim()];
+        if (
+          assocArray &&
+          (typeof assocArray === "string" || typeof assocArray === "number")
+        ) {
+          return [String(assocArray).trim()];
         }
         return [];
       }
       return assocArray
         .map((item) => {
-          if (item && typeof item === "object") return item.id || item.contact_id || item.company_id || item.id_contact || item.id_company || item.value;
+          if (item && typeof item === "object")
+            return (
+              item.id ||
+              item.contact_id ||
+              item.company_id ||
+              item.id_contact ||
+              item.id_company ||
+              item.value
+            );
           return item;
         })
         .filter((item) => item !== undefined && item !== null && item !== "")
-        .map(id => String(id).trim()); // Selalu pastikan ID adalah string bersih
+        .map((id) => String(id).trim()); // Selalu pastikan ID adalah string bersih
     },
 
     // Helper untuk normalisasi objek untuk form asosiasi
     normalizeAssocObjects(value, type) {
       // Jika value adalah string tunggal (bukan array/objek), kita kemas jadi array
-      if (value && typeof value !== 'object') {
+      if (value && typeof value !== "object") {
         const sid = String(value).trim();
-        return type === 'company' 
+        return type === "company"
           ? [{ id: sid, company_name: `Company ${sid}` }]
           : [{ id: sid, first_name: `Contact ${sid}`, last_name: "" }];
       }
 
       const arr = this.normalizeAssocInput(value);
-      return arr.filter(item => item !== null && item !== undefined).map(item => {
-        if (typeof item !== 'object') {
-          return type === 'company' 
-            ? { id: String(item), company_name: `Company ${item}` }
-            : { id: String(item), first_name: `Contact ${item}`, last_name: "" };
-        }
-        
-        const id = item.id || item.contact_id || item.id_contact || item.company_id || item.id_company || item.company || item.contact || item.value;
-        if (type === 'company') {
-          return {
-            id: String(id),
-            company_name: item.company_name || item.companynm || item.name || item.label || `Company ${id}`
-          };
-        } else {
-          const firstName = item.first_name || item.firstname || item.contact_name || item.contactnm || item.label || `Contact ${id}`;
-          return {
-            id: String(id),
-            first_name: firstName,
-            last_name: item.last_name || item.lastname || ""
-          };
-        }
-      });
+      return arr
+        .filter((item) => item !== null && item !== undefined)
+        .map((item) => {
+          if (typeof item !== "object") {
+            return type === "company"
+              ? { id: String(item), company_name: `Company ${item}` }
+              : {
+                  id: String(item),
+                  first_name: `Contact ${item}`,
+                  last_name: "",
+                };
+          }
+
+          const id =
+            item.id ||
+            item.contact_id ||
+            item.id_contact ||
+            item.company_id ||
+            item.id_company ||
+            item.company ||
+            item.contact ||
+            item.value;
+          if (type === "company") {
+            return {
+              id: String(id),
+              company_name:
+                item.company_name ||
+                item.companynm ||
+                item.name ||
+                item.label ||
+                `Company ${id}`,
+            };
+          } else {
+            const firstName =
+              item.first_name ||
+              item.firstname ||
+              item.contact_name ||
+              item.contactnm ||
+              item.label ||
+              `Contact ${id}`;
+            return {
+              id: String(id),
+              first_name: firstName,
+              last_name: item.last_name || item.lastname || "",
+            };
+          }
+        });
     },
 
     getDealIdFromResponse(response) {
@@ -707,14 +765,16 @@ export default {
         probability: dealData.probability ?? null,
         status:
           dealData.status !== undefined
-            ? dealData.status == 1 || dealData.status === "active" || dealData.status === true
+            ? dealData.status == 1 ||
+              dealData.status === "active" ||
+              dealData.status === true
               ? 1
               : 0
             : dealData.active !== undefined
-            ? dealData.active == 1 || dealData.active === true
-              ? 1
-              : 0
-            : 1,
+              ? dealData.active == 1 || dealData.active === true
+                ? 1
+                : 0
+              : 1,
         task: this.resolveTaskData(dealData),
         docs: this.resolveDocsData(dealData),
         owner_id:
@@ -737,7 +797,8 @@ export default {
       };
 
       // Fetch History if editing
-      const dealId = this.formData.id || dealData.id || dealData.id_deals || data.id;
+      const dealId =
+        this.formData.id || dealData.id || dealData.id_deals || data.id;
       if (dealId) {
         this.acthistory({
           noteable_type: "DL",
@@ -931,11 +992,7 @@ export default {
     resolveInitialDealId() {
       const deal = this.initialData?.deals?.[0] || this.initialData || {};
       return (
-        this.formData?.id ||
-        deal.id ||
-        deal.id_deals ||
-        deal.deal_id ||
-        null
+        this.formData?.id || deal.id || deal.id_deals || deal.deal_id || null
       );
     },
     normalizePipelineValue(value) {
@@ -956,12 +1013,12 @@ export default {
         raw.includes("prop")
       )
         return 3;
+      if (raw.includes("negot") || raw.includes("adv")) return 4;
       if (
-        raw.includes("negot") ||
-        raw.includes("adv")
+        raw.includes("closed_won") ||
+        raw.includes("won") ||
+        raw.includes("close_won")
       )
-        return 4;
-      if (raw.includes("closed_won") || raw.includes("won") || raw.includes("close_won"))
         return 5;
       if (
         raw.includes("closed_lost") ||
@@ -1156,7 +1213,7 @@ export default {
       this.$emit("close");
     },
     async handleCreateProject() {
-      // Form Project sudah melakukan simpan sendiri (internal), 
+      // Form Project sudah melakukan simpan sendiri (internal),
       // di sini kita cukup tutup modal dan refresh list project di tab Deal.
       this.closeProjectModal();
       await this.loadDealProjects();
@@ -1192,8 +1249,8 @@ export default {
       this.showCreateProjectForm = true;
     },
     openAddProject() {
-      this.selectedProject = { 
-        deal_id: this.formData.id || this.resolveInitialDealId() 
+      this.selectedProject = {
+        deal_id: this.formData.id || this.resolveInitialDealId(),
       };
       this.showCreateProjectForm = true;
     },
@@ -1491,9 +1548,9 @@ export default {
     // ─── HISTORY & DRAWER METHODS ──────────────────────────────────────────
     openNoteDrawer(editData = null, index = null) {
       if (editData) {
-        this.tempNoteData = { 
+        this.tempNoteData = {
           ...editData,
-          idnote: editData.idnote || editData.id 
+          idnote: editData.idnote || editData.id,
         };
         this.editingItemIndex = index;
       } else {
@@ -1524,13 +1581,17 @@ export default {
       this.isDocDrawerOpen = true;
     },
     saveNoteFromDrawer() {
-      if (!this.tempNoteData.body && (this.tempNoteData.photos || []).length === 0) {
+      if (
+        !this.tempNoteData.body &&
+        (this.tempNoteData.photos || []).length === 0
+      ) {
         alertService.toastWarn("Note masih kosong");
         return;
       }
 
-      const dealId = this.formData.id || (this.initialData?.id || this.initialData?.id_deals);
-      
+      const dealId =
+        this.formData.id || this.initialData?.id || this.initialData?.id_deals;
+
       if (!dealId) {
         // Fallback for new deal (keep in local state until save)
         const item = {
@@ -1544,7 +1605,7 @@ export default {
         } else {
           this.historyitems.unshift(item);
         }
-        
+
         this.isNoteDrawerOpen = false;
         alertService.toastSuccess("Catatan ditambahkan ke histori lokal");
         return;
@@ -1572,7 +1633,9 @@ export default {
         })
         .catch((err) => {
           alertService.toastError(
-            err.response?.data?.message || err.message || "Gagal menyimpan catatan"
+            err.response?.data?.message ||
+              err.message ||
+              "Gagal menyimpan catatan",
           );
         });
     },
@@ -1611,18 +1674,23 @@ export default {
       }
     },
     async handleHistoryDelete(itemOrIndex) {
-      const item = typeof itemOrIndex === "object" ? itemOrIndex.item : this.displayHistoryItems[itemOrIndex];
-      const index = typeof itemOrIndex === "object" ? itemOrIndex.index : itemOrIndex;
+      const item =
+        typeof itemOrIndex === "object"
+          ? itemOrIndex.item
+          : this.displayHistoryItems[itemOrIndex];
+      const index =
+        typeof itemOrIndex === "object" ? itemOrIndex.index : itemOrIndex;
 
       if (!item) return;
 
-      const dealId = this.formData.id || (this.initialData?.id || this.initialData?.id_deals);
+      const dealId =
+        this.formData.id || this.initialData?.id || this.initialData?.id_deals;
 
       // Jika note sudah ada di DB (punya ID) dan deal ada ID nya
       if (dealId && item.type === "note" && (item.id || item.idnote)) {
         const isConfirmed = await alertService.confirm(
           "Apakah yakin untuk menghapus catatan ini secara permanen?",
-          "Konfirmasi Hapus"
+          "Konfirmasi Hapus",
         );
 
         if (isConfirmed) {
@@ -1862,7 +1930,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       >
-        <h2 class="text-xl font-bold text-dark-base">
+        <h2 class="text-xl font-bold text-main-text">
           {{ isEditMode ? "Edit Deal" : "Create Deal" }}
         </h2>
         <button
@@ -1881,8 +1949,8 @@ export default {
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 transition',
             activeTab === 'master'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
+              ? 'border-dark-base text-main-text'
+              : 'border-transparent text-sub-text hover:text-main-text',
           ]"
         >
           Master
@@ -1891,12 +1959,15 @@ export default {
         <button
           v-if="(isEditMode || forceShowDetails) && !hideDetailTab"
           type="button"
-          @click="activeTab = 'projects'; loadDealProjects()"
+          @click="
+            activeTab = 'projects';
+            loadDealProjects();
+          "
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 transition',
             activeTab === 'projects'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
+              ? 'border-dark-base text-main-text'
+              : 'border-transparent text-sub-text hover:text-main-text',
           ]"
         >
           Projects
@@ -1909,8 +1980,8 @@ export default {
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 transition',
             activeTab === 'detail'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
+              ? 'border-dark-base text-main-text'
+              : 'border-transparent text-sub-text hover:text-main-text',
           ]"
         >
           Notes
@@ -1927,7 +1998,7 @@ export default {
           <!-- Deal Name & Pipeline -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Deal Name <span class="text-red-600">*</span>
               </label>
               <input
@@ -1940,13 +2011,13 @@ export default {
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Pipeline/Stage <span class="text-red-600">*</span>
               </label>
               <div class="relative">
                 <select
                   v-model="formData.pipeline"
-                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                 >
                   <option value="" disabled selected>Select Pipeline</option>
                   <option
@@ -1988,13 +2059,13 @@ export default {
           <!-- Currency & Amount/Value -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Currency</label
               >
               <div class="relative">
                 <select
                   v-model="formData.currency"
-                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                 >
                   <option
                     v-for="opt in currencyOptions"
@@ -2011,7 +2082,7 @@ export default {
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Amount / Value <span class="text-red-600">*</span>
               </label>
               <input
@@ -2026,18 +2097,18 @@ export default {
           <!-- Expected Close Date & owner -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Expected Close Date</label
               >
               <input
                 v-model="formData.expectedCloseDate"
                 type="date"
                 placeholder="Close Date"
-                class="w-full px-3 py-2 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base"
+                class="w-full px-3 py-2 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >owner</label
               >
               <div class="relative">
@@ -2055,13 +2126,13 @@ export default {
           <!-- Priority & Source -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Priority</label
               >
               <div class="relative">
                 <select
                   v-model="formData.priority"
-                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                 >
                   <option value="" disabled selected>Select Priority</option>
                   <option
@@ -2079,14 +2150,14 @@ export default {
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Source</label
               >
               <div class="space-y-2">
                 <div class="relative">
                   <select
                     v-model="formData.source"
-                    class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                    class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                   >
                     <option value="" disabled selected>Select Source</option>
                     <option
@@ -2122,7 +2193,7 @@ export default {
           <!-- Probability & Active -->
           <div class="grid grid-cols-2 gap-4 items-center">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Probability (%)
               </label>
               <input
@@ -2135,13 +2206,13 @@ export default {
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Status
               </label>
               <div class="relative">
                 <select
                   v-model="formData.status"
-                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                  class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                 >
                   <option :value="1">Active</option>
                   <option :value="0">Inactive</option>
@@ -2160,7 +2231,7 @@ export default {
           <div class="flex items-center gap-3 mb-4">
             <button
               @click="openAddProject"
-              class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-outline rounded-xl text-sm font-semibold text-dark-base hover:bg-light-base hover:border-dark-base/20 transition-all duration-200 shadow-sm"
+              class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-outline rounded-xl text-sm font-semibold text-main-text hover:bg-light-base hover:border-dark-base/20 transition-all duration-200 shadow-sm"
             >
               <Plus :size="18" />
               Buat Project Baru
@@ -2190,7 +2261,7 @@ export default {
                 >
                   <div class="flex justify-between items-start mb-1.5">
                     <h4
-                      class="text-sm font-semibold text-dark-base line-clamp-1 group-hover:text-sub-text transition-colors"
+                      class="text-sm font-semibold text-main-text line-clamp-1 group-hover:text-sub-text transition-colors"
                     >
                       {{ project.project_name }}
                     </h4>
@@ -2206,7 +2277,7 @@ export default {
                       <div class="flex items-center gap-1">
                         <button
                           @click.stop="openProjectDetail(project)"
-                          class="p-1 hover:bg-white rounded transition-colors text-sub-text hover:text-dark-base"
+                          class="p-1 hover:bg-white rounded transition-colors text-sub-text hover:text-main-text"
                           title="Edit Project"
                         >
                           <Pencil :size="14" />
@@ -2221,7 +2292,9 @@ export default {
                       </div>
                     </div>
                   </div>
-                  <div class="flex items-center gap-4 text-[11px] text-sub-text">
+                  <div
+                    class="flex items-center gap-4 text-[11px] text-sub-text"
+                  >
                     <div class="flex items-center gap-1.5">
                       <CalendarDays :size="12" class="opacity-70" />
                       {{
@@ -2332,7 +2405,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10"
       >
-        <h2 class="text-xl font-bold text-dark-base">
+        <h2 class="text-xl font-bold text-main-text">
           {{ editingItemIndex !== null ? "Edit Note" : "Tambah Note" }}
         </h2>
         <button
@@ -2375,7 +2448,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10"
       >
-        <h2 class="text-xl font-bold text-dark-base">
+        <h2 class="text-xl font-bold text-main-text">
           {{ editingItemIndex !== null ? "Edit Document" : "Tambah Document" }}
         </h2>
         <button
@@ -2457,17 +2530,17 @@ input:-webkit-autofill:active,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px white inset !important;
-  -webkit-text-fill-color: #1c2434 !important;
+  -webkit-box-shadow: 0 0 0 30px var(--color-white) inset !important;
+  -webkit-text-fill-color: var(--color-main-text) !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
 input:-webkit-autofill:focus,
 select:-webkit-autofill:focus {
   -webkit-box-shadow:
-    0 0 0 30px white inset,
-    0 0 0 1px #64728b !important;
-  -webkit-text-fill-color: #1c2434 !important;
+    0 0 0 30px var(--color-white) inset,
+    0 0 0 1px var(--color-sub-text) !important;
+  -webkit-text-fill-color: var(--color-main-text) !important;
 }
 
 /* Hide number input spin buttons */

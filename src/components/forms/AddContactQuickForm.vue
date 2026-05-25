@@ -311,7 +311,7 @@ watch(
         >
           <div class="flex items-center gap-2">
             <ArrowRight :size="18" class="text-sub-text" />
-            <h2 class="text-xl font-bold text-dark-base">Add Contact</h2>
+            <h2 class="text-xl font-bold text-main-text">Add Contact</h2>
           </div>
           <button
             @click="handleClose"
@@ -327,7 +327,7 @@ watch(
             <!-- First Name & Last Name -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >First Name <span class="text-red-600">*</span></label
                 >
                 <input
@@ -339,7 +339,7 @@ watch(
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Last Name</label
                 >
                 <input
@@ -354,7 +354,7 @@ watch(
             <!-- Job Title -->
             <div class="grid grid-cols-1 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Job Title</label
                 >
                 <input
@@ -369,7 +369,7 @@ watch(
             <!-- Email & Status -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Email</label
                 >
                 <input
@@ -380,13 +380,13 @@ watch(
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Status</label
                 >
                 <div class="relative">
                   <select
                     v-model.number="formData.status"
-                    class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white appearance-none cursor-pointer"
+                    class="w-full px-3 py-2 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white appearance-none cursor-pointer"
                   >
                     <option value="" disabled selected>Select Status</option>
                     <option
@@ -408,7 +408,7 @@ watch(
             <!-- Telephone & Mobile -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Telephone</label
                 >
                 <input
@@ -419,7 +419,7 @@ watch(
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Telephone</label
                 >
                 <input
@@ -436,7 +436,7 @@ watch(
             <!-- Pos Code & Source -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Pos Code</label
                 >
                 <input
@@ -447,13 +447,13 @@ watch(
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-dark-base mb-2"
+                <label class="block text-sm font-medium text-main-text mb-2"
                   >Source</label
                 >
                 <div class="relative">
                   <select
                     v-model="formData.source"
-                    class="w-full px-3 py-2 pr-8 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white appearance-none cursor-pointer text-dark-base"
+                    class="w-full px-3 py-2 pr-8 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white appearance-none cursor-pointer text-main-text"
                   >
                     <option value="" disabled selected>Select Data</option>
                     <option
@@ -474,7 +474,7 @@ watch(
 
             <!-- Companies Association (Searchable Dropdown) -->
             <div data-companies-dropdown>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Companies Association
               </label>
               <div class="relative">
@@ -496,7 +496,7 @@ watch(
                     v-for="company in filteredCompanies"
                     :key="company.id"
                     @click="selectCompany(company)"
-                    class="px-3 py-2 hover:bg-light-base cursor-pointer text-sm text-dark-base"
+                    class="px-3 py-2 hover:bg-light-base cursor-pointer text-sm text-main-text"
                   >
                     {{ company.company_name || company.name }}
                   </div>
@@ -511,7 +511,7 @@ watch(
                 <span
                   v-for="company in formData.selectedCompanies"
                   :key="company.id"
-                  class="bg-light-base px-2 py-1 rounded text-xs text-dark-base flex items-center gap-1"
+                  class="bg-light-base px-2 py-1 rounded text-xs text-main-text flex items-center gap-1"
                 >
                   {{ company.company_name || company.name }}
                   <button
@@ -527,7 +527,7 @@ watch(
 
             <!-- Deals Association (Searchable Dropdown) -->
             <div data-deals-dropdown>
-              <label class="block text-sm font-medium text-dark-base mb-2">
+              <label class="block text-sm font-medium text-main-text mb-2">
                 Deals Association
               </label>
               <div class="relative">
@@ -549,7 +549,7 @@ watch(
                     v-for="deal in filteredDeals"
                     :key="deal.id"
                     @click="selectDeal(deal)"
-                    class="px-3 py-2 hover:bg-light-base cursor-pointer text-sm text-dark-base"
+                    class="px-3 py-2 hover:bg-light-base cursor-pointer text-sm text-main-text"
                   >
                     {{ deal.deal_name || deal.name }}
                   </div>
@@ -564,7 +564,7 @@ watch(
                 <span
                   v-for="deal in formData.selectedDeals"
                   :key="deal.id"
-                  class="bg-light-base px-2 py-1 rounded text-xs text-dark-base flex items-center gap-1"
+                  class="bg-light-base px-2 py-1 rounded text-xs text-main-text flex items-center gap-1"
                 >
                   {{ deal.deal_name || deal.name }}
                   <button

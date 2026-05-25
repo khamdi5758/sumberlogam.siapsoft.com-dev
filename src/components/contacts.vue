@@ -7,7 +7,7 @@
       <!-- Header with Title and Total -->
       <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div class="flex min-w-0 items-baseline gap-3">
-          <h1 class="text-2xl font-bold text-dark-base">Contacts</h1>
+          <h1 class="text-2xl font-bold text-main-text">Contacts</h1>
           <span class="text-sm" :class="contactsStatusClass">{{
             contactsStatusText
           }}</span>
@@ -148,7 +148,7 @@
           <button
             class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition"
           >
-            <Filter :size="20" class="text-dark-base" />
+            <Filter :size="20" class="text-main-text" />
           </button>
 
           <div class="relative w-full sm:w-auto">
@@ -162,11 +162,11 @@
           <button
             class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition"
           >
-            <Search :size="20" class="text-dark-base" />
+            <Search :size="20" class="text-main-text" />
           </button>
 
           <div class="flex items-center gap-2">
-            <span class="text-sm text-dark-base">Show</span>
+            <span class="text-sm text-main-text">Show</span>
             <select
               v-model="itemsPerPage"
               class="px-3 py-2 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm"
@@ -328,13 +328,13 @@
                 <td class="px-6 py-4 text-sm text-gray-800 font-medium">
                   {{ contact.first_name }} {{ contact.last_name }}
                 </td>
-                <td class="px-6 py-4 text-sm text-dark-base">
+                <td class="px-6 py-4 text-sm text-main-text">
                   <div>{{ contact.email || "-" }}</div>
                   <div class="text-xs text-sub-text">
                     {{ contact.telephone_1 || "-" }}
                   </div>
                 </td>
-                <td class="px-6 py-4 text-sm text-dark-base leading-5">
+                <td class="px-6 py-4 text-sm text-main-text leading-5">
                   <div>
                     <span class="font-medium"></span>
                     {{ getAssociatedCompanyLabels(contact).join(", ") }}
@@ -352,10 +352,10 @@
                     {{ getStatusName(contact.status) || "Inactive" }}
                   </span>
                 </td>
-                <td class="px-6 py-4 text-sm text-dark-base">
+                <td class="px-6 py-4 text-sm text-main-text">
                   {{ formatDate(contact.updated_at || contact.created_at) }}
                 </td>
-                <td class="px-6 py-4 text-sm text-dark-base">
+                <td class="px-6 py-4 text-sm text-main-text">
                   {{ contact.owner || "-" }}
                 </td>
               </tr>

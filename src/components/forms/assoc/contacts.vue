@@ -1,7 +1,7 @@
 <template>
   <div class="relative" ref="contactDropdownRef">
     <div class="flex items-center gap-1.5 mb-2">
-      <label class="block text-sm font-medium text-dark-base">
+      <label class="block text-sm font-medium text-main-text">
         Contact Association
       </label>
       <div v-if="filterByCompany" class="relative group flex items-center">
@@ -12,16 +12,16 @@
         <!-- Info Tooltip (Menggunakan Warna dari welcome.css) -->
         <div
           class="absolute right-0 top-6 w-44 p-2.5 text-white text-[10px] leading-snug rounded shadow-2xl z-[70] border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none"
-          style="background-color: var(--color-waiting-color, #404460);"
+          style="background-color: var(--color-waiting-color, #404460)"
         >
           <div class="flex items-start gap-1.5">
             <Info :size="10" class="mt-0.5 shrink-0 text-blue-300" />
             <p>Kontak difilter berdasarkan perusahaan terpilih.</p>
           </div>
           <!-- Arrow Tooltip -->
-          <div 
+          <div
             class="absolute -top-1 right-1.5 w-2 h-2 rotate-45 border-t border-l border-white/10"
-            style="background-color: var(--color-waiting-color, #404460);"
+            style="background-color: var(--color-waiting-color, #404460)"
           ></div>
         </div>
       </div>
@@ -32,12 +32,14 @@
       class="w-full px-3 py-2 border border-outline rounded-lg flex flex-wrap gap-2 items-center cursor-pointer min-h-10.5 bg-white transition focus-within:ring-1 focus-within:ring-sub-text"
     >
       <div v-if="contactassoc.length === 0" class="text-gray-400 text-sm">
-        {{ mode === 'single' ? 'Select a Contact' : 'Search and select Contacts' }}
+        {{
+          mode === "single" ? "Select a Contact" : "Search and select Contacts"
+        }}
       </div>
       <div
         v-for="contact in selectedContacts"
         :key="contact.id"
-        class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-dark-base border border-outline"
+        class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-main-text border border-outline"
         @click.stop
       >
         {{ getDisplayNameFromContact(contact) }}
@@ -82,7 +84,7 @@
           class="px-4 py-2 hover:bg-light-base cursor-pointer flex items-center justify-between text-sm transition"
         >
           <div class="flex flex-col">
-            <span class="font-medium text-dark-base">{{
+            <span class="font-medium text-main-text">{{
               getDisplayNameFromContact(contact)
             }}</span>
             <span class="text-xs text-sub-text">{{ contact.email || "" }}</span>
@@ -221,7 +223,7 @@ export default {
     selectedContacts() {
       if (!this.contactassoc.length) return [];
       return this.contactOptions.filter((contact) =>
-        this.contactassoc.includes(String(contact.id))
+        this.contactassoc.includes(String(contact.id)),
       );
     },
   },
@@ -258,7 +260,7 @@ export default {
         }
         this.page = 1;
         this.hasMore = true;
-        
+
         // Trigger fetch immediately when opening
         this.$nextTick(() => {
           this.fetchContacts();
@@ -295,10 +297,12 @@ export default {
 
           params.companyid = cid;
           const res = await this.dealsFetchContact(params);
-          this.hasMore = (res && typeof res === 'object' && res.next_page_url) ? true : false;
+          this.hasMore =
+            res && typeof res === "object" && res.next_page_url ? true : false;
         } else {
           const res = await this.getcontacts(params);
-          this.hasMore = (res && typeof res === 'object' && res.next_page_url) ? true : false;
+          this.hasMore =
+            res && typeof res === "object" && res.next_page_url ? true : false;
           if (this.hasMore) this.page++;
         }
       } catch (e) {
@@ -320,10 +324,11 @@ export default {
     toggleContact(contact) {
       const contactId = String(contact.id);
 
-
       if (this.mode === "single") {
         // ✅ Single mode: langsung replace dengan item yang dipilih, lalu tutup
-        const isSame = this.contactassoc[0] && String(this.contactassoc[0]).trim() === contactId;
+        const isSame =
+          this.contactassoc[0] &&
+          String(this.contactassoc[0]).trim() === contactId;
         this.contactassoc = isSame ? [] : [contactId]; // klik item sama = deselect
         this.isContactDropdownOpen = false;
       } else {
@@ -342,12 +347,7 @@ export default {
         }
         this.contactassoc = newValue;
         this.isContactDropdownOpen = false;
-        
       }
-
-
-
-
     },
 
     isContactSelected(id) {
@@ -356,7 +356,10 @@ export default {
 
     getDisplayNameFromContact(contact) {
       if (contact.label) return contact.label;
-      return `${contact.first_name || ""} ${contact.last_name || ""}`.trim() || "Unknown Contact";
+      return (
+        `${contact.first_name || ""} ${contact.last_name || ""}`.trim() ||
+        "Unknown Contact"
+      );
     },
 
     handleClickOutside(e) {
@@ -367,7 +370,7 @@ export default {
 
     handleContactQuickSubmit(e) {
       console.log("New contact created", e);
-    }
+    },
   },
 
   watch: {

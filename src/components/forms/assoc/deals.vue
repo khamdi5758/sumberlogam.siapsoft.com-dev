@@ -1,6 +1,6 @@
 <template>
   <div class="relative" ref="dealDropdownRef">
-    <label class="block text-sm font-medium text-dark-base mb-2">
+    <label class="block text-sm font-medium text-main-text mb-2">
       Deals Association
     </label>
     <div
@@ -8,12 +8,12 @@
       class="w-full px-3 py-2 border border-outline rounded-lg flex flex-wrap gap-2 items-center cursor-pointer min-h-10.5 bg-white transition focus-within:ring-1 focus-within:ring-sub-text"
     >
       <div v-if="dealsassoc.length === 0" class="text-gray-400 text-sm">
-        {{ mode === 'single' ? 'Select a Deal' : 'Search and select Deals' }}
+        {{ mode === "single" ? "Select a Deal" : "Search and select Deals" }}
       </div>
       <div
         v-for="deal in selectedDeals"
         :key="deal.id"
-        class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-dark-base border border-outline"
+        class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-main-text border border-outline"
         @click.stop
       >
         {{ getDisplayNameFromDeal(deal) }}
@@ -54,7 +54,7 @@
           class="px-4 py-2 hover:bg-light-base cursor-pointer flex items-center justify-between text-sm transition"
         >
           <div class="flex flex-col">
-            <span class="font-medium text-dark-base">{{
+            <span class="font-medium text-main-text">{{
               getDisplayNameFromDeal(deal)
             }}</span>
             <span class="text-xs text-sub-text">{{
@@ -81,7 +81,7 @@
   <button
     type="button"
     @click="showAddDealForm = true"
-    class="mt-2 text-sm text-sub-text hover:text-dark-base font-medium flex items-center gap-1"
+    class="mt-2 text-sm text-sub-text hover:text-main-text font-medium flex items-center gap-1"
   >
     <Plus :size="14" />
     Add Another Deal
@@ -122,7 +122,6 @@ export default {
       default: "multiple",
       validator: (value) => ["single", "multiple"].includes(value),
     },
-  
   },
 
   data() {
@@ -202,14 +201,15 @@ export default {
 
       if (this.mode === "single") {
         // ✅ Single mode: langsung replace dengan item yang dipilih, lalu tutup
-        const isSame = this.dealsassoc[0] && String(this.dealsassoc[0]).trim() === dealId;
+        const isSame =
+          this.dealsassoc[0] && String(this.dealsassoc[0]).trim() === dealId;
         this.dealsassoc = isSame ? [] : [dealId]; // klik item sama = deselect
         this.isDealDropdownOpen = false;
       } else {
         const index = this.dealsassoc.findIndex(
           (id) => String(id).trim() === dealId,
         );
-  
+
         let newValue;
         if (index === -1) {
           newValue = [...this.dealsassoc, dealId];
@@ -218,13 +218,7 @@ export default {
         }
         this.dealsassoc = newValue;
         this.isDealDropdownOpen = false;
-        
       }
-
-
-
-
-
     },
 
     isDealSelected(id) {

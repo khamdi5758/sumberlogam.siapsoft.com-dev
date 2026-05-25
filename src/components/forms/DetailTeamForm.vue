@@ -540,7 +540,7 @@ export default {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10"
       >
-        <h2 class="text-xl font-bold text-dark-base">Team Detail</h2>
+        <h2 class="text-xl font-bold text-main-text">Team Detail</h2>
         <div class="flex items-center gap-2">
           <button
             @click="close"
@@ -553,7 +553,7 @@ export default {
 
       <div class="flex-1 overflow-y-auto p-6 space-y-6">
         <div class="border border-outline rounded-lg p-4 space-y-4">
-          <h3 class="text-sm font-semibold text-dark-base">Team Info</h3>
+          <h3 class="text-sm font-semibold text-main-text">Team Info</h3>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -616,7 +616,7 @@ export default {
                       <Check
                         v-if="editForm.parent_id === getTeamId(t)"
                         :size="12"
-                        class="text-dark-base"
+                        class="text-main-text"
                       />
                     </div>
                   </div>
@@ -642,7 +642,7 @@ export default {
               <div
                 v-for="member in editForm.selectedMembers"
                 :key="member.id"
-                class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-dark-base border border-outline"
+                class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-main-text border border-outline"
                 @click.stop
               >
                 {{ member.name }}
@@ -683,7 +683,7 @@ export default {
                   class="px-4 py-2 hover:bg-light-base cursor-pointer flex items-center justify-between text-sm transition"
                 >
                   <div class="flex flex-col">
-                    <span class="font-medium text-dark-base">{{
+                    <span class="font-medium text-main-text">{{
                       member.name
                     }}</span>
                     <span class="text-xs text-sub-text">{{
@@ -710,7 +710,7 @@ export default {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-xs text-sub-text mb-1">Total Users</p>
-              <p class="text-sm font-semibold text-dark-base">
+              <p class="text-sm font-semibold text-main-text">
                 {{ totalUsersLabel }}
               </p>
             </div>
@@ -726,7 +726,7 @@ export default {
         <div class="border border-outline rounded-lg p-4">
           <div class="flex items-center gap-2 mb-3">
             <Users :size="16" class="text-sub-text" />
-            <h3 class="text-sm font-semibold text-dark-base">Users In Team</h3>
+            <h3 class="text-sm font-semibold text-main-text">Users In Team</h3>
           </div>
           <ul v-if="allusersteam" class="space-y-2">
             <li
@@ -734,7 +734,7 @@ export default {
               :key="user.userid"
               class="px-3 py-2 rounded-lg bg-light-base border border-outline"
             >
-              <p class="text-sm font-medium text-dark-base">{{ user.name }}</p>
+              <p class="text-sm font-medium text-main-text">{{ user.name }}</p>
               <p class="text-xs text-sub-text">ID: {{ user.userid }}</p>
               <p v-if="user.email" class="text-xs text-sub-text">
                 {{ user.email }}

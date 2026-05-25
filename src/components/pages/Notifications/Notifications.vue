@@ -1,11 +1,13 @@
 <template>
   <div class="flex flex-col h-full">
-    <div class="bg-white rounded-lg shadow-sm p-4 border border-outline flex flex-col min-h-0 flex-1 gap-4">
+    <div
+      class="bg-white rounded-lg shadow-sm p-4 border border-outline flex flex-col min-h-0 flex-1 gap-4"
+    >
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-dark-base">All Notifications</h2>
-        <button 
+        <h2 class="text-xl font-bold text-main-text">All Notifications</h2>
+        <button
           v-if="unreadCount > 0"
-          @click="markAllRead" 
+          @click="markAllRead"
           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-semibold"
         >
           Mark all as read
@@ -19,9 +21,9 @@
           @click="selectedCategory = cat"
           :class="[
             'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-            selectedCategory === cat 
-              ? 'bg-dark-base text-white' 
-              : 'bg-white border border-outline text-sub-text hover:bg-gray-50'
+            selectedCategory === cat
+              ? 'bg-dark-base text-white'
+              : 'bg-white border border-outline text-sub-text hover:bg-gray-50',
           ]"
         >
           {{ cat }}
@@ -29,11 +31,16 @@
       </div>
 
       <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
-        <div v-if="filteredNotifications.length === 0" class="flex flex-col items-center justify-center py-12">
-          <div class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
+        <div
+          v-if="filteredNotifications.length === 0"
+          class="flex flex-col items-center justify-center py-12"
+        >
+          <div
+            class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4"
+          >
             <Bell :size="32" class="text-blue-500" />
           </div>
-          <p class="text-lg font-bold text-dark-base">No notifications yet</p>
+          <p class="text-lg font-bold text-main-text">No notifications yet</p>
           <p class="text-sub-text">Your notification list will appear here.</p>
         </div>
 
@@ -44,22 +51,35 @@
             @click="handleNotificationClick(n)"
             :class="[
               'flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer',
-              n.is_read == 0 
-                ? 'bg-blue-50 border-blue-100 hover:bg-blue-100' 
-                : 'bg-white border-outline hover:bg-gray-50'
+              n.is_read == 0
+                ? 'bg-blue-50 border-blue-100 hover:bg-blue-100'
+                : 'bg-white border-outline hover:bg-gray-50',
             ]"
           >
             <div class="relative flex-shrink-0">
-              <div class="w-12 h-12 rounded-full bg-white border border-outline flex items-center justify-center shadow-sm">
-                <Bell :size="24" :class="n.is_read == 1 ? 'text-gray-400' : 'text-dark-base'" />
+              <div
+                class="w-12 h-12 rounded-full bg-white border border-outline flex items-center justify-center shadow-sm"
+              >
+                <Bell
+                  :size="24"
+                  :class="n.is_read == 1 ? 'text-gray-400' : 'text-main-text'"
+                />
               </div>
-              <span v-if="n.is_read == 0" class="absolute top-0 right-0 w-3 h-3 rounded-full bg-dark-base border-2 border-white"></span>
+              <span
+                v-if="n.is_read == 0"
+                class="absolute top-0 right-0 w-3 h-3 rounded-full bg-dark-base border-2 border-white"
+              ></span>
             </div>
 
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-4 mb-1">
-                <h4 class="font-bold text-dark-base truncate">{{ n.title || "Notification" }}</h4>
-                <span class="text-xs font-medium text-gray-500 whitespace-nowrap">{{ timeAgo(n.created_at) }}</span>
+                <h4 class="font-bold text-main-text truncate">
+                  {{ n.title || "Notification" }}
+                </h4>
+                <span
+                  class="text-xs font-medium text-gray-500 whitespace-nowrap"
+                  >{{ timeAgo(n.created_at) }}</span
+                >
               </div>
               <p class="text-sm text-gray-600 line-clamp-2">
                 {{ n.body || n.message || "You have a new message." }}
@@ -82,9 +102,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { Bell, Check } from 'lucide-vue-next';
-import { useNotifications } from '@/composables/useNotifications';
+import { ref, computed, onMounted } from "vue";
+import { Bell, Check } from "lucide-vue-next";
+import { useNotifications } from "@/composables/useNotifications";
 
 const {
   notifications,

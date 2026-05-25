@@ -1,6 +1,6 @@
 <template>
   <div>
-    <label class="block text-sm font-medium text-dark-base mb-2">
+    <label class="block text-sm font-medium text-main-text mb-2">
       Contact Association
     </label>
 
@@ -18,7 +18,7 @@
       <!-- OPTION LIST -->
       <template #option="{ first_name, last_name, email }">
         <div class="flex flex-col">
-          <span class="font-medium text-dark-base">
+          <span class="font-medium text-main-text">
             {{ first_name }} {{ last_name }}
           </span>
           <span class="text-xs text-sub-text">
@@ -37,7 +37,7 @@
     <button
       type="button"
       @click="showAddContactQuickForm = true"
-      class="mt-2 text-sm text-sub-text hover:text-dark-base font-medium flex items-center gap-1"
+      class="mt-2 text-sm text-sub-text hover:text-main-text font-medium flex items-center gap-1"
     >
       <Plus :size="14" />
       Create Contact

@@ -18,7 +18,7 @@
         class="sticky top-0 z-10 flex items-center justify-between border-b border-outline bg-white px-6 py-4 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       >
         <div class="flex items-center gap-2">
-          <h2 class="text-xl font-bold text-dark-base">
+          <h2 class="text-xl font-bold text-main-text">
             {{ isEditMode ? "Edit Project" : "Add Project" }}
           </h2>
         </div>
@@ -39,22 +39,24 @@
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 transition',
             activeTab === 'master'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
+              ? 'border-dark-base text-main-text'
+              : 'border-transparent text-sub-text hover:text-main-text',
           ]"
         >
           Master
         </button>
         <!-- Tab Tasks & Notes hanya muncul jika edit mode atau sudah sukses simpan pertama kali, dan BUKAN dibuka dari deals -->
-        <template v-if="(isEditMode || showTabsAfterSave) && fromPage !== 'deals'">
+        <template
+          v-if="(isEditMode || showTabsAfterSave) && fromPage !== 'deals'"
+        >
           <button
             type="button"
             @click="activeTab = 'tasks'"
             :class="[
               'px-4 py-2 text-sm font-medium border-b-2 transition',
               activeTab === 'tasks'
-                ? 'border-dark-base text-dark-base'
-                : 'border-transparent text-sub-text hover:text-dark-base',
+                ? 'border-dark-base text-main-text'
+                : 'border-transparent text-sub-text hover:text-main-text',
             ]"
           >
             Tasks
@@ -65,8 +67,8 @@
             :class="[
               'px-4 py-2 text-sm font-medium border-b-2 transition',
               activeTab === 'notes'
-                ? 'border-dark-base text-dark-base'
-                : 'border-transparent text-sub-text hover:text-dark-base',
+                ? 'border-dark-base text-main-text'
+                : 'border-transparent text-sub-text hover:text-main-text',
             ]"
           >
             Notes
@@ -83,7 +85,7 @@
           class="space-y-5 p-6"
         >
           <div>
-            <label class="mb-2 block text-sm font-medium text-dark-base">
+            <label class="mb-2 block text-sm font-medium text-main-text">
               Project Name <span class="text-red-600">*</span>
             </label>
             <input
@@ -95,9 +97,14 @@
             />
           </div>
 
-          <div :class="['grid grid-cols-1 gap-4', fromPage === 'deals' ? '' : 'sm:grid-cols-2']">
+          <div
+            :class="[
+              'grid grid-cols-1 gap-4',
+              fromPage === 'deals' ? '' : 'sm:grid-cols-2',
+            ]"
+          >
             <div v-if="fromPage !== 'deals'">
-              <label class="mb-2 block text-sm font-medium text-dark-base">
+              <label class="mb-2 block text-sm font-medium text-main-text">
                 Deal <span class="text-red-600">*</span>
               </label>
               <div class="v-select-container">
@@ -113,7 +120,7 @@
             </div>
 
             <div>
-              <label class="mb-2 block text-sm font-medium text-dark-base">
+              <label class="mb-2 block text-sm font-medium text-main-text">
                 Leader <span class="text-red-600">*</span>
               </label>
               <div class="v-select-container">
@@ -130,7 +137,7 @@
           </div>
 
           <div>
-            <label class="mb-2 block text-sm font-medium text-dark-base"
+            <label class="mb-2 block text-sm font-medium text-main-text"
               >Description</label
             >
             <textarea
@@ -147,7 +154,7 @@
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label class="mb-2 block text-sm font-medium text-dark-base">
+              <label class="mb-2 block text-sm font-medium text-main-text">
                 Location
               </label>
               <input
@@ -159,7 +166,7 @@
             </div>
 
             <div>
-              <label class="mb-2 block text-sm font-medium text-dark-base">
+              <label class="mb-2 block text-sm font-medium text-main-text">
                 Project Status <span class="text-red-600">*</span>
               </label>
               <div class="v-select-container">
@@ -176,18 +183,15 @@
           </div>
         </form>
 
-        <div
-          v-show="activeTab === 'tasks'"
-          class="p-6 h-full flex flex-col"
-        >
+        <div v-show="activeTab === 'tasks'" class="p-6 h-full flex flex-col">
           <!-- Tambah Task Button -->
           <div class="flex items-center gap-3 mb-6">
             <button
               type="button"
               @click="openTaskDrawer()"
-              class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-outline rounded-xl text-sm font-semibold text-dark-base hover:bg-light-base hover:border-dark-base/20 transition-all duration-200 shadow-sm"
+              class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-outline rounded-xl text-sm font-semibold text-main-text hover:bg-light-base hover:border-dark-base/20 transition-all duration-200 shadow-sm"
             >
-              <Plus :size="18" class="text-dark-base" />
+              <Plus :size="18" class="text-main-text" />
               Tambah Task
             </button>
           </div>
@@ -215,7 +219,7 @@
                 />
               </svg>
             </div>
-            <h3 class="text-base font-semibold text-dark-base">
+            <h3 class="text-base font-semibold text-main-text">
               Belum ada task
             </h3>
             <p class="text-sm text-sub-text mt-1">
@@ -232,7 +236,7 @@
             >
               <div class="flex items-start justify-between mb-2">
                 <div class="flex-1">
-                  <h4 class="font-semibold text-dark-base">
+                  <h4 class="font-semibold text-main-text">
                     {{ item.name || item.body }}
                   </h4>
                   <p class="text-xs text-sub-text mt-1">
@@ -252,7 +256,7 @@
                         index: allHistory.indexOf(item),
                       })
                     "
-                    class="p-1 hover:bg-light-base rounded text-sub-text hover:text-dark-base"
+                    class="p-1 hover:bg-light-base rounded text-sub-text hover:text-main-text"
                   >
                     <svg
                       width="16"
@@ -288,23 +292,23 @@
                   </button>
                 </div>
               </div>
-              <p v-if="item.content" class="text-sm text-dark-base/80 mb-2">
+              <p v-if="item.content" class="text-sm text-main-text/80 mb-2">
                 {{ item.content }}
               </p>
               <div class="flex gap-2 text-xs">
                 <span
                   v-if="item.status"
-                  class="px-2 py-1 bg-light-base rounded text-dark-base"
+                  class="px-2 py-1 bg-light-base rounded text-main-text"
                   >{{ item.status }}</span
                 >
                 <span
                   v-if="item.priority"
-                  class="px-2 py-1 bg-light-base rounded text-dark-base"
+                  class="px-2 py-1 bg-light-base rounded text-main-text"
                   >{{ item.priority }}</span
                 >
                 <span
                   v-if="item.dueDate"
-                  class="px-2 py-1 bg-light-base rounded text-dark-base"
+                  class="px-2 py-1 bg-light-base rounded text-main-text"
                   >{{ item.dueDate }}</span
                 >
               </div>
@@ -312,10 +316,7 @@
           </div>
         </div>
 
-        <div
-          v-show="activeTab === 'notes'"
-          class="p-6 h-full flex flex-col"
-        >
+        <div v-show="activeTab === 'notes'" class="p-6 h-full flex flex-col">
           <HistoryDetail
             noteable-type="PR"
             :noteable-id="formData.id"
@@ -370,7 +371,7 @@
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10"
       >
-        <h2 class="text-xl font-bold text-dark-base">
+        <h2 class="text-xl font-bold text-main-text">
           {{ editingItemIndex !== null ? "Edit Note" : "Tambah Note" }}
         </h2>
         <button
@@ -404,15 +405,15 @@
     </div>
   </transition>
 
-    <!-- Create Task Form Overlay -->
-    <CreateTaskForm
-      :isOpen="showCreateTaskForm"
-      :initialData="selectedTaskDetail"
-      :hideProjectField="true"
-      :hideNotesTab="true"
-      @close="closeCreateTaskForm"
-      @submit="handleTaskSubmit"
-    />
+  <!-- Create Task Form Overlay -->
+  <CreateTaskForm
+    :isOpen="showCreateTaskForm"
+    :initialData="selectedTaskDetail"
+    :hideProjectField="true"
+    :hideNotesTab="true"
+    @close="closeCreateTaskForm"
+    @submit="handleTaskSubmit"
+  />
 </template>
 
 <script>
@@ -590,7 +591,10 @@ export default {
       // Prioritaskan historyitems (lokal) jika ada isinya, karena ini hasil fetch spesifik project
       if (this.historyitems && this.historyitems.length > 0) {
         return this.historyitems.map((h) => {
-          const isNote = h.notes !== undefined || h.idnote !== undefined || h.type === 'note';
+          const isNote =
+            h.notes !== undefined ||
+            h.idnote !== undefined ||
+            h.type === "note";
           return {
             ...h,
             type: h.type || (isNote ? "note" : "task"),
@@ -600,10 +604,11 @@ export default {
           };
         });
       }
-      
+
       // Fallback ke history dari store global
       return this.historyFromStore.map((h) => {
-        const isNote = h.notes !== undefined || h.idnote !== undefined || h.type === 'note';
+        const isNote =
+          h.notes !== undefined || h.idnote !== undefined || h.type === "note";
         return {
           ...h,
           type: h.type || (isNote ? "note" : "task"),
@@ -786,7 +791,7 @@ export default {
         data.name ||
         data.label ||
         data.project?.project_name ||
-        this.formData.project_name || 
+        this.formData.project_name ||
         "";
       this.formData.deal_id = data.deal_id ?? data.deal ?? data.id_deals ?? "";
       this.formData.leader_id =
@@ -795,7 +800,8 @@ export default {
         data.assignee_id ??
         data.id_user ??
         "";
-      this.formData.description = data.description || data.project_content || "";
+      this.formData.description =
+        data.description || data.project_content || "";
       this.formData.location = data.location || "";
       this.formData.kd_kelurahan = data.kd_kelurahan || data.kelurahan || "";
       this.formData.project_status =
@@ -817,13 +823,15 @@ export default {
         gps_address: data.noteData?.gps_address || null,
         latitude: data.noteData?.latitude || null,
         longitude: data.noteData?.longitude || null,
-        photos: Array.isArray(data.noteData?.photos) ? data.noteData.photos : [],
+        photos: Array.isArray(data.noteData?.photos)
+          ? data.noteData.photos
+          : [],
       };
       this.formData.noteData.audioBlob = data.noteData?.audioBlob || null;
 
-      // If we are coming from deals page and it's a new project, 
+      // If we are coming from deals page and it's a new project,
       // ensure deal_id is set from initialData if formData.deal_id is empty
-      if (this.fromPage === 'deals' && !this.formData.deal_id && data.deal_id) {
+      if (this.fromPage === "deals" && !this.formData.deal_id && data.deal_id) {
         this.formData.deal_id = data.deal_id;
       }
 
@@ -907,7 +915,8 @@ export default {
             timestamp: t.created_at || t.update_at,
             body: t.task_name || t.name || "",
             content: t.desktask || t.content || t.description || "",
-            status: t.status_name || t.statustask || t.status || t.status_id || "",
+            status:
+              t.status_name || t.statustask || t.status || t.status_id || "",
             priority: t.priority_name || t.prioritytask || t.priority || "",
             dueDate: t.due_date || t.dueDate || "",
             time: t.task_time || t.time || "",
@@ -927,7 +936,8 @@ export default {
         province: data.nm_provinsi || data.province || "",
         city: data.nm_kota_kabupaten || data.city || "",
         kecamatan: data.nm_kecamatan || data.kecamatan || "",
-        kelurahan: data.nm_kelurahan || data.kd_kelurahan || data.kelurahan || "",
+        kelurahan:
+          data.nm_kelurahan || data.kd_kelurahan || data.kelurahan || "",
         pos_code: data.kode_pos || data.pos_code || "",
       };
     },
@@ -937,9 +947,13 @@ export default {
       this.formData = {
         id: null,
         project_name: "",
-        deal_id: (this.fromPage === 'deals' && this.initialData) 
-          ? (this.initialData.deal_id || this.initialData.id_deals || this.initialData.id || "")
-          : "",
+        deal_id:
+          this.fromPage === "deals" && this.initialData
+            ? this.initialData.deal_id ||
+              this.initialData.id_deals ||
+              this.initialData.id ||
+              ""
+            : "",
         leader_id: "",
         description: "",
         location: "",
@@ -1075,22 +1089,28 @@ export default {
         // Optimistic update: Manually inject the task into history if it's new
         const savedTask = result.input || result.param || result;
         const isUpdate = !!(savedTask.id || savedTask.task_id);
-        
+
         // Find labels from store with robust matching
-        const statusObj = this.allStatuses.find(s => 
-          String(s.value || s.id) === String(savedTask.status_id || savedTask.status)
+        const statusObj = this.allStatuses.find(
+          (s) =>
+            String(s.value || s.id) ===
+            String(savedTask.status_id || savedTask.status),
         );
-        const priorityObj = this.allPriorities.find(p => 
-          String(p.value || p.id) === String(savedTask.priority || savedTask.prioritytask)
+        const priorityObj = this.allPriorities.find(
+          (p) =>
+            String(p.value || p.id) ===
+            String(savedTask.priority || savedTask.prioritytask),
         );
 
         const mappedData = {
-          status: statusObj ? (statusObj.label || statusObj.status_name) : "Baru",
-          priority: priorityObj ? (priorityObj.label || priorityObj.priority_name) : "Normal",
+          status: statusObj ? statusObj.label || statusObj.status_name : "Baru",
+          priority: priorityObj
+            ? priorityObj.label || priorityObj.priority_name
+            : "Normal",
           dueDate: savedTask.due_date,
           name: savedTask.task_name,
           body: savedTask.task_name,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
 
         if (!isUpdate) {
@@ -1105,13 +1125,15 @@ export default {
         } else {
           // It's an update, find and update local history
           const taskId = String(savedTask.id || savedTask.task_id);
-          const index = this.historyitems.findIndex(item => 
-            item.type === "task" && String(item.id || item.id_task) === taskId
+          const index = this.historyitems.findIndex(
+            (item) =>
+              item.type === "task" &&
+              String(item.id || item.id_task) === taskId,
           );
           if (index !== -1) {
             this.historyitems.splice(index, 1, {
               ...this.historyitems[index],
-              ...mappedData
+              ...mappedData,
             });
           }
         }
@@ -1125,7 +1147,7 @@ export default {
       try {
         const response = await this.$store.dispatch(
           "projects/fetchProjectById",
-          this.formData.id
+          this.formData.id,
         );
         if (response) {
           this.setFormData(response);
@@ -1198,12 +1220,13 @@ export default {
       }
       if (!this.formData.deal_id) {
         // Jika dari deals page, coba ambil deal_id dari initialData sebagai fallback
-        const dealIdFallback = this.initialData?.deal_id || 
-                             this.initialData?.id_deals || 
-                             this.initialData?.id_deal || 
-                             this.initialData?.id;
+        const dealIdFallback =
+          this.initialData?.deal_id ||
+          this.initialData?.id_deals ||
+          this.initialData?.id_deal ||
+          this.initialData?.id;
 
-        if (this.fromPage === 'deals' && dealIdFallback) {
+        if (this.fromPage === "deals" && dealIdFallback) {
           this.formData.deal_id = dealIdFallback;
         } else {
           await alertService.error("Deal wajib dipilih.");
@@ -1257,7 +1280,10 @@ export default {
           });
           alertService.toastSuccess("Project updated successfully");
         } else {
-          response = await this.$store.dispatch("project/createProject", payload);
+          response = await this.$store.dispatch(
+            "project/createProject",
+            payload,
+          );
           alertService.toastSuccess("Project created successfully");
 
           // Ambil ID baru dari response backend (mencakup berbagai kemungkinan struktur response)
@@ -1300,7 +1326,6 @@ export default {
             fetchNotifications();
           }, 500); // delay agar backend selesai menyimpan notifikasi
         }
-
       } catch (error) {
         console.error("Submit error:", error);
         alertService.error("Gagal menyimpan project.");

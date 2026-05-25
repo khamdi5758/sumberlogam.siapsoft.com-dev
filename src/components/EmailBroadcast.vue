@@ -49,7 +49,7 @@ const connectGmail = async () => {
 <template>
   <div class="">
     <div class="mb-5">
-      <h1 class="text-2xl font-bold text-dark-base mb-1 font-['Montserrat']">
+      <h1 class="text-2xl font-bold text-main-text mb-1 font-['Montserrat']">
         Email Sync
       </h1>
       <p class="text-sm text-sub-text">
@@ -134,7 +134,7 @@ const connectGmail = async () => {
               />
             </svg>
           </div>
-          <h2 class="text-2xl font-bold text-dark-base">Gmail</h2>
+          <h2 class="text-2xl font-bold text-main-text">Gmail</h2>
         </div>
 
         <button
@@ -184,7 +184,7 @@ const connectGmail = async () => {
           <line x1="12" y1="8" x2="12.01" y2="8"></line>
         </svg>
       </div>
-      <p class="text-sm text-dark-base font-medium leading-relaxed">
+      <p class="text-sm text-main-text font-medium leading-relaxed">
         <strong>Note:</strong> Fitur email broadcast ini dikhususkan untuk akun
         email bisnis guna memastikan deliverability rate yang optimal.
       </p>

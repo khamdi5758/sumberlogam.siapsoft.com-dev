@@ -499,7 +499,7 @@ export default {
           "cellTemplate",
           (container, options) => {
             const val = options.displayValue || "-";
-            container.innerHTML = `<div style="font-weight: normal; color: #1e293b;">${val}</div>`;
+            container.innerHTML = `<div style="font-weight: normal; color: var(--color-main-text);">${val}</div>`;
           },
         );
 
@@ -511,8 +511,8 @@ export default {
             const phone = options.data.phone || "-";
             container.innerHTML = `
             <div style="display: block; width: 100%;">
-              <div style="color: #1e293b; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${phone}</div>
-              <div style="color: #64748b; font-size: 12px; margin-top: 2px; display: block;">${email}</div>
+              <div style="color: var(--color-main-text); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${phone}</div>
+              <div style="color: var(--color-sub-text); font-size: 12px; margin-top: 2px; display: block;">${email}</div>
             </div>
           `;
           },
@@ -529,7 +529,7 @@ export default {
               ${parts
                 .map(
                   (text, idx) => `
-                <div style="color: ${idx === 0 ? "#1e293b" : "#64748b"}; font-size: ${idx === 0 ? "13px" : "12px"}; margin-top: ${idx > 0 ? "2px" : "0"}; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <div style="color: ${idx === 0 ? "var(--color-main-text)" : "var(--color-sub-text)"}; font-size: ${idx === 0 ? "13px" : "12px"}; margin-top: ${idx > 0 ? "2px" : "0"}; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                   ${text}
                 </div>
               `,

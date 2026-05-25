@@ -6,7 +6,7 @@
         <button
           class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition shrink-0"
         >
-          <Filter :size="20" class="text-dark-base" />
+          <Filter :size="20" class="text-main-text" />
         </button>
 
         <div class="relative flex-1 min-w-0">
@@ -23,7 +23,7 @@
           class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition shrink-0"
           @click="$emit('search')"
         >
-          <Search :size="20" class="text-dark-base" />
+          <Search :size="20" class="text-main-text" />
         </button>
       </div>
 
@@ -31,7 +31,7 @@
         class="flex items-center justify-between gap-2 text-xs text-sub-text"
       >
         <div class="flex items-center gap-1 min-w-0">
-          <span class="text-dark-base whitespace-nowrap">Show</span>
+          <span class="text-main-text whitespace-nowrap">Show</span>
           <select
             :value="itemsPerPage"
             @change="$emit('update:itemsPerPage', Number($event.target.value))"
@@ -85,7 +85,7 @@
         <button
           class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition shrink-0"
         >
-          <Filter :size="20" class="text-dark-base" />
+          <Filter :size="20" class="text-main-text" />
         </button>
 
         <div class="relative flex-1 min-w-0 max-w-65">
@@ -102,13 +102,13 @@
           class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition shrink-0"
           @click="$emit('search')"
         >
-          <Search :size="20" class="text-dark-base" />
+          <Search :size="20" class="text-main-text" />
         </button>
       </div>
 
       <div class="flex items-center gap-6 shrink-0 text-sm text-sub-text">
         <div class="flex items-center gap-2 whitespace-nowrap">
-          <span class="text-dark-base">Show</span>
+          <span class="text-main-text">Show</span>
           <select
             :value="itemsPerPage"
             @change="$emit('update:itemsPerPage', Number($event.target.value))"
@@ -132,7 +132,7 @@
           </button>
 
           <div class="flex items-center gap-2">
-            <span class="font-medium text-dark-base">Page</span>
+            <span class="font-medium text-main-text">Page</span>
             <input
               type="number"
               :value="currentPage"

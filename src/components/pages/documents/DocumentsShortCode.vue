@@ -20,7 +20,7 @@
         <polyline points="8 6 2 12 8 18" />
       </svg>
     </div>
-    <h2 class="text-xl font-bold text-dark-base mb-2">Short Codes</h2>
+    <h2 class="text-xl font-bold text-main-text mb-2">Short Codes</h2>
     <p class="text-sub-text max-w-md mx-auto">
       Define and manage shortcodes for dynamic content in your documents. This
       feature is currently under development.

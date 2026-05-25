@@ -147,7 +147,7 @@
               <span class="mr-1 text-gray-400">&#9656;</span>{{ row.menu }}
             </td>
             <td
-              class="px-3 py-3 text-xs text-dark-base sm:px-6 sm:py-3 sm:text-sm"
+              class="px-3 py-3 text-xs text-main-text sm:px-6 sm:py-3 sm:text-sm"
             >
               {{ selectedUserEmail }}
             </td>

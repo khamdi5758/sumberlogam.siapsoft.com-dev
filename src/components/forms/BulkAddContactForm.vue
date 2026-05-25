@@ -68,7 +68,7 @@ const triggerFileInput = () => {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       >
-        <h2 class="text-xl font-bold text-dark-base">Add Multiple Contacts</h2>
+        <h2 class="text-xl font-bold text-main-text">Add Multiple Contacts</h2>
         <button
           @click="handleClose"
           class="p-2 hover:bg-light-base rounded-lg transition-colors"
@@ -89,7 +89,7 @@ const triggerFileInput = () => {
             >
               1
             </div>
-            <p class="text-sm text-dark-base leading-relaxed">
+            <p class="text-sm text-main-text leading-relaxed">
               The maximum row for uploading multiple contacts is 1000 rows.
               Prepare a file of your contacts using our template in '.csv',
               '.xls', or '.xlsx'.
@@ -110,7 +110,7 @@ const triggerFileInput = () => {
               2
             </div>
             <div class="flex-1 space-y-4">
-              <p class="text-sm text-dark-base leading-relaxed">
+              <p class="text-sm text-main-text leading-relaxed">
                 Fill the contacts you want based on our template and upload the
                 file from step 1 you've filled to add multiple contacts.
               </p>
@@ -124,7 +124,7 @@ const triggerFileInput = () => {
             >
               3
             </div>
-            <p class="text-sm text-dark-base leading-relaxed">
+            <p class="text-sm text-main-text leading-relaxed">
               The number of uploads affects the upload duration.
             </p>
           </div>
@@ -159,7 +159,7 @@ const triggerFileInput = () => {
                 PDF, DOC, XLS, JPG, PNG
               </p>
             </div>
-            <div v-else class="flex items-center gap-2 text-dark-base">
+            <div v-else class="flex items-center gap-2 text-main-text">
               <span class="font-medium text-sm">{{ selectedFile.name }}</span>
               <button
                 @click.stop="selectedFile = null"

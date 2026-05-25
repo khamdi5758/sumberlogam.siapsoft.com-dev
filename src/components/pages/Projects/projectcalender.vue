@@ -10,7 +10,7 @@
           <button
             class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition"
           >
-            <Filter :size="20" class="text-dark-base" />
+            <Filter :size="20" class="text-main-text" />
           </button>
 
           <!-- Search Input -->
@@ -25,12 +25,12 @@
           <button
             class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition"
           >
-            <Search :size="20" class="text-dark-base" />
+            <Search :size="20" class="text-main-text" />
           </button>
 
           <!-- Show Pagination -->
           <div class="flex items-center gap-2">
-            <span class="text-sm text-dark-base">Show</span>
+            <span class="text-sm text-main-text">Show</span>
             <select
               v-model="pageSize"
               class="px-3 py-2 border border-outline rounded-lg text-sm"
@@ -222,7 +222,11 @@ export default {
 
         acc[key].push({
           id: project.id,
-          title: project.project_name || project.title || project.name || "Untitled Project",
+          title:
+            project.project_name ||
+            project.title ||
+            project.name ||
+            "Untitled Project",
           time: project.project_time || project.time || "",
           rawProject: project,
         });

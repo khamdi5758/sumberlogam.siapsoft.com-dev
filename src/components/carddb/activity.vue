@@ -2,12 +2,12 @@
   <div class="bg-white rounded-2xl shadow-sm border border-outline p-6 h-full">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-lg font-bold text-dark-base">System Activity</h2>
+      <h2 class="text-lg font-bold text-main-text">System Activity</h2>
 
       <div ref="filterMenuRef" class="relative">
         <button
           @click="toggleFilterMenu"
-          class="flex items-center gap-2 text-sm text-slate-400 hover:text-dark-base transition"
+          class="flex items-center gap-2 text-sm text-slate-400 hover:text-main-text transition"
         >
           <span>{{ selectedRangeLabel }}</span>
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24">
@@ -32,7 +32,7 @@
             class="w-full text-left px-3 py-2 text-sm hover:bg-outline/20 transition"
             :class="
               option.value === selectedRange
-                ? 'font-semibold text-dark-base'
+                ? 'font-semibold text-main-text'
                 : 'text-sub-text'
             "
           >
@@ -70,15 +70,15 @@
           <div class="md:hidden space-y-1 px-2">
             <div>
               <span class="font-semibold text-slate-500">Date:</span>
-              <span class="text-dark-base ml-1">{{ item.displayDate }}</span>
+              <span class="text-main-text ml-1">{{ item.displayDate }}</span>
             </div>
             <div>
               <span class="font-semibold text-slate-500">Action:</span>
-              <span class="text-dark-base ml-1">{{ item.displayAction }}</span>
+              <span class="text-main-text ml-1">{{ item.displayAction }}</span>
             </div>
             <div>
               <span class="font-semibold text-slate-500">Note:</span>
-              <span class="text-dark-base ml-1">
+              <span class="text-main-text ml-1">
                 <span class="font-bold">{{ item.userName }}</span>
                 {{ item.displayNote }}
               </span>
@@ -87,13 +87,13 @@
 
           <!-- Tampilan Desktop (Grid 3 kolom) -->
           <div class="hidden md:grid md:grid-cols-3">
-            <span class="text-dark-base font-medium">{{
+            <span class="text-main-text font-medium">{{
               item.displayDate
             }}</span>
-            <span class="text-dark-base font-medium">{{
+            <span class="text-main-text font-medium">{{
               item.displayAction
             }}</span>
-            <span class="text-dark-base">
+            <span class="text-main-text">
               <span class="font-bold">{{ item.userName }}</span>
               {{ item.displayNote }}
             </span>

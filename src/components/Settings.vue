@@ -6,7 +6,7 @@ import { RefreshCcw, Construction, Settings } from "lucide-vue-next";
   <!-- Header with Title and Update Button -->
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-3">
-      <h1 class="text-2xl font-bold text-dark-base">Settings</h1>
+      <h1 class="text-2xl font-bold text-main-text">Settings</h1>
     </div>
 
     <!-- Update Button -->
@@ -30,7 +30,7 @@ import { RefreshCcw, Construction, Settings } from "lucide-vue-next";
     </div>
 
     <!-- Warning Text -->
-    <h2 class="text-2xl font-bold text-dark-base mb-2">
+    <h2 class="text-2xl font-bold text-main-text mb-2">
       Page Under Construction
     </h2>
     <p class="text-sub-text max-w-md mx-auto">

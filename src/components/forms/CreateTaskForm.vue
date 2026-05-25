@@ -3,7 +3,7 @@
   <transition name="overlay">
     <div
       v-if="isOpen"
-      class="fixed inset-0 bg-sub-text/80 z-[55] transition-all duration-300"
+      class="fixed inset-0 bg-sub-text/80 z-55 transition-all duration-300"
       @click="handleClose"
     ></div>
   </transition>
@@ -12,7 +12,7 @@
   <transition name="slide">
     <div
       v-if="isOpen"
-      class="fixed top-0 right-0 h-screen w-full sm:max-w-2xl bg-white shadow-2xl z-[60] flex flex-col"
+      class="fixed top-0 right-0 h-screen w-full sm:max-w-2xl bg-white shadow-2xl z-60 flex flex-col"
       @click.stop
     >
       <!-- Header -->
@@ -20,8 +20,8 @@
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       >
         <div class="flex items-center gap-2">
-          <ClipboardList :size="20" class="text-dark-base" />
-          <h2 class="text-xl font-bold text-dark-base">
+          <ClipboardList :size="20" class="text-main-text" />
+          <h2 class="text-xl font-bold text-main-text">
             {{ isEditMode ? "Edit Task" : "Create Task" }}
           </h2>
         </div>
@@ -41,8 +41,8 @@
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 transition',
             activeTab === 'master'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
+              ? 'border-dark-base text-main-text'
+              : 'border-transparent text-sub-text hover:text-main-text',
           ]"
         >
           Master
@@ -54,8 +54,8 @@
           :class="[
             'px-4 py-2 text-sm font-medium border-b-2 transition',
             activeTab === 'notes'
-              ? 'border-dark-base text-dark-base'
-              : 'border-transparent text-sub-text hover:text-dark-base',
+              ? 'border-dark-base text-main-text'
+              : 'border-transparent text-sub-text hover:text-main-text',
           ]"
         >
           Notes
@@ -72,7 +72,7 @@
         >
           <!-- Name of Task -->
           <div>
-            <label class="block text-sm font-medium text-dark-base mb-2"
+            <label class="block text-sm font-medium text-main-text mb-2"
               >Name of Task <span class="text-red-600">*</span></label
             >
             <input
@@ -85,7 +85,11 @@
 
           <!-- Project Association & Assignee To -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
-            <div v-if="!hideProjectField" class="relative" ref="projectDropdownRef">
+            <div
+              v-if="!hideProjectField"
+              class="relative"
+              ref="projectDropdownRef"
+            >
               <ProjectsAssociationForm
                 ref="projectsAssociationForm"
                 v-model="formData.project_id"
@@ -96,14 +100,15 @@
               />
             </div>
 
-
-             <!-- Assignee To -->
+            <!-- Assignee To -->
             <div :class="{ 'sm:col-span-2': hideProjectField }">
-              <label class="block text-sm font-medium text-dark-base mb-2">Assignee To</label>
+              <label class="block text-sm font-medium text-main-text mb-2"
+                >Assignee To</label
+              >
               <div class="relative">
                 <select
                   v-model="formData.assignee"
-                  class="w-full px-4 py-3 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white appearance-none cursor-pointer text-dark-base"
+                  class="w-full px-4 py-3 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white appearance-none cursor-pointer text-main-text"
                 >
                   <option
                     v-for="opt in assigneeOptions"
@@ -155,7 +160,7 @@
               <div class="w-px h-4 bg-outline mx-1"></div>
               <button
                 type="button"
-                class="p-1.5 hover:bg-white rounded transition-colors text-dark-base font-bold"
+                class="p-1.5 hover:bg-white rounded transition-colors text-main-text font-bold"
               >
                 <Bold :size="16" />
               </button>
@@ -233,13 +238,13 @@
           <!-- Status & Due Date -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Status <span class="text-red-600">*</span></label
               >
               <div class="relative">
                 <select
                   v-model="formData.status_id"
-                  class="w-full rounded-lg border border-outline bg-white py-2.5 pl-4 pr-10 text-sm text-dark-base outline-none transition focus:border-sub-text appearance-none cursor-pointer"
+                  class="w-full rounded-lg border border-outline bg-white py-2.5 pl-4 pr-10 text-sm text-main-text outline-none transition focus:border-sub-text appearance-none cursor-pointer"
                 >
                   <option
                     v-for="opt in statusOptions"
@@ -257,14 +262,14 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Due Date <span class="text-red-600">*</span></label
               >
               <div class="relative">
                 <input
                   v-model="formData.due_date"
                   type="date"
-                  class="w-full px-4 py-2.5 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-dark-base bg-white"
+                  class="w-full px-4 py-2.5 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm text-main-text bg-white"
                 />
                 <Calendar
                   :size="18"
@@ -277,13 +282,13 @@
           <!-- Priority & Progress -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Priority <span class="text-red-600">*</span></label
               >
               <div class="relative">
                 <select
                   v-model="formData.priority"
-                  class="w-full px-4 py-3 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white appearance-none cursor-pointer text-dark-base"
+                  class="w-full px-4 py-3 pr-10 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm bg-white appearance-none cursor-pointer text-main-text"
                 >
                   <option
                     v-for="opt in priorityOptions"
@@ -300,7 +305,7 @@
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-base mb-2"
+              <label class="block text-sm font-medium text-main-text mb-2"
                 >Progress (%) <span class="text-red-600">*</span></label
               >
               <input
@@ -352,7 +357,7 @@
             type="button"
             @click="handleSave"
             :disabled="isSubmitting"
-            class="px-6 py-2.5 rounded-lg bg-sub-text text-sm font-semibold text-white shadow-sm transition hover:bg-dark-base active:scale-95 disabled:opacity-50"
+            class="px-6 py-2.5 rounded-lg bg-dark-base text-sm font-semibold text-white shadow-sm transition hover:bg-dark-hover active:scale-95 disabled:opacity-50"
           >
             {{ isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save" }}
           </button>
@@ -379,7 +384,7 @@
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10"
       >
-        <h2 class="text-xl font-bold text-dark-base">
+        <h2 class="text-xl font-bold text-main-text">
           {{ editingItemIndex !== null ? "Edit Catatan" : "Tambah Catatan" }}
         </h2>
         <button
@@ -742,7 +747,8 @@ export default {
               body: item.notes || item.body || item.description || "",
               latitude: item.lat,
               longitude: item.lang,
-              gps_address: item.lat && item.lang ? `${item.lat}, ${item.lang}` : null,
+              gps_address:
+                item.lat && item.lang ? `${item.lat}, ${item.lang}` : null,
               photos: photos,
               visibility: item.visibility,
             };
@@ -866,12 +872,12 @@ export default {
           taskData.prioritytask,
         ),
         progress: this.pickFirst(data.progress, taskData.progress, 0),
-        project_id: (function(val) {
+        project_id: (function (val) {
           if (!val) return [];
           return Array.isArray(val) ? val.map(String) : [String(val)];
         })(this.pickFirst(data.project_id, taskData.project_id, null)),
       };
-      
+
       // Sync history items from data if provided
       let rawNotes = data.notes || data.note;
       if (typeof rawNotes === "string" && rawNotes.startsWith("[")) {
@@ -879,16 +885,18 @@ export default {
           rawNotes = JSON.parse(rawNotes);
         } catch (e) {}
       }
-      
+
       if (Array.isArray(rawNotes)) {
-        const items = rawNotes.map(n => ({
+        const items = rawNotes.map((n) => ({
           type: "note",
           id: n.id,
           timestamp: n.created_at || n.update_at,
           body: n.body || n.notes || n.description || "",
           photos: n.photos || [],
         }));
-        this.historyitems = items.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+        this.historyitems = items.sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
+        );
       }
     },
     resetForm() {
@@ -939,11 +947,15 @@ export default {
       if (this.isSubmitting) return;
       this.isSubmitting = true;
 
-      const currentUserId = this.usersignin?.id || this.$store.getters["users/useridsignin"];
+      const currentUserId =
+        this.usersignin?.id || this.$store.getters["users/useridsignin"];
       // Unwrap project_id array to single value for backend compatibility
       const submissionData = { ...this.formData };
       if (Array.isArray(submissionData.project_id)) {
-        submissionData.project_id = submissionData.project_id.length > 0 ? submissionData.project_id[0] : null;
+        submissionData.project_id =
+          submissionData.project_id.length > 0
+            ? submissionData.project_id[0]
+            : null;
       }
 
       const payload = {
@@ -956,7 +968,9 @@ export default {
         const result = await this.createTask(payload);
         const isUpdate = !!payload.id;
 
-        alertService.toastSuccess(`Task berhasil ${isUpdate ? "diperbarui" : "ditambahkan"}`);
+        alertService.toastSuccess(
+          `Task berhasil ${isUpdate ? "diperbarui" : "ditambahkan"}`,
+        );
 
         if (this.fromPage === "tasks") {
           // Stay open and switch to notes tab
@@ -968,7 +982,9 @@ export default {
           this.handleClose();
         }
       } catch (error) {
-        alertService.toastError(error.response?.data?.message || "Gagal menyimpan task");
+        alertService.toastError(
+          error.response?.data?.message || "Gagal menyimpan task",
+        );
       } finally {
         this.isSubmitting = false;
       }
@@ -1024,7 +1040,10 @@ export default {
       return fd;
     },
     saveNoteFromDrawer() {
-      if (!this.tempNoteData.body && (this.tempNoteData.photos || []).length === 0) {
+      if (
+        !this.tempNoteData.body &&
+        (this.tempNoteData.photos || []).length === 0
+      ) {
         alertService.toastWarn("Catatan masih kosong");
         return;
       }
@@ -1049,7 +1068,9 @@ export default {
           });
         })
         .catch((err) => {
-          alertService.toastError(err.response?.data?.message || "Gagal menyimpan catatan");
+          alertService.toastError(
+            err.response?.data?.message || "Gagal menyimpan catatan",
+          );
         });
     },
     handleHistoryEdit({ item, index }) {
@@ -1061,7 +1082,7 @@ export default {
 
       const result = await alertService.confirm(
         "Apakah Anda yakin ingin menghapus catatan ini?",
-        "Hapus Histori"
+        "Hapus Histori",
       );
 
       if (result) {
@@ -1079,12 +1100,17 @@ export default {
             noteable_id: this.taskId,
           });
         } catch (err) {
-          alertService.toastError(err.response?.data?.message || "Gagal menghapus catatan");
+          alertService.toastError(
+            err.response?.data?.message || "Gagal menghapus catatan",
+          );
         }
       }
     },
     handleClickOutside(e) {
-      if (this.$refs.projectDropdownRef && !this.$refs.projectDropdownRef.contains(e.target)) {
+      if (
+        this.$refs.projectDropdownRef &&
+        !this.$refs.projectDropdownRef.contains(e.target)
+      ) {
         this.isProjectDropdownOpen = false;
       }
     },

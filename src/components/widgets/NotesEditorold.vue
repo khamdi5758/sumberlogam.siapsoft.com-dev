@@ -69,7 +69,7 @@ export default {
       <component :is="currentIcon" :size="16" class="text-sub-text" />
 
       <span
-        class="text-sm font-semibold text-dark-base flex items-center gap-2"
+        class="text-sm font-semibold text-main-text flex items-center gap-2"
       >
         <!-- ICON -->
         <svg

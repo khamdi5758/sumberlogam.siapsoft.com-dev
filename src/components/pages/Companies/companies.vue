@@ -846,7 +846,7 @@ export default {
           <div
             class="animate-spin rounded-full h-10 w-10 border-b-2 border-dark-base"
           ></div>
-          <p class="mt-4 text-sm font-medium text-dark-base animate-pulse">
+          <p class="mt-4 text-sm font-medium text-main-text animate-pulse">
             Memuat data perusahaan...
           </p>
         </div>

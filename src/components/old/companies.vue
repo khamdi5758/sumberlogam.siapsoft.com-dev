@@ -678,7 +678,7 @@ export default {
     <!-- Header with Title and Total -->
     <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
       <div class="flex min-w-0 items-baseline gap-3">
-        <h1 class="text-2xl font-bold text-dark-base">Companies</h1>
+        <h1 class="text-2xl font-bold text-main-text">Companies</h1>
         <span class="text-sm" :class="companiesStatusClass">
           {{ companiesStatusText }}
         </span>
@@ -809,7 +809,7 @@ export default {
         <button
           class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition"
         >
-          <Filter :size="20" class="text-dark-base" />
+          <Filter :size="20" class="text-main-text" />
         </button>
 
         <!-- Search Input -->
@@ -826,12 +826,12 @@ export default {
         <button
           class="p-2 bg-outline hover:bg-outline/30 rounded-lg transition"
         >
-          <Search :size="20" class="text-dark-base" />
+          <Search :size="20" class="text-main-text" />
         </button>
 
         <!-- Show Dropdown -->
         <div class="flex items-center gap-2">
-          <span class="text-sm text-dark-base">Show</span>
+          <span class="text-sm text-main-text">Show</span>
           <select
             v-model="itemsPerPage"
             class="px-3 py-2 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm"
@@ -988,10 +988,10 @@ export default {
               <td class="px-6 py-4 text-sm text-gray-800 font-medium">
                 {{ company.company_name }}
               </td>
-              <td class="px-6 py-4 text-sm text-dark-base">
+              <td class="px-6 py-4 text-sm text-main-text">
                 {{ company.website }}
               </td>
-              <td class="px-6 py-4 text-sm text-dark-base leading-5">
+              <td class="px-6 py-4 text-sm text-main-text leading-5">
                 <div>
                   <span class="font-medium"></span>
                   {{ getAssociatedContactLabels(company).join(", ") }}
@@ -1004,10 +1004,10 @@ export default {
               <td class="px-6 py-4">
                 {{ company.type }}
               </td>
-              <td class="px-6 py-4 text-sm text-dark-base">
+              <td class="px-6 py-4 text-sm text-main-text">
                 {{ company.updated_at }}
               </td>
-              <td class="px-6 py-4 text-sm text-dark-base">
+              <td class="px-6 py-4 text-sm text-main-text">
                 {{ company.company_owner }}
               </td>
             </tr>

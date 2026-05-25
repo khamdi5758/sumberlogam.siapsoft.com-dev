@@ -1,7 +1,7 @@
 <template>
   <div class="relative" ref="projectDropdownRef">
     <div class="flex items-center gap-1.5 mb-2">
-      <label class="block text-sm font-medium text-dark-base">
+      <label class="block text-sm font-medium text-main-text">
         Project Association
       </label>
       <div v-if="filterByCompany" class="relative group flex items-center">
@@ -12,16 +12,16 @@
         <!-- Info Tooltip (Menggunakan Warna dari welcome.css) -->
         <div
           class="absolute right-0 top-6 w-44 p-2.5 text-white text-[10px] leading-snug rounded shadow-2xl z-[70] border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none"
-          style="background-color: var(--color-waiting-color, #404460);"
+          style="background-color: var(--color-waiting-color, #404460)"
         >
           <div class="flex items-start gap-1.5">
             <Info :size="10" class="mt-0.5 shrink-0 text-blue-300" />
             <p>Kontak difilter berdasarkan perusahaan terpilih.</p>
           </div>
           <!-- Arrow Tooltip -->
-          <div 
+          <div
             class="absolute -top-1 right-1.5 w-2 h-2 rotate-45 border-t border-l border-white/10"
-            style="background-color: var(--color-waiting-color, #404460);"
+            style="background-color: var(--color-waiting-color, #404460)"
           ></div>
         </div>
       </div>
@@ -32,12 +32,14 @@
       class="w-full px-3 py-2 border border-outline rounded-lg flex flex-wrap gap-2 items-center cursor-pointer min-h-10.5 bg-white transition focus-within:ring-1 focus-within:ring-sub-text"
     >
       <div v-if="projectassoc.length === 0" class="text-gray-400 text-sm">
-        {{ mode === 'single' ? 'Select a project' : 'Search and select projects' }}
+        {{
+          mode === "single" ? "Select a project" : "Search and select projects"
+        }}
       </div>
       <div
         v-for="project in selectedprojects"
         :key="project.id"
-        class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-dark-base border border-outline"
+        class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-main-text border border-outline"
         @click.stop
       >
         {{ getDisplayNameFromproject(project) }}
@@ -82,7 +84,7 @@
           class="px-4 py-2 hover:bg-light-base cursor-pointer flex items-center justify-between text-sm transition"
         >
           <div class="flex flex-col">
-            <span class="font-medium text-dark-base">{{
+            <span class="font-medium text-main-text">{{
               getDisplayNameFromproject(project)
             }}</span>
           </div>
@@ -183,7 +185,9 @@ export default {
     projectassoc: {
       get() {
         if (!this.modelValue) return [];
-        return Array.isArray(this.modelValue) ? this.modelValue : [this.modelValue];
+        return Array.isArray(this.modelValue)
+          ? this.modelValue
+          : [this.modelValue];
       },
       set(value) {
         this.$emit("update:modelValue", value);
@@ -209,7 +213,8 @@ export default {
           map.set(String(id), {
             ...item,
             id: String(id),
-            label: item.label || item.project_name || item.name || "Unknown project",
+            label:
+              item.label || item.project_name || item.name || "Unknown project",
           });
         }
       });
@@ -232,7 +237,7 @@ export default {
     selectedprojects() {
       if (!this.projectassoc.length) return [];
       return this.projectOptions.filter((project) =>
-        this.projectassoc.map(String).includes(String(project.id))
+        this.projectassoc.map(String).includes(String(project.id)),
       );
     },
   },
@@ -269,7 +274,7 @@ export default {
         }
         this.page = 1;
         this.hasMore = true;
-        
+
         // Trigger fetch immediately when opening
         this.$nextTick(() => {
           this.fetchprojects();
@@ -281,7 +286,7 @@ export default {
     async fetchprojects() {
       // Jika data sudah dipasok via prop 'projects', kita tidak perlu fetch internal
       if (this.projects && this.projects.length > 0) return;
-      
+
       if (!this.hasMore || this.isLoading) return;
 
       this.isLoading = true;
@@ -309,10 +314,12 @@ export default {
 
           params.companyid = cid;
           const res = await this.dealsFetchproject(params);
-          this.hasMore = (res && typeof res === 'object' && res.next_page_url) ? true : false;
+          this.hasMore =
+            res && typeof res === "object" && res.next_page_url ? true : false;
         } else {
           const res = await this.getprojects(params);
-          this.hasMore = (res && typeof res === 'object' && res.next_page_url) ? true : false;
+          this.hasMore =
+            res && typeof res === "object" && res.next_page_url ? true : false;
           if (this.hasMore) this.page++;
         }
       } catch (e) {
@@ -334,17 +341,22 @@ export default {
     toggleproject(project) {
       const projectId = String(project.id);
 
-
       if (this.mode === "single") {
         // ✅ Single mode: langsung replace dengan item yang dipilih, lalu tutup
-        const isSame = this.projectassoc[0] && String(this.projectassoc[0]).trim() === projectId;
+        const isSame =
+          this.projectassoc[0] &&
+          String(this.projectassoc[0]).trim() === projectId;
         this.projectassoc = isSame ? [] : [projectId]; // klik item sama = deselect
         this.isprojectDropdownOpen = false;
       } else {
         // ✅ Multiple mode: toggle seperti semula
         let newValue;
-        const currentAssoc = Array.isArray(this.projectassoc) ? this.projectassoc : (this.projectassoc ? [this.projectassoc] : []);
-        const exists = currentAssoc.some(id => String(id) === projectId);
+        const currentAssoc = Array.isArray(this.projectassoc)
+          ? this.projectassoc
+          : this.projectassoc
+            ? [this.projectassoc]
+            : [];
+        const exists = currentAssoc.some((id) => String(id) === projectId);
         if (exists) {
           newValue = currentAssoc.filter((id) => String(id) !== projectId);
         } else {
@@ -359,10 +371,6 @@ export default {
         this.projectassoc = newValue;
         // Don't close dropdown on multiple toggle
       }
-
-
-
-
     },
 
     isprojectSelected(id) {
@@ -386,7 +394,7 @@ export default {
 
     handleprojectQuickSubmit(e) {
       console.log("New project created", e);
-    }
+    },
   },
 
   watch: {

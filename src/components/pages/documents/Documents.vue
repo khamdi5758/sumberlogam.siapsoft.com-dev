@@ -20,7 +20,7 @@ const menuItems = [
     <!-- Secondary Sidebar -->
     <div class="bg-white rounded-xl shadow-sm border border-outline h-fit">
       <div class="bg-light-base/50 px-5 py-3 border-b border-outline">
-        <h3 class="font-bold text-dark-base uppercase text-xs">
+        <h3 class="font-bold text-main-text uppercase text-xs">
           Documents Menu
         </h3>
       </div>
@@ -32,7 +32,7 @@ const menuItems = [
           class="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-left transition"
           :class="[
             activeTab === item.key
-              ? 'bg-gray-50/80 text-dark-base border-outline/50 shadow-sm font-semibold'
+              ? 'bg-gray-50/80 text-main-text border-outline/50 shadow-sm font-semibold'
               : 'hover:bg-gray-50/50 text-sub-text',
           ]"
         >

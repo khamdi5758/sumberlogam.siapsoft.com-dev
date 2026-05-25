@@ -31,12 +31,12 @@ const emit = defineEmits(["view", "toggle"]);
     </td>
 
     <!-- Stage Column -->
-    <td class="px-6 py-4 text-sm text-dark-base" @click.stop>
+    <td class="px-6 py-4 text-sm text-main-text" @click.stop>
       <DealsStageDropdown :deal="deal" />
     </td>
 
     <!-- Amount / Date Column -->
-    <td class="px-6 py-4 text-sm text-dark-base whitespace-nowrap">
+    <td class="px-6 py-4 text-sm text-main-text whitespace-nowrap">
       <div class="flex flex-col">
         <span class="font-semibold">{{ deal.jumlah }}</span>
         <span class="text-[11px] text-gray-400">{{ deal.tertanggal }}</span>
@@ -44,7 +44,7 @@ const emit = defineEmits(["view", "toggle"]);
     </td>
 
     <!-- Association Column -->
-    <td class="px-6 py-4 text-sm text-dark-base truncate max-w-62.5">
+    <td class="px-6 py-4 text-sm text-main-text truncate max-w-62.5">
       <div class="flex items-center gap-1.5 overflow-hidden">
         <span class="font-medium text-gray-600 shrink-0">{{
           deal.contact

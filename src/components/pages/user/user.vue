@@ -34,6 +34,17 @@ export default {
       return Array.isArray(this.users) ? this.users.length : 0;
     },
   },
+  watch: {
+    "$route.query.tab": {
+      immediate: true,
+      handler(tab) {
+        const allowedTabs = new Set(["settings", "permission", "area", "team"]);
+        if (allowedTabs.has(tab)) {
+          this.activeTab = tab;
+        }
+      },
+    },
+  },
   methods: {
     setActiveTab(tabKey) {
       this.activeTab = tabKey;
@@ -73,7 +84,7 @@ export default {
       class="hidden lg:block bg-white rounded-xl shadow-sm border border-outline overflow-hidden sticky top-4"
     >
       <div class="bg-light-base/50 px-5 py-3 border-b border-outline">
-        <h3 class="font-bold text-dark-base uppercase tracking-wider text-xs">
+        <h3 class="font-bold text-main-text uppercase tracking-wider text-xs">
           User Menu
         </h3>
       </div>
@@ -86,7 +97,7 @@ export default {
           class="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-left transition cursor-pointer"
           :class="
             activeTab === item.key
-              ? 'bg-gray-50/80 text-dark-base border-outline/50 shadow-sm font-semibold'
+              ? 'bg-gray-50/80 text-main-text border-outline/50 shadow-sm font-semibold'
               : 'hover:bg-gray-50/50 text-sub-text'
           "
         >

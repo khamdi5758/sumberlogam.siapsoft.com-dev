@@ -38,7 +38,7 @@ const emit = defineEmits(["page", "update:itemsPerPage"]);
         >
           <ChevronLeft
             :size="18"
-            class="text-sub-text group-hover:text-dark-base"
+            class="text-sub-text group-hover:text-main-text"
           />
         </button>
 
@@ -50,7 +50,7 @@ const emit = defineEmits(["page", "update:itemsPerPage"]);
             @input="emit('page', Number($event.target.value))"
             min="1"
             :max="totalPages"
-            class="w-11 px-2 py-1 border border-outline rounded text-center focus:outline-none focus:ring-1 focus:ring-sub-text text-dark-base font-bold bg-white"
+            class="w-11 px-2 py-1 border border-outline rounded text-center focus:outline-none focus:ring-1 focus:ring-sub-text text-main-text font-bold bg-white"
           />
           <span class="text-gray-400 whitespace-nowrap"
             >of {{ totalPages }}</span
@@ -65,7 +65,7 @@ const emit = defineEmits(["page", "update:itemsPerPage"]);
         >
           <ChevronRight
             :size="18"
-            class="text-sub-text group-hover:text-dark-base"
+            class="text-sub-text group-hover:text-main-text"
           />
         </button>
       </div>
@@ -95,7 +95,7 @@ const emit = defineEmits(["page", "update:itemsPerPage"]);
         >
           <ChevronLeft
             :size="18"
-            class="text-sub-text group-hover:text-dark-base"
+            class="text-sub-text group-hover:text-main-text"
           />
         </button>
 
@@ -107,7 +107,7 @@ const emit = defineEmits(["page", "update:itemsPerPage"]);
             @input="emit('page', Number($event.target.value))"
             min="1"
             :max="totalPages"
-            class="w-12 px-2 py-1 border border-outline rounded text-center focus:outline-none focus:ring-1 focus:ring-sub-text text-dark-base font-bold bg-white"
+            class="w-12 px-2 py-1 border border-outline rounded text-center focus:outline-none focus:ring-1 focus:ring-sub-text text-main-text font-bold bg-white"
           />
           <span class="text-gray-400">of {{ totalPages }}</span>
         </div>
@@ -120,7 +120,7 @@ const emit = defineEmits(["page", "update:itemsPerPage"]);
         >
           <ChevronRight
             :size="18"
-            class="text-sub-text group-hover:text-dark-base"
+            class="text-sub-text group-hover:text-main-text"
           />
         </button>
       </div>

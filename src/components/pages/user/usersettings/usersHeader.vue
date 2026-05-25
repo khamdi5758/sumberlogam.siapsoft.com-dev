@@ -1,6 +1,6 @@
 <template>
   <div class="mb-4 flex items-center justify-between gap-3">
-    <h1 class="text-lg font-bold text-dark-base sm:text-2xl">Users</h1>
+    <h1 class="text-lg font-bold text-main-text sm:text-2xl">Users</h1>
 
     <div class="flex items-center gap-2">
       <button

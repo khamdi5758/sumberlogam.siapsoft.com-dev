@@ -981,8 +981,8 @@ export default {
 <style scoped>
 /* ── Contenteditable placeholder ── */
 .drag-active {
-  background: #eff6ff;
-  border: 2px dashed #3b82f6;
+  background: var(--color-pipeline);
+  border: 2px dashed var(--color-outline);
 }
 
 .editor-content {
@@ -992,7 +992,7 @@ export default {
 }
 .editor-content:empty::before {
   content: attr(data-placeholder);
-  color: #9ca3af;
+  color: var(--color-sub-text);
   pointer-events: none;
 }
 
@@ -1001,7 +1001,7 @@ export default {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ef4444;
+  background: var(--color-red);
   flex-shrink: 0;
   animation: blink 1s ease-in-out infinite;
 }
@@ -1023,14 +1023,14 @@ export default {
   padding: 4px 6px;
   border-radius: 4px;
   font-size: 13px;
-  color: #374151;
+  color: var(--color-dark-base);
   line-height: 1;
   transition: background 0.15s;
   display: inline-flex;
   align-items: center;
 }
 .btn-toolbar:hover {
-  background: #e5e7eb;
+  background: var(--color-cool-grey-bg);
 }
 .btn-toolbar:disabled {
   opacity: 0.4;
@@ -1038,17 +1038,17 @@ export default {
 }
 
 .select-toolbar {
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-outline);
   border-radius: 4px;
   padding: 3px 6px;
   font-size: 12px;
-  color: #374151;
-  background: #fff;
+  color: var(--color-dark-base);
+  background: var(--color-white);
   cursor: pointer;
 }
 
 .divider {
-  color: #d1d5db;
+  color: var(--color-outline);
   font-size: 12px;
   user-select: none;
 }
@@ -1062,20 +1062,20 @@ export default {
   align-items: center;
   gap: 5px;
   font-size: 13px;
-  color: #374151;
+  color: var(--color-dark-base);
   padding: 4px 0;
   transition: color 0.15s;
   white-space: nowrap;
 }
 .action-btn:hover {
-  color: #1d4ed8;
+  color: var(--color-progress-color);
 }
 .action-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .action-btn.recording-active {
-  color: #ef4444;
+  color: var(--color-red);
 }
 
 /* ── Badge jumlah foto ── */
@@ -1086,8 +1086,8 @@ export default {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #1d4ed8;
-  color: #fff;
+  background: var(--color-progress-color);
+  color: var(--color-white);
   font-size: 10px;
   line-height: 1;
 }
@@ -1097,8 +1097,8 @@ export default {
   position: absolute;
   top: 2px;
   right: 2px;
-  background: #ef4444;
-  color: #fff;
+  background: var(--color-red);
+  color: var(--color-white);
   border: none;
   border-radius: 50%;
   width: 16px;

@@ -1461,7 +1461,7 @@ export default {
   font-size: 13px;
   font-weight: 700 !important;
   letter-spacing: 0.02em;
-  border-bottom: 1px solid #e5e7eb !important;
+  border-bottom: 1px solid var(--color-cool-grey-bg) !important;
   border-top: none !important;
   border-left: none !important;
   border-right: none !important;

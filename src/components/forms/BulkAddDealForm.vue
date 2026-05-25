@@ -68,7 +68,7 @@ const triggerFileInput = () => {
       <div
         class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
       >
-        <h2 class="text-xl font-bold text-dark-base">Add Multiple Deals</h2>
+        <h2 class="text-xl font-bold text-main-text">Add Multiple Deals</h2>
         <button
           @click="handleClose"
           class="p-2 hover:bg-light-base rounded-lg transition-colors"
@@ -89,17 +89,17 @@ const triggerFileInput = () => {
             >
               1
             </div>
-            <p class="text-dark-base leading-relaxed">
+            <p class="text-main-text leading-relaxed">
               The maximum row for uploading multiple deals is 1000 rows. Prepare
               a file of your deals using our template in '.csv', '.xls', or
               '.xlsx'.
-              <a href="#" class="text-dark-base font-semibold hover:underline"
+              <a href="#" class="text-main-text font-semibold hover:underline"
                 >csv template</a
               >,
-              <a href="#" class="text-dark-base font-semibold hover:underline"
+              <a href="#" class="text-main-text font-semibold hover:underline"
                 >xls template</a
               >,
-              <a href="#" class="text-dark-base font-semibold hover:underline"
+              <a href="#" class="text-main-text font-semibold hover:underline"
                 >xlsx template</a
               >.
             </p>
@@ -112,7 +112,7 @@ const triggerFileInput = () => {
             >
               2
             </div>
-            <p class="text-dark-base leading-relaxed">
+            <p class="text-main-text leading-relaxed">
               Ensure the pipeline and stage in your file match the existing
               system. Any slug ID added to your deals will be ignored.
             </p>
@@ -125,7 +125,7 @@ const triggerFileInput = () => {
             >
               3
             </div>
-            <p class="text-dark-base leading-relaxed">
+            <p class="text-main-text leading-relaxed">
               The number of uploads affects the upload duration.
             </p>
           </div>
@@ -153,12 +153,12 @@ const triggerFileInput = () => {
                 class="text-sub-text mb-2"
                 stroke-width="2.5"
               />
-              <p class="font-medium text-dark-base mb-0.5">
+              <p class="font-medium text-main-text mb-0.5">
                 Klik untuk pilih file
               </p>
               <p class="text-xs text-sub-text/70 font-medium">CSV, XLS, XLSX</p>
             </div>
-            <div v-else class="flex items-center gap-2 text-dark-base">
+            <div v-else class="flex items-center gap-2 text-main-text">
               <span class="font-medium truncate max-w-xs">{{
                 selectedFile.name
               }}</span>

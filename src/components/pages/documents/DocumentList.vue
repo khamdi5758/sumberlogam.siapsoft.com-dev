@@ -129,7 +129,7 @@ function prevPage() {
           <button
             class="p-2 border border-outline rounded-lg hover:bg-outline/30 transition shrink-0"
           >
-            <Filter :size="20" class="text-dark-base" />
+            <Filter :size="20" class="text-main-text" />
           </button>
 
           <!-- Search Input -->
@@ -147,7 +147,7 @@ function prevPage() {
 
           <!-- Show Dropdown -->
           <div class="flex items-center gap-2">
-            <span class="text-sm text-dark-base">Show</span>
+            <span class="text-sm text-main-text">Show</span>
             <select
               v-model="itemsPerPage"
               class="px-3 py-2 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm"
@@ -338,13 +338,13 @@ function prevPage() {
               <td class="px-6 py-4 text-sm text-gray-800 font-medium">
                 {{ doc.name }}
               </td>
-              <td class="px-6 py-4 text-sm text-dark-base">
+              <td class="px-6 py-4 text-sm text-main-text">
                 {{ doc.owner }}
               </td>
-              <td class="px-6 py-4 text-sm text-dark-base">
+              <td class="px-6 py-4 text-sm text-main-text">
                 {{ doc.created }}
               </td>
-              <td class="px-6 py-4 text-sm text-dark-base">
+              <td class="px-6 py-4 text-sm text-main-text">
                 {{ doc.update }}
               </td>
               <td class="px-6 py-4 text-center">
