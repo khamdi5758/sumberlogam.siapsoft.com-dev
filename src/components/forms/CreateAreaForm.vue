@@ -142,6 +142,8 @@ onBeforeUnmount(() => {
 <script>
 import { X, Search, ChevronDown, Check } from "lucide-vue-next";
 import { useStore, mapActions, mapGetters } from "vuex";
+import api from "@/api";
+import { useCookies } from "vue3-cookies";
 
 export default {
   emits: ["close", "submit"],
@@ -150,6 +152,10 @@ export default {
     isOpen: {
       type: Boolean,
       default: false,
+    },
+    editData: {
+      type: Object,
+      default: null,
     },
   },
 
@@ -162,150 +168,184 @@ export default {
 
   data() {
     return {
-      membersList: [
-        { id: 1, name: "Hanan Hafizhah", email: "hanan@mail.com" },
-        { id: 2, name: "Aulia Rahman", email: "aulia@mail.com" },
-        { id: 3, name: "Rizky Pratama", email: "rizky@mail.com" },
-        { id: 4, name: "Siti Lestari", email: "siti@mail.com" },
-        { id: 5, name: "Budi Santoso", email: "budi@mail.com" },
-        { id: 6, name: "Kevin Wijaya", email: "kevin@mail.com" },
-      ],
-
-      areasList: [
-        { id: 1, name: "Management" },
-        { id: 2, name: "Marketing" },
-        { id: 3, name: "Design" },
-        { id: 4, name: "Finance" },
-        { id: 5, name: "Development" },
-        { id: 6, name: "Support" },
-      ],
-
       formData: {
-        areaName: "",
-        parentArea: null,
-        selectedMembers: [],
+        area: null,
+        selectedTeams: [],
       },
 
-      isDropdownOpen: false,
-      memberSearch: "",
+      isAreaDropdownOpen: false,
+      areaSearch: "",
+      areaDropdownRef: null,
 
-      isParentDropdownOpen: false,
-      parentSearch: "",
-
-      dropdownRef: null,
-      parentDropdownRef: null,
+      isTeamDropdownOpen: false,
+      teamSearch: "",
+      teamDropdownRef: null,
     };
   },
 
   computed: {
     ...mapGetters({
-      users: "users/allUsers",
-      isLoadingTable: "users/isLoading",
-      errorMsgTable: "users/error",
+      areaInputs: "area/areaInputs",
+      teamInputs: "area/teamInputs",
     }),
 
-    filteredMembers() {
-      if (!this.memberSearch) return this.users;
-
-      return this.users.filter(
-        (m) =>
-          m.name.toLowerCase().includes(this.memberSearch.toLowerCase()) ||
-          m.email.toLowerCase().includes(this.memberSearch.toLowerCase()),
+    filteredAreas() {
+      const inputs = this.areaInputs || [];
+      if (!this.areaSearch) return inputs;
+      const search = this.areaSearch.toLowerCase();
+      return inputs.filter((a) =>
+        (a.name || "").toLowerCase().includes(search)
       );
     },
 
-    filteredAreas() {
-      if (!this.parentSearch) return this.areasList;
-
-      return this.areasList.filter((t) =>
-        t.name.toLowerCase().includes(this.parentSearch.toLowerCase()),
+    filteredTeams() {
+      const inputs = this.teamInputs || [];
+      if (!this.teamSearch) return inputs;
+      const search = this.teamSearch.toLowerCase();
+      return inputs.filter((t) =>
+        (t.team_name || "").toLowerCase().includes(search)
       );
     },
   },
 
+  watch: {
+    isOpen(newVal) {
+      if (newVal) {
+        this.fetchData();
+        if (this.editData && this.editData.team_id) {
+          this.loadEditData();
+        }
+      } else {
+        this.handleReset();
+      }
+    }
+  },
+
   methods: {
     ...mapActions({
-      fetchUsers: "users/fetchAllusers",
+      fetchAreaInput: "area/fetchAreaInput",
+      fetchTeamsInput: "area/fetchTeamsInput",
     }),
 
     fetchData() {
-      this.fetchUsers()
-        .then(() => {
-          console.log("Users fetched successfully");
-        })
-        .catch((err) => {
-          console.error("Failed to fetch users:", err);
-        });
-    },
-
-    selectParentArea(area) {
-      this.formData.parentArea = area;
-      this.isParentDropdownOpen = false;
-      this.parentSearch = "";
-    },
-
-    removeParentArea() {
-      this.formData.parentArea = null;
-    },
-
-    toggleMember(member) {
-      const index = this.formData.selectedMembers.findIndex(
-        (m) => m.id === member.id,
+      this.fetchAreaInput().catch((err) =>
+        console.error("Failed to fetch areas:", err)
       );
+      this.fetchTeamsInput().catch((err) =>
+        console.error("Failed to fetch teams:", err)
+      );
+    },
 
-      if (index === -1) {
-        this.formData.selectedMembers.push(member);
-      } else {
-        this.formData.selectedMembers.splice(index, 1);
+    async loadEditData() {
+      const { cookies } = useCookies();
+      try {
+        const response = await api.getbydata("area/det", { id: this.editData.team_id }, {
+          headers: { Authorization: "Bearer " + cookies.get("token") }
+        });
+        
+        const areas = response.data.areas || [];
+        const clickedAreaId = String(this.editData.areayangdicakup);
+        const match = areas.find(a => String(a.area_id) === clickedAreaId);
+        
+        if (match) {
+          this.formData.area = {
+            id: match.area_id,
+            name: match.name
+          };
+          this.formData.selectedTeams = [{
+            id: match.team_id,
+            team_name: match.team_name
+          }];
+        } else if (areas.length > 0) {
+          this.formData.area = {
+            id: areas[0].area_id,
+            name: areas[0].name
+          };
+          this.formData.selectedTeams = [{
+            id: areas[0].team_id,
+            team_name: areas[0].team_name
+          }];
+        }
+      } catch (err) {
+        console.error("Failed to fetch edit data:", err);
       }
     },
 
-    isMemberSelected(id) {
-      return this.formData.selectedMembers.some((m) => m.id === id);
+    selectArea(area) {
+      this.formData.area = area;
+      this.isAreaDropdownOpen = false;
+      this.areaSearch = "";
     },
 
-    removeMember(id) {
-      this.formData.selectedMembers = this.formData.selectedMembers.filter(
-        (m) => m.id !== id,
+    removeArea() {
+      this.formData.area = null;
+    },
+
+    toggleTeam(team) {
+      const index = this.formData.selectedTeams.findIndex(
+        (t) => t.id === team.id
+      );
+
+      if (index === -1) {
+        this.formData.selectedTeams.push(team);
+      } else {
+        this.formData.selectedTeams.splice(index, 1);
+      }
+    },
+
+    isTeamSelected(id) {
+      return this.formData.selectedTeams.some((t) => t.id === id);
+    },
+
+    removeTeam(id) {
+      this.formData.selectedTeams = this.formData.selectedTeams.filter(
+        (t) => t.id !== id
       );
     },
 
     handleClose() {
       this.$emit("close");
-      this.isDropdownOpen = false;
-      this.memberSearch = "";
+      this.isAreaDropdownOpen = false;
+      this.areaSearch = "";
+      this.isTeamDropdownOpen = false;
+      this.teamSearch = "";
     },
 
     handleSubmit() {
-      this.$emit("submit", this.formData);
+      // Map to backward compatible keys if needed
+      const payload = {
+        ...this.formData,
+        areaName: this.formData.area ? this.formData.area.name : "",
+        area_id: this.formData.area ? this.formData.area.id : null,
+        selectedMembers: this.formData.selectedTeams,
+      };
+      this.$emit("submit", payload);
       this.handleReset();
       this.handleClose();
     },
 
     handleReset() {
       this.formData = {
-        areaName: "",
-        parentArea: null,
-        selectedMembers: [],
+        area: null,
+        selectedTeams: [],
       };
 
-      this.memberSearch = "";
-      this.parentSearch = "";
+      this.areaSearch = "";
+      this.teamSearch = "";
     },
 
     handleClickOutside(event) {
       if (
-        this.$refs.dropdownRef &&
-        !this.$refs.dropdownRef.contains(event.target)
+        this.$refs.areaDropdownRef &&
+        !this.$refs.areaDropdownRef.contains(event.target)
       ) {
-        this.isDropdownOpen = false;
+        this.isAreaDropdownOpen = false;
       }
-
       if (
-        this.$refs.parentDropdownRef &&
-        !this.$refs.parentDropdownRef.contains(event.target)
+        this.$refs.teamDropdownRef &&
+        !this.$refs.teamDropdownRef.contains(event.target)
       ) {
-        this.isParentDropdownOpen = false;
+        this.isTeamDropdownOpen = false;
       }
     },
   },
@@ -340,9 +380,11 @@ export default {
     >
       <!-- Header -->
       <div
-        class="sticky top-0 bg-white border-b border-outline px-6 py-4 flex items-center justify-between z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]"
+        class="flex items-center justify-between p-4 sm:p-6 border-b border-outline"
       >
-        <h2 class="text-xl font-bold text-main-text">Add Area</h2>
+        <h2 class="text-lg sm:text-xl font-bold text-main-text">
+          {{ editData ? "Edit Area" : "Add Area" }}
+        </h2>
         <button
           @click="handleClose"
           class="p-2 hover:bg-light-base rounded-lg transition-colors"
@@ -354,51 +396,37 @@ export default {
       <!-- Form Content (Scrollable) -->
       <div class="flex-1 overflow-y-auto">
         <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
-          <!-- Area Name -->
-          <div>
+          <!-- Area Name (Searchable Dropdown) -->
+          <div class="relative" ref="areaDropdownRef">
             <label class="block text-sm font-medium text-main-text mb-2">
               Area Name
             </label>
-            <input
-              v-model="formData.areaName"
-              type="text"
-              placeholder="Enter area name"
-              class="w-full px-3 py-2 border border-outline rounded-lg focus:outline-none focus:ring-1 focus:ring-sub-text text-sm"
-              required
-            />
-          </div>
-
-          <!-- Parent Area Name (Searchable Dropdown) -->
-          <div class="relative" ref="parentDropdownRef">
-            <label class="block text-sm font-medium text-main-text mb-2">
-              Parent Area Name
-            </label>
 
             <div
-              @click="isParentDropdownOpen = !isParentDropdownOpen"
+              @click="isAreaDropdownOpen = !isAreaDropdownOpen"
               class="w-full px-3 py-2 border border-outline rounded-lg flex flex-wrap gap-2 items-center cursor-pointer min-h-10.5 bg-white transition focus-within:ring-1 focus-within:ring-sub-text"
             >
-              <div v-if="!formData.parentArea" class="text-gray-400 text-sm">
-                Search and select parent area
+              <div v-if="!formData.area" class="text-gray-400 text-sm">
+                Search and select area
               </div>
               <div
                 v-else
                 class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-main-text border border-outline"
                 @click.stop
               >
-                {{ formData.parentArea.name }}
+                {{ formData.area.name }}
                 <X
                   :size="12"
                   class="cursor-pointer hover:text-red"
-                  @click="removeParentArea"
+                  @click="removeArea"
                 />
               </div>
               <ChevronDown :size="16" class="ml-auto text-sub-text" />
             </div>
 
-            <!-- Parent Area Dropdown Menu -->
+            <!-- Area Dropdown Menu -->
             <div
-              v-if="isParentDropdownOpen"
+              v-if="isAreaDropdownOpen"
               class="absolute z-50 w-full mt-1 bg-white border border-outline rounded-lg shadow-xl flex flex-col max-h-64"
             >
               <div class="p-2 border-b border-outline">
@@ -408,7 +436,7 @@ export default {
                     class="absolute left-3 top-1/2 -translate-y-1/2 text-sub-text"
                   />
                   <input
-                    v-model="parentSearch"
+                    v-model="areaSearch"
                     type="text"
                     placeholder="Search areas"
                     class="w-full pl-9 pr-3 py-2 bg-light-base/50 border border-outline rounded text-sm focus:outline-none focus:ring-1 focus:ring-sub-text"
@@ -420,14 +448,14 @@ export default {
                 <div
                   v-for="area in filteredAreas"
                   :key="area.id"
-                  @click="selectParentArea(area)"
+                  @click="selectArea(area)"
                   class="px-4 py-2 hover:bg-light-base cursor-pointer flex items-center justify-between text-sm transition"
                 >
                   <span class="font-medium text-main-text">{{
                     area.name
                   }}</span>
                   <div
-                    v-if="formData.parentArea?.id === area.id"
+                    v-if="formData.area?.id === area.id"
                     class="w-5 h-5 bg-dark-base rounded-full flex items-center justify-center"
                   >
                     <Check :size="12" class="text-white" />
@@ -443,41 +471,41 @@ export default {
             </div>
           </div>
 
-          <!-- Add Team Member (Searchable Dropdown) -->
-          <div class="relative" ref="dropdownRef">
+          <!-- Add Team (Searchable Dropdown) -->
+          <div class="relative" ref="teamDropdownRef">
             <label class="block text-sm font-medium text-main-text mb-2">
-              Add Team Member
+              Add Team
             </label>
 
             <div
-              @click="isDropdownOpen = !isDropdownOpen"
+              @click="isTeamDropdownOpen = !isTeamDropdownOpen"
               class="w-full px-3 py-2 border border-outline rounded-lg flex flex-wrap gap-2 items-center cursor-pointer min-h-10.5 bg-white transition focus-within:ring-1 focus-within:ring-sub-text"
             >
               <div
-                v-if="formData.selectedMembers.length === 0"
+                v-if="formData.selectedTeams.length === 0"
                 class="text-gray-400 text-sm"
               >
-                Search and select members
+                Search and select teams
               </div>
               <div
-                v-for="member in formData.selectedMembers"
-                :key="member.id"
+                v-for="team in formData.selectedTeams"
+                :key="team.id"
                 class="flex items-center gap-1 bg-light-base px-2 py-1 rounded text-xs font-medium text-main-text border border-outline"
                 @click.stop
               >
-                {{ member.name }}
+                {{ team.team_name }}
                 <X
                   :size="12"
                   class="cursor-pointer hover:text-red"
-                  @click="removeMember(member.id)"
+                  @click="removeTeam(team.id)"
                 />
               </div>
               <ChevronDown :size="16" class="ml-auto text-sub-text" />
             </div>
 
-            <!-- Dropdown Menu -->
+            <!-- Team Dropdown Menu -->
             <div
-              v-if="isDropdownOpen"
+              v-if="isTeamDropdownOpen"
               class="absolute z-50 w-full mt-1 bg-white border border-outline rounded-lg shadow-xl flex flex-col max-h-64"
             >
               <div class="p-2 border-b border-outline">
@@ -487,9 +515,9 @@ export default {
                     class="absolute left-3 top-1/2 -translate-y-1/2 text-sub-text"
                   />
                   <input
-                    v-model="memberSearch"
+                    v-model="teamSearch"
                     type="text"
-                    placeholder="Search by name or email"
+                    placeholder="Search by team name"
                     class="w-full pl-9 pr-3 py-2 bg-light-base/50 border border-outline rounded text-sm focus:outline-none focus:ring-1 focus:ring-sub-text"
                     @click.stop
                   />
@@ -497,31 +525,28 @@ export default {
               </div>
               <div class="flex-1 overflow-y-auto py-1">
                 <div
-                  v-for="member in filteredMembers"
-                  :key="member.id"
-                  @click="toggleMember(member)"
+                  v-for="team in filteredTeams"
+                  :key="team.id"
+                  @click="toggleTeam(team)"
                   class="px-4 py-2 hover:bg-light-base cursor-pointer flex items-center justify-between text-sm transition"
                 >
                   <div class="flex flex-col">
                     <span class="font-medium text-main-text">{{
-                      member.name
-                    }}</span>
-                    <span class="text-xs text-sub-text">{{
-                      member.email
+                      team.team_name
                     }}</span>
                   </div>
                   <div
-                    v-if="isMemberSelected(member.id)"
+                    v-if="isTeamSelected(team.id)"
                     class="w-5 h-5 bg-dark-base rounded-full flex items-center justify-center"
                   >
                     <Check :size="12" class="text-white" />
                   </div>
                 </div>
                 <div
-                  v-if="filteredMembers.length === 0"
+                  v-if="filteredTeams.length === 0"
                   class="px-4 py-6 text-center text-sm text-sub-text"
                 >
-                  No members found
+                  No teams found
                 </div>
               </div>
             </div>
@@ -549,11 +574,11 @@ export default {
             Cancel
           </button>
           <button
-            @click="handleSubmit"
             type="submit"
-            class="px-6 py-2 bg-dark-base text-white rounded-lg hover:bg-dark-hover transition-colors text-sm font-medium"
+            class="px-4 py-2 bg-dark-base text-white text-sm font-medium rounded-lg hover:bg-opacity-90 transition"
+            @click="handleSubmit"
           >
-            Submit
+            {{ editData ? "Update" : "Submit" }}
           </button>
         </div>
       </div>

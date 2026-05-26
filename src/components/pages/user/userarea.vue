@@ -10,13 +10,11 @@ import {
   RefreshCw,
 } from "lucide-vue-next";
 import CreateAreaForm from "@/components/forms/CreateAreaForm.vue";
-import DetailAreaForm from "@/components/forms/DetailAreaForm.vue";
 import { alertService } from "@/services/alertService";
 
 export default {
   components: {
     CreateAreaForm,
-    DetailAreaForm,
     Filter,
     Search,
     ChevronLeft,
@@ -29,7 +27,6 @@ export default {
   data() {
     return {
       showCreateAreaForm: false,
-      showAreaDetailForm: false,
       selectedAreaDetail: null,
       areaApiPayload: null,
       currentPage: 1,
@@ -99,7 +96,7 @@ export default {
 
     getAreaId(area) {
       if (!area) return null;
-      const id = area.area_id ?? area.areaid ?? area.id ?? area.id_area;
+      const id = area.area_id ?? area.areaid ?? area.id ?? area.id_area ?? (area.team_id + '_' + area.areayangdicakup);
       return id !== undefined && id !== null ? String(id) : "";
     },
 
@@ -120,11 +117,10 @@ export default {
 
     openAreaDetail(area) {
       this.selectedAreaDetail = { ...area };
-      this.showAreaDetailForm = true;
+      this.showCreateAreaForm = true;
     },
 
     closeAreaDetail() {
-      this.showAreaDetailForm = false;
       this.selectedAreaDetail = null;
     },
 
@@ -164,72 +160,35 @@ export default {
       }
     },
 
-    handleCreateAreaSubmit(data) {
-      console.log(data);
+    async handleCreateAreaSubmit(data) {
+      if (!data.area_id || !data.selectedMembers || data.selectedMembers.length === 0) {
+        alert("Pilih Area dan minimal satu Tim terlebih dahulu.");
+        return;
+      }
 
-      let dataparam = {
-        areaName: data.areaName,
-        parentArea: data.parentArea?.name || null,
-        selectedMembers: data.selectedMembers.map((member) => member.id),
-      };
+      try {
+        const isEdit = !!this.selectedAreaDetail;
 
-      this.createArea(dataparam)
-        .then((createResult) => {
-          const createdAreaId =
-            createResult?.area?.id ||
-            createResult?.data?.id ||
-            createResult?.id;
-
-          if (createdAreaId && dataparam.selectedMembers.length) {
-            const addUsersPayload = {
-              area_id: createdAreaId,
-              user_ids: dataparam.selectedMembers,
-            };
-            return this.addAreaUsers(addUsersPayload);
-          }
-        })
-        .then(() => {
-          this.showCreateAreaForm = false;
-          return this.fetchData();
-        })
-        .catch((err) => {
-          console.error("Failed to create area:", err);
-          alert("Failed to create area. Please check API payload format.");
+        // Send a request for each selected team to the area/input endpoint
+        const promises = data.selectedMembers.map((team) => {
+          return this.createArea({
+            choice: isEdit ? "u" : "i",
+            id: team.id,
+            teamName: team.team_name || team.name || "",
+            parentTeam: null,
+            contactassoc: true,
+            selectedMembers: [data.area_id],
+          });
         });
-      console.log(dataparam);
 
-      // try {
-      //   const createPayload = {
-      //     area_name: data.areaName,
-      //     parent_id: data.parentArea ? data.parentArea.id : null,
-      //   };
-
-      //   const createResult = await this.createArea(createPayload);
-
-      //   const createdAreaId =
-      //     (createResult && createResult.area && createResult.area.id) ||
-      //     (createResult && createResult.data && createResult.data.id) ||
-      //     (createResult && createResult.id);
-
-      //   if (
-      //     createdAreaId &&
-      //     Array.isArray(data.selectedMembers) &&
-      //     data.selectedMembers.length
-      //   ) {
-      //     const addUsersPayload = {
-      //       area_id: createdAreaId,
-      //       user_ids: data.selectedMembers.map((member) => member.id),
-      //     };
-
-      //     await this.addAreaUsers(addUsersPayload);
-      //   }
-
-      //   this.showCreateAreaForm = false;
-      //   await this.fetchData();
-      // } catch (err) {
-      //   console.error("Failed to create area:", err);
-      //   alert("Failed to create area. Please check API payload format.");
-      // }
+        await Promise.all(promises);
+        
+        this.showCreateAreaForm = false;
+        await this.fetchData();
+      } catch (err) {
+        console.error("Failed to create area:", err);
+        alert("Failed to create area. Please check API payload format.");
+      }
     },
   },
 
@@ -403,7 +362,7 @@ export default {
               class="px-3 py-3 text-left text-xs font-semibold text-gray-700 sm:px-6 sm:py-4 sm:text-sm"
             >
               <div class="flex items-center gap-2">
-                Area Name
+                Team Name
                 <ChevronDown :size="16" class="text-gray-400" />
               </div>
             </th>
@@ -411,16 +370,7 @@ export default {
               class="px-3 py-3 text-left text-xs font-semibold text-gray-700 sm:px-6 sm:py-4 sm:text-sm"
             >
               <div class="flex items-center gap-2">
-                Parent Name
-                <ChevronDown :size="16" class="text-gray-400" />
-              </div>
-            </th>
-
-            <th
-              class="px-3 py-3 text-left text-xs font-semibold text-gray-700 sm:px-6 sm:py-4 sm:text-sm"
-            >
-              <div class="flex items-center gap-2">
-                Total Users
+                Area Covered
                 <ChevronDown :size="16" class="text-gray-400" />
               </div>
             </th>
@@ -430,7 +380,7 @@ export default {
         <tbody>
           <tr v-if="error">
             <td
-              colspan="4"
+              colspan="3"
               class="px-6 py-10 text-center text-sm text-red-500 sm:text-base"
             >
               Failed to load data: {{ error }}
@@ -440,7 +390,7 @@ export default {
           <!-- EMPTY STATE -->
           <tr v-else-if="!isLoading && paginatedAreas.length === 0">
             <td
-              colspan="4"
+              colspan="3"
               class="px-6 py-20 text-center text-sm text-sub-text sm:text-base"
             >
               No area_user data found
@@ -469,21 +419,14 @@ export default {
               style="cursor: pointer"
               @click="openAreaDetail(area)"
             >
-              {{ area.area_name }}
+              {{ area.team_name || area.team_id || '-' }}
             </td>
             <td
               class="px-3 py-4 text-xs font-medium text-gray-800 sm:px-6 sm:py-4 sm:text-sm"
               style="cursor: pointer"
               @click="openAreaDetail(area)"
             >
-              {{ area.parent }}
-            </td>
-
-            <td
-              class="px-3 py-4 text-xs text-main-text sm:px-6 sm:py-4 sm:text-sm"
-              @click="openAreaDetail(area)"
-            >
-              {{ area.total_users }}
+              {{ area.areayangdicakup || area.area_name || '-' }}
             </td>
           </tr>
         </tbody>
@@ -491,17 +434,11 @@ export default {
     </div>
   </div>
 
-  <!-- Add Area Form -->
+  <!-- Add/Edit Area Form -->
   <CreateAreaForm
     :isOpen="showCreateAreaForm"
-    @close="showCreateAreaForm = false"
+    :editData="selectedAreaDetail"
+    @close="showCreateAreaForm = false; selectedAreaDetail = null;"
     @submit="handleCreateAreaSubmit"
-  />
-
-  <DetailAreaForm
-    :isOpen="showAreaDetailForm"
-    :area="selectedAreaDetail"
-    :apiPayload="areaApiPayload"
-    @close="closeAreaDetail"
   />
 </template>

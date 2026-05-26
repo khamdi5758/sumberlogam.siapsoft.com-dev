@@ -6,6 +6,8 @@ const { cookies } = useCookies();
 const state = {
   areaUsers: [],
   usersarea: [],
+  areaInputs: [],
+  teamInputs: [],
   isLoading: false,
   error: null,
   searchQuery: "",
@@ -14,6 +16,8 @@ const state = {
 const getters = {
   allAreaUsers: (state) => state.areaUsers,
   allusersarea: (state) => state.usersarea,
+  areaInputs: (state) => state.areaInputs,
+  teamInputs: (state) => state.teamInputs,
   isLoading: (state) => state.isLoading,
   error: (state) => state.error,
   searchQuery: (state) => state.searchQuery,
@@ -34,6 +38,12 @@ const mutations = {
   },
   SET_USERSTEAM(state, payload) {
     state.usersarea = Array.isArray(payload) ? payload : [];
+  },
+  SET_AREA_INPUTS(state, payload) {
+    state.areaInputs = Array.isArray(payload) ? payload : [];
+  },
+  SET_TEAM_INPUTS(state, payload) {
+    state.teamInputs = Array.isArray(payload) ? payload : [];
   },
   SET_LOADING(state, payload) {
     state.isLoading = payload;
@@ -68,14 +78,16 @@ const actions = {
 
         const requestPayload = {
           choice: choice,
-          id: formData.id || "",
-          areaName: formData.areaName || formData.area_name || "",
-          parentArea: formData.parentArea || formData.parent_id || "",
-          selectedMembers: formData.selectedMembers || [],
-          contactassoc: formData.selectedMembers || [], // Backend checks this key
+          id: formData.id ?? "",
+          teamName: formData.teamName ?? formData.team_name ?? "",
+          parentTeam: formData.parentTeam ?? formData.parentArea ?? formData.parent_id ?? 0,
+          areaName: formData.areaName ?? formData.area_name ?? "",
+          parentArea: formData.parentArea ?? formData.parent_id ?? 0,
+          selectedMembers: formData.selectedMembers ?? [],
+          contactassoc: formData.selectedMembers ?? [], // Backend checks this key
           // Keep variants for compatibility
-          area_name: formData.areaName || formData.area_name || "",
-          parent_id: formData.parentArea || formData.parent_id || null,
+          area_name: formData.areaName ?? formData.area_name ?? "",
+          parent_id: formData.parentArea ?? formData.parent_id ?? 0,
         };
 
         let network = await api.post("area/input", requestPayload, {
@@ -191,7 +203,7 @@ const actions = {
     commit("SET_ERROR", null);
     const promise = new Promise(async (resolve, reject) => {
       try {
-        let network = await api.getbydata("area/usersarea", data, {
+        let network = await api.getbydata("area/det", data, {
           headers: {
             Authorization: "Bearer " + cookies.get("token"),
           },
@@ -217,6 +229,48 @@ const actions = {
       });
 
     return promise;
+  },
+
+  fetchAreaInput({ commit }) {
+    commit("SET_LOADING", true);
+    commit("SET_ERROR", null);
+    return new Promise(async (resolve, reject) => {
+      try {
+        let network = await api.get("area/getareainput", {
+          headers: {
+            Authorization: "Bearer " + cookies.get("token"),
+          },
+        });
+        commit("SET_AREA_INPUTS", network.data.area || []);
+        resolve(network.data);
+      } catch (error) {
+        commit("SET_ERROR", error.message);
+        reject(error);
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    });
+  },
+
+  fetchTeamsInput({ commit }) {
+    commit("SET_LOADING", true);
+    commit("SET_ERROR", null);
+    return new Promise(async (resolve, reject) => {
+      try {
+        let network = await api.get("area/getteamsinput", {
+          headers: {
+            Authorization: "Bearer " + cookies.get("token"),
+          },
+        });
+        commit("SET_TEAM_INPUTS", network.data.teams || []);
+        resolve(network.data);
+      } catch (error) {
+        commit("SET_ERROR", error.message);
+        reject(error);
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    });
   },
 };
 

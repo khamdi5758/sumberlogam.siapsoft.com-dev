@@ -1,5 +1,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import api from '@/api'
+import { useCookies } from 'vue3-cookies'
 
 // ─── Singleton state ───────────────────────────────────────────────
 const notifications = ref([])
@@ -66,6 +67,13 @@ export function useNotifications() {
 
   // ── Fetch & deteksi notif baru ──────────────────────────────────
   async function fetchNotifications() {
+    const { cookies } = useCookies()
+    const token = cookies.get('token')
+    
+    if (!token || token === 'null' || token === 'undefined') {
+      return
+    }
+
     try {
       const res  = await api.get('notifications', {
         headers: {
