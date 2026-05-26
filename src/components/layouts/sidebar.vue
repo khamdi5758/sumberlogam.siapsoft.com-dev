@@ -48,25 +48,6 @@
       id="menufl"
       v-if="getlayoutmenuweb"
     >
-      <!-- <div
-        v-for="(mainMenu, index) in mainMenuItems"
-        :key="mainMenu.L1"
-        class="menu-item relative"
-        :ref="`menuItem${mainMenu.L1}`"
-      >
-        <div
-          class="menu-icon-container flex h-12 items-center p-3 rounded-xl transition group w-full hover:bg-[var(--layout-sidebar-hover)] hover:text-[var(--layout-sidebar-accent)]"
-          @mouseenter="toggleSubmenu(mainMenu.L1, index)"
-        >
-          <component :is="iconMap[mainMenu.ICON]" :size="20"
-      class="cursor-pointer menu-icon w-5 h-5"
-    />
-          <span class="menu-label cursor-pointer">{{
-            mainMenu.NamaCaption
-          }}</span>
-        </div>
-      </div> -->
-
       <div
         v-for="(mainMenu, index) in mainMenuItems"
         :key="mainMenu.L1"
@@ -76,7 +57,7 @@
         <button
           type="button"
           class="menu-icon-container flex h-12 w-full items-center rounded-xl p-3 transition group hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
-          @click="!hasChildren(mainMenu) && openTab(mainMenu)"
+          @click="handleMainMenuClick(mainMenu)"
           :class="
             isExpanded
               ? 'gap-3 justify-between cursor-pointer'
@@ -106,16 +87,23 @@
 
           <ChevronDown
             v-if="isExpanded && hasChildren(mainMenu)"
-            @click.stop="toggleMenuExpand(mainMenu.L1)"
             :size="16"
-            class="shrink-0 cursor-pointer transition-transform duration-200 group-hover:text-(--layout-sidebar-accent)"
+            class="shrink-0 cursor-pointer transform-gpu transition-transform duration-300 ease-in-out group-hover:text-(--layout-sidebar-accent)"
             :style="{ color: 'var(--layout-sidebar-muted)' }"
-            :class="{ 'rotate-180': isMenuExpanded(mainMenu.L1) }"
+            :class="
+              isMenuExpanded(mainMenu.L1) || isDummyUserMenuExpanded(mainMenu)
+                ? 'rotate-180'
+                : 'rotate-0'
+            "
           />
         </button>
 
         <!-- Inline child menu (when sidebar expanded) -->
-        <div v-if="isExpanded && isMenuExpanded(mainMenu.L1)">
+        <div
+          v-if="
+            isMenuExpanded(mainMenu.L1) || isDummyUserMenuExpanded(mainMenu)
+          "
+        >
           <div
             v-if="getChildren(mainMenu.L1, mainMenu).length"
             class="pl-6 mt-1 space-y-1"
@@ -128,7 +116,11 @@
               <div class="flex items-center">
                 <button
                   type="button"
-                  @click="!childHasChildren(child) && openTab(child)"
+                  @click.stop="
+                    childHasChildren(child)
+                      ? handleChildMenuClick(child)
+                      : openTab(child)
+                  "
                   class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
                   :style="{
                     color: 'var(--layout-sidebar-text)',
@@ -137,13 +129,12 @@
                   <span class="truncate">{{ child.NamaCaption }}</span>
                   <ChevronDown
                     v-if="childHasChildren(child)"
-                    @click.stop="toggleMenuExpand(child.L1)"
                     :size="14"
-                    class="shrink-0 cursor-pointer transition-transform duration-200 group-hover:text-(--layout-sidebar-accent)"
+                    class="shrink-0 cursor-pointer transform-gpu transition-transform duration-300 ease-in-out group-hover:text-(--layout-sidebar-accent)"
                     :style="{ color: 'var(--layout-sidebar-muted)' }"
-                    :class="{
-                      'rotate-180': isMenuExpanded(child.L1),
-                    }"
+                    :class="
+                      isMenuExpanded(child.L1) ? 'rotate-180' : 'rotate-0'
+                    "
                   />
                 </button>
               </div>
@@ -199,7 +190,37 @@
 </template>
 
 <style scoped>
-/* Gaya tambahan jika diperlukan */
+.chevron-expand {
+  animation: chevron-expand 220ms ease-out;
+}
+
+.chevron-collapse {
+  animation: chevron-collapse 220ms ease-out;
+}
+
+@keyframes chevron-expand {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  60% {
+    transform: rotate(135deg) scale(1.08);
+  }
+  100% {
+    transform: rotate(180deg) scale(1);
+  }
+}
+
+@keyframes chevron-collapse {
+  0% {
+    transform: rotate(180deg) scale(1);
+  }
+  60% {
+    transform: rotate(45deg) scale(1.08);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
 </style>
 
 <script>
@@ -279,6 +300,10 @@ export default {
       activeLevel2MenuId: null,
       submenuStyle: {},
       level2SubmenuStyle: {},
+      userMenuExpanded: false,
+      chevronAnimationMenuId: null,
+      chevronAnimationDirection: "",
+      chevronAnimationTimer: null,
       // track expanded menus for inline sidebar dropdowns
       expandedMenuIds: [],
       dummySidebarChildren: {
@@ -396,6 +421,19 @@ export default {
     submenuHasAccess() {
       return this.showSubmenu.filter((item) => item.hasaccess === 1);
     },
+
+    submenuHasAccess() {
+      return this.showSubmenu.filter((item) => item.hasaccess === 1);
+    },
+  },
+
+  watch: {
+    $route: {
+      immediate: true,
+      handler() {
+        this.syncExpandedMenusFromRoute();
+      },
+    },
   },
 
   methods: {
@@ -465,12 +503,13 @@ export default {
       // console.log("sidebaropentab", menuItem);
       // console.log("sidebaropentab", this.$router.getRoutes());
 
+      this.expandMenuForItem(menuItem);
+
       if (menuItem.pathfile) {
         this.$router.push(menuItem.pathfile);
       }
       this.$emit("opentabchange", menuItem);
       this.closeMobileSidebar();
-      this.closeAllMenus();
     },
 
     normalizeMenuCaption(caption) {
@@ -516,19 +555,20 @@ export default {
     },
 
     getChildren(menuId, menuItem = null) {
+      const dummyChildren = this.getDummyChildren(menuItem);
+      if (dummyChildren.length > 0) {
+        return dummyChildren;
+      }
+
       if (!this.getlayoutmenuweb || !this.getlayoutmenuweb.dbmenu2) {
-        return this.getDummyChildren(menuItem);
+        return [];
       }
 
       const backendChildren = this.getlayoutmenuweb.dbmenu2.filter((item) => {
         return String(item.Parent) === String(menuId) && item.HASACCESS === "1";
       });
 
-      if (backendChildren.length > 0) {
-        return backendChildren;
-      }
-
-      return this.getDummyChildren(menuItem);
+      return backendChildren;
     },
 
     hasChildren(menuItem) {
@@ -537,6 +577,168 @@ export default {
 
     childHasChildren(item) {
       return this.getChildren(item.L1, item).length > 0;
+    },
+
+    handleMainMenuClick(menuItem) {
+      if (!menuItem) return;
+
+      const menuId = String(menuItem.L1);
+      const isCurrentlyExpanded = this.isDummyUserMenu(menuItem)
+        ? this.userMenuExpanded
+        : this.isMenuExpanded(menuId);
+
+      this.triggerChevronAnimation(menuId, isCurrentlyExpanded);
+
+      if (this.isDummyUserMenu(menuItem)) {
+        this.userMenuExpanded = !this.userMenuExpanded;
+        this.expandedMenuIds = this.userMenuExpanded ? [menuId] : [];
+        return;
+      }
+
+      if (this.hasChildren(menuItem)) {
+        this.expandedMenuIds = [menuId];
+      } else {
+        this.openTab(menuItem);
+      }
+    },
+
+    isDummyUserMenu(menuItem) {
+      return this.normalizeMenuCaption(menuItem?.NamaCaption) === "user";
+    },
+
+    isDummyUserMenuExpanded(menuItem) {
+      return this.isDummyUserMenu(menuItem) && this.userMenuExpanded;
+    },
+
+    getChevronAnimationClass(menuId) {
+      if (this.chevronAnimationMenuId !== String(menuId)) {
+        return "";
+      }
+
+      return this.chevronAnimationDirection === "collapse"
+        ? "chevron-collapse"
+        : "chevron-expand";
+    },
+
+    triggerChevronAnimation(menuId, isCurrentlyExpanded) {
+      const menuIdString = String(menuId);
+
+      if (this.chevronAnimationTimer) {
+        window.clearTimeout(this.chevronAnimationTimer);
+        this.chevronAnimationTimer = null;
+      }
+
+      this.chevronAnimationMenuId = menuIdString;
+      this.chevronAnimationDirection = isCurrentlyExpanded
+        ? "collapse"
+        : "expand";
+
+      this.chevronAnimationTimer = window.setTimeout(() => {
+        this.chevronAnimationMenuId = null;
+        this.chevronAnimationDirection = "";
+        this.chevronAnimationTimer = null;
+      }, 220);
+    },
+
+    handleChildMenuClick(menuItem) {
+      if (!menuItem) return;
+
+      if (this.childHasChildren(menuItem)) {
+        this.expandedMenuIds = [String(menuItem.L1)];
+      } else {
+        this.openTab(menuItem);
+      }
+    },
+
+    normalizeMenuPath(pathfile) {
+      return String(pathfile || "").trim();
+    },
+
+    findMenuByPath(pathfile) {
+      if (
+        !this.getlayoutmenuweb ||
+        !Array.isArray(this.getlayoutmenuweb.dbmenu2)
+      ) {
+        return null;
+      }
+
+      const targetPath = this.normalizeMenuPath(pathfile);
+      if (!targetPath) {
+        return null;
+      }
+
+      return (
+        this.getlayoutmenuweb.dbmenu2.find((item) => {
+          return this.normalizeMenuPath(item.pathfile) === targetPath;
+        }) || null
+      );
+    },
+
+    getExpandedMenuChain(menuItem) {
+      if (
+        !menuItem ||
+        !this.getlayoutmenuweb ||
+        !Array.isArray(this.getlayoutmenuweb.dbmenu2)
+      ) {
+        return [];
+      }
+
+      const chain = [];
+      let currentItem = menuItem;
+
+      while (currentItem && currentItem.Parent && currentItem.Parent !== "0") {
+        const parentItem = this.getlayoutmenuweb.dbmenu2.find(
+          (item) => String(item.L1) === String(currentItem.Parent),
+        );
+
+        if (!parentItem) {
+          break;
+        }
+
+        chain.unshift(String(parentItem.L1));
+        currentItem = parentItem;
+      }
+
+      return chain;
+    },
+
+    expandMenuForItem(menuItem) {
+      const nextExpandedIds = this.getExpandedMenuChain(menuItem);
+
+      if (menuItem && this.hasChildren(menuItem)) {
+        nextExpandedIds.push(String(menuItem.L1));
+      }
+
+      this.expandedMenuIds = Array.from(new Set(nextExpandedIds));
+    },
+
+    syncExpandedMenusFromRoute() {
+      const currentRoutePath = this.normalizeMenuPath(
+        this.$route?.fullPath || this.$route?.path,
+      );
+
+      if (currentRoutePath.startsWith("/crmAdmin/users")) {
+        const userMenu = this.mainMenuItems.find((item) =>
+          this.isDummyUserMenu(item),
+        );
+
+        if (userMenu) {
+          this.userMenuExpanded = true;
+          this.expandedMenuIds = [String(userMenu.L1)];
+        }
+        return;
+      }
+
+      const routeMenuItem = this.findMenuByPath(currentRoutePath);
+
+      if (!routeMenuItem) {
+        this.userMenuExpanded = false;
+        this.expandedMenuIds = [];
+        return;
+      }
+
+      this.userMenuExpanded = false;
+      this.expandMenuForItem(routeMenuItem);
     },
 
     isMenuExpanded(menuId) {
