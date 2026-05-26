@@ -1,5 +1,25 @@
 import router from "@/router";
 
+function normalizePath(path) {
+  return String(path || "")
+    .trim()
+    .split("?")[0]
+    .split("#")[0];
+}
+
+function findRouteByPath(path) {
+  const targetPath = normalizePath(path);
+
+  if (!targetPath) {
+    return null;
+  }
+
+  return (
+    router.getRoutes().find((route) => normalizePath(route.path) === targetPath) ||
+    null
+  );
+}
+
 export default {
   namespaced: true,
 
@@ -85,9 +105,7 @@ export default {
       if (!tabName || !tabName.pathfile) return;
 
       // Pastikan route memang ada
-      const exists = router
-        .getRoutes()
-        .some((r) => r.path === tabName.pathfile);
+      const exists = !!findRouteByPath(tabName.pathfile);
       if (!exists) return;
 
       // Pastikan layout sudah siap sebelum membuka tab
@@ -105,16 +123,19 @@ export default {
       if (!tab?.pathfile) return;
 
       // Jika belum ada tab ini
-      if (!state.tabs.includes(tab.pathfile)) {
-        const route = router.getRoutes().find((r) => r.path === tab.pathfile);
+      const targetPath = normalizePath(tab.pathfile);
+      const hasTab = state.tabs.some((item) => normalizePath(item) === targetPath);
+
+      if (!hasTab) {
+        const route = findRouteByPath(tab.pathfile);
         const name = route ? route.name : tab.CAPTION || tab.pathfile;
 
-        commit("SET_TABS", [...state.tabs, tab.pathfile]);
+        commit("SET_TABS", [...state.tabs, targetPath]);
         commit("SET_NAMETABS", [...state.nametabs, name]);
-        commit("SET_TABSFLMENU", [...state.tabsflmenu, tab]);
+        commit("SET_TABSFLMENU", [...state.tabsflmenu, { ...tab, pathfile: targetPath }]);
       }
 
-      commit("SET_SELECTED_TAB", tab.pathfile);
+      commit("SET_SELECTED_TAB", targetPath);
       dispatch("syncLocalStorage");
     },
 
@@ -122,13 +143,18 @@ export default {
     selectTab({ state, commit, dispatch, rootGetters }, tab) {
       const layout = rootGetters["settingsfe/getlayoutmenuweb"];
       if (!tab?.pathfile) return;
-      commit("SET_SELECTED_TAB", tab.pathfile);
+      const targetPath = normalizePath(tab.pathfile);
+      commit("SET_SELECTED_TAB", targetPath);
 
       //   if (router.currentRoute.value.path !== tab.pathfile) {
       //   }
-      const flmenu = layout.dbmenu2.find((i) => i.pathfile === tab.pathfile);
-      dispatch("selectTabFlMenu", flmenu);
-      router.push({ path: tab.pathfile }).catch(() => { });
+      const flmenu = layout?.dbmenu2?.find(
+        (i) => normalizePath(i.pathfile) === targetPath,
+      );
+      dispatch("selectTabFlMenu", flmenu || { ...tab, pathfile: targetPath });
+      router.push(
+        tab.query ? { path: targetPath, query: tab.query } : { path: targetPath },
+      ).catch(() => { });
     },
 
     /** Pilih tab FLMenu */
@@ -142,15 +168,18 @@ export default {
     removeTab({ state, commit, dispatch, rootGetters }, tab) {
       const layout = rootGetters["settingsfe/getlayoutmenuweb"];
 
-      const index = state.tabs.findIndex((t) => t === tab.pathfile);
-      const newTabs = state.tabs.filter((t) => t !== tab.pathfile);
+      const targetPath = normalizePath(tab.pathfile);
+      const index = state.tabs.findIndex(
+        (t) => normalizePath(t) === targetPath,
+      );
+      const newTabs = state.tabs.filter((t) => normalizePath(t) !== targetPath);
 
-      const route = router.getRoutes().find((r) => r.path === tab.pathfile);
+      const route = findRouteByPath(tab.pathfile);
       const routeName = route ? route.name : tab.CAPTION || tab.pathfile;
       const newNameTabs = state.nametabs.filter((n) => n !== routeName);
 
       const newTabsflmenu = state.tabsflmenu.filter(
-        (t) => t.pathfile !== tab.pathfile,
+        (t) => normalizePath(t.pathfile) !== targetPath,
       );
 
       commit("SET_TABS", newTabs);

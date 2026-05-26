@@ -311,25 +311,33 @@ export default {
           {
             L1: "dummy-user-settings",
             NamaCaption: "User Settings",
-            pathfile: "/crmAdmin/users?tab=settings",
+            CAPTION: "Users",
+            pathfile: "/crmAdmin/users",
+            query: { tab: "settings" },
             ICON: "UserCircle",
           },
           {
             L1: "dummy-user-permission",
             NamaCaption: "User Permission",
-            pathfile: "/crmAdmin/users?tab=permission",
+            CAPTION: "Users",
+            pathfile: "/crmAdmin/users",
+            query: { tab: "permission" },
             ICON: "CheckSquare",
           },
           {
             L1: "dummy-user-area",
             NamaCaption: "Area",
-            pathfile: "/crmAdmin/users?tab=area",
+            CAPTION: "Users",
+            pathfile: "/crmAdmin/users",
+            query: { tab: "area" },
             ICON: "Map",
           },
           {
             L1: "dummy-user-team",
             NamaCaption: "Team",
-            pathfile: "/crmAdmin/users?tab=team",
+            CAPTION: "Users",
+            pathfile: "/crmAdmin/users",
+            query: { tab: "team" },
             ICON: "Users",
           },
         ],
@@ -506,7 +514,11 @@ export default {
       this.expandMenuForItem(menuItem);
 
       if (menuItem.pathfile) {
-        this.$router.push(menuItem.pathfile);
+        const routeLocation = menuItem.query
+          ? { path: menuItem.pathfile, query: menuItem.query }
+          : menuItem.pathfile;
+
+        this.$router.push(routeLocation);
       }
       this.$emit("opentabchange", menuItem);
       this.closeMobileSidebar();
