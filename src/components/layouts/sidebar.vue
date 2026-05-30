@@ -1,10 +1,4 @@
 <template>
-  <div
-    v-if="showMobileBackdrop"
-    class="fixed inset-0 z-40 backdrop-blur-[1px] transition-opacity duration-300 md:hidden"
-    :style="{ backgroundColor: 'rgba(28, 36, 52, 0.5)' }"
-    @click="closeMobileSidebar"
-  ></div>
 
   <aside
     @mouseenter="isHovered = true"
@@ -367,17 +361,7 @@ export default {
     },
 
     sidebarClasses() {
-      const baseClasses = "flex flex-col h-screen transition-all duration-300";
-
-      if (this.isMobileViewport) {
-        return [
-          baseClasses,
-          "fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] shadow-2xl transform",
-          this.collapsed
-            ? "-translate-x-full opacity-0 pointer-events-none"
-            : "translate-x-0 opacity-100",
-        ];
-      }
+      const baseClasses = "hidden md:flex flex-col h-screen transition-all duration-300";
 
       return [
         baseClasses,
