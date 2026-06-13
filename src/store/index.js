@@ -19,6 +19,7 @@ import assoc from "./modules/assoc";
 import lokasi from "./modules/lokasi";
 import history from "./modules/history";
 import invoiceModule from "./modules/invoice";
+import financeModule from "./modules/finance";
 
 export default createStore({
   modules: {
@@ -42,5 +43,7 @@ export default createStore({
     lokasi: lokasi,
     history: history,
     invoice: invoiceModule,
+    
+    finance: financeModule,
   },
 });

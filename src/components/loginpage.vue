@@ -9,12 +9,11 @@
         class="hidden lg:flex flex-col justify-center items-center text-center p-12 bg-white border-r border-gray-100"
       >
         <h1 class="text-5xl font-extrabold text-blue-950 mb-6 tracking-tight">
-          CRM MG26
+          Siap App
         </h1>
 
         <p class="text-slate-500 text-lg leading-relaxed max-w-md">
-          Deliver better customer experiences with organized, efficient CRM
-          management.
+          Deliver better customer experiences with organized
         </p>
 
         <!-- Illustration -->
@@ -32,7 +31,7 @@
             Start Building Better Workflows
           </p>
           <h2 class="text-4xl font-bold text-gray-800 mb-8">
-            Log In to CRM MG26
+            Log In to Siap App
           </h2>
         </div>
 

@@ -26,6 +26,8 @@ import ProjectList from "@/components/pages/Projects/projectlist.vue";
 import ProjectCard from "@/components/pages/Projects/projectcard.vue";
 import ProjectCalender from "@/components/pages/Projects/projectcalender.vue";
 import Notifications from "@/components/pages/Notifications/Notifications.vue";
+import FinanceDashboardView from "@/components/FinanceDashboardView.vue";
+import PiutangDashboardView from "@/components/PiutangDashboardView.vue";
 
 import { createRouter, createWebHistory } from "vue-router";
 import store from "@/store";
@@ -42,6 +44,16 @@ const routes = [
     name: "login",
     component: LoginPage,
   },
+  // ✅ Tambahkan di sini
+  {
+    path: "/logout",
+    name: "logout",
+    beforeEnter: async (to, from, next) => {
+      await store.dispatch("auth/authsignout");
+      next({ name: "login" });
+    },
+    component: { render: () => null },
+  },
   {
     path: "/crmAdmin",
     component: MainDashboard,
@@ -50,7 +62,20 @@ const routes = [
       {
         path: "",
         name: "Dashboard",
-        component: Dashboard,
+        // component: Dashboard,
+        component: FinanceDashboardView,
+      },
+      {
+        path: "finance",
+        name: "FinanceDashboard",
+        component: FinanceDashboardView,
+        meta: { title: "Finance Dashboard" },
+      },
+      {
+        path: "piutangdash",
+        name: "PiutangDashboard",
+        component: PiutangDashboardView,
+        meta: { title: "Piutang Dashboard" },
       },
 
       {

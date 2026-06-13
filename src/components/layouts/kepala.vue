@@ -23,7 +23,7 @@
               class="truncate text-sm font-semibold tracking-wide"
               :style="{ color: 'var(--layout-navbar-text)' }"
             >
-              CRM MG26
+              Siap App
             </p>
             <p
               class="text-[11px] uppercase tracking-[0.2em]"

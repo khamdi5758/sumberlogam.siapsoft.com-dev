@@ -1,5 +1,4 @@
 <template>
-
   <aside
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
@@ -21,7 +20,7 @@
         borderBottomColor: 'var(--layout-sidebar-border)',
       }"
     >
-      <span v-show="isExpanded" class="truncate">CRM MG26</span>
+      <span v-show="isExpanded" class="truncate">Siap App</span>
       <button
         @click="toggleCollapsed"
         :class="[
@@ -361,7 +360,8 @@ export default {
     },
 
     sidebarClasses() {
-      const baseClasses = "hidden md:flex flex-col h-screen transition-all duration-300";
+      const baseClasses =
+        "hidden md:flex flex-col h-screen transition-all duration-300";
 
       return [
         baseClasses,
@@ -404,18 +404,15 @@ export default {
     mainMenuItems() {
       if (this.getlayoutmenuweb && this.getlayoutmenuweb.dbmenu2) {
         return this.getlayoutmenuweb.dbmenu2.filter(
-          (item) => item.L0 === "0" && item.HASACCESS === "1",
+          (item) => item.L0 === "0", // ✅ tampilkan semua parent, akses dicek dari children
         );
       }
       return [];
     },
 
+    // SESUDAH - hapus salah satu
     submenuHasAccess() {
-      return this.showSubmenu.filter((item) => item.hasaccess === 1);
-    },
-
-    submenuHasAccess() {
-      return this.showSubmenu.filter((item) => item.hasaccess === 1);
+      return this.showSubmenu.filter((item) => item.hasaccess === 1); // ✅ satu saja
     },
   },
 
@@ -561,7 +558,7 @@ export default {
       }
 
       const backendChildren = this.getlayoutmenuweb.dbmenu2.filter((item) => {
-        return String(item.Parent) === String(menuId) && item.HASACCESS === "1";
+        return String(item.Parent) === String(menuId) && item.HASACCESS === "1"; // ✅ sudah benar
       });
 
       return backendChildren;
@@ -577,7 +574,6 @@ export default {
 
     handleMainMenuClick(menuItem) {
       if (!menuItem) return;
-
       const menuId = String(menuItem.L1);
       const isCurrentlyExpanded = this.isDummyUserMenu(menuItem)
         ? this.userMenuExpanded
@@ -592,7 +588,14 @@ export default {
       }
 
       if (this.hasChildren(menuItem)) {
-        this.expandedMenuIds = [menuId];
+        // ✅ toggle: collapse jika sudah expand, expand jika belum
+        if (isCurrentlyExpanded) {
+          this.expandedMenuIds = this.expandedMenuIds.filter(
+            (id) => id !== menuId,
+          );
+        } else {
+          this.expandedMenuIds = [menuId];
+        }
       } else {
         this.openTab(menuItem);
       }

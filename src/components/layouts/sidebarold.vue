@@ -96,7 +96,7 @@ const toggleCollapsed = () => {
         isExpanded ? 'gap-2 justify-start' : 'justify-center',
       ]"
     >
-      <span v-show="isExpanded" class="truncate">CRM MG26</span>
+      <span v-show="isExpanded" class="truncate">Siap App</span>
       <button
         @click="toggleCollapsed"
         :class="[

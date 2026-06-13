@@ -57,7 +57,7 @@
         </router-view>
       </main>
 
-      <BottomNavbar @opentabchange="handleOpenTab" />
+      <BottomNavbar @opentabchange="handleOpenTab" :dbmenu2="this.getlayoutmenuweb.dbmenu2" />
      
     </div>
   </div>
@@ -212,7 +212,7 @@ export default {
   watch: {
     nametabs(e) {},
     getlayoutmenuweb(e) {
-      // console.log(e);
+      console.log(e);
     },
     allContactsassoc(e) {
       // console.log("allContactsassoc",e);
