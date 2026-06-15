@@ -11,7 +11,7 @@
       <div class="flex items-center justify-between gap-3">
         <div class="flex min-w-0 items-center gap-3">
           <button
-            class="hidden md:inline-flex shrink-0 items-center justify-center rounded-xl p-2 transition text-(--layout-navbar-muted) hover:bg-(--layout-navbar-border) hover:text-(--layout-navbar-text)"
+            class="inline-flex shrink-0 items-center justify-center rounded-xl p-2 transition text-(--layout-navbar-muted) hover:bg-(--layout-navbar-border) hover:text-(--layout-navbar-text)"
             @click="toggleSidebar"
             aria-label="Toggle sidebar"
           >

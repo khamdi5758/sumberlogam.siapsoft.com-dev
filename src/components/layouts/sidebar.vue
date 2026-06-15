@@ -1,5 +1,11 @@
 <template>
+  <div
+    v-if="showMobileBackdrop"
+    class="fixed inset-0 z-40 bg-black/50 md:hidden"
+    @click="closeMobileSidebar"
+  ></div>
   <aside
+    ref="sidebarContainer"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
     :class="sidebarClasses"
@@ -114,12 +120,22 @@
                       ? handleChildMenuClick(child)
                       : openTab(child)
                   "
-                  class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
+                  class="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
                   :style="{
                     color: 'var(--layout-sidebar-text)',
                   }"
                 >
-                  <span class="truncate">{{ child.NamaCaption }}</span>
+                  <span class="flex items-center gap-3 min-w-0">
+                    <div class="w-5 flex justify-center" v-if="child.ICON && iconMap[child.ICON]">
+                      <component
+                        :is="iconMap[child.ICON]"
+                        :size="18"
+                        class="menu-icon group-hover:text-(--layout-sidebar-accent)"
+                        :style="{ color: 'var(--layout-sidebar-muted)' }"
+                      />
+                    </div>
+                    <span class="truncate">{{ child.NamaCaption }}</span>
+                  </span>
                   <ChevronDown
                     v-if="childHasChildren(child)"
                     :size="14"
@@ -144,10 +160,20 @@
                   <button
                     type="button"
                     @click="openTab(sub)"
-                    class="w-full rounded-lg px-3 py-2 text-left text-sm transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
+                    class="group flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
                     :style="{ color: 'var(--layout-sidebar-muted)' }"
                   >
-                    <span class="truncate">{{ sub.NamaCaption }}</span>
+                    <span class="flex items-center gap-3 min-w-0 w-full">
+                      <div class="w-4 flex justify-center" v-if="sub.ICON && iconMap[sub.ICON]">
+                        <component
+                          :is="iconMap[sub.ICON]"
+                          :size="16"
+                          class="menu-icon group-hover:text-(--layout-sidebar-accent)"
+                          :style="{ color: 'var(--layout-sidebar-muted)' }"
+                        />
+                      </div>
+                      <span class="truncate">{{ sub.NamaCaption }}</span>
+                    </span>
                   </button>
                 </div>
               </div>
@@ -258,6 +284,8 @@ import {
   BarChart3,
   ChevronDown,
   Map,
+  HandCoins,
+  Landmark,
 } from "lucide-vue-next";
 
 export default {
@@ -279,6 +307,8 @@ export default {
     BarChart3,
     ChevronDown,
     Map,
+    HandCoins,
+    Landmark,
   },
 
   data() {
@@ -361,7 +391,14 @@ export default {
 
     sidebarClasses() {
       const baseClasses =
-        "hidden md:flex flex-col h-screen transition-all duration-300";
+        "flex flex-col h-screen transition-all duration-300";
+
+      if (this.isMobileViewport) {
+        return [
+          baseClasses,
+          this.collapsed ? "hidden" : "fixed left-0 top-0 h-full w-64 shadow-xl z-50",
+        ];
+      }
 
       return [
         baseClasses,
@@ -398,6 +435,8 @@ export default {
         BarChart3,
         ChevronDown,
         Map,
+        HandCoins,
+        Landmark,
       };
     },
 
@@ -886,7 +925,7 @@ export default {
     },
 
     handleClickOutside(event) {
-      const sidebar = this.$el;
+      const sidebar = this.$refs.sidebarContainer;
       if (sidebar && !sidebar.contains(event.target)) {
         this.closeAllMenus();
       }

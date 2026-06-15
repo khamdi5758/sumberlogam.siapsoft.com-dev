@@ -46,7 +46,7 @@
 
       <!-- CONTENT -->
       <main
-        class="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-20 md:pb-4"
+        class="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-4"
         :style="{ backgroundColor: 'var(--layout-content-bg)' }"
       >
         <router-view v-slot="{ Component, route }">
@@ -57,7 +57,6 @@
         </router-view>
       </main>
 
-      <BottomNavbar @opentabchange="handleOpenTab" :dbmenu2="this.getlayoutmenuweb.dbmenu2" />
      
     </div>
   </div>
@@ -67,7 +66,7 @@
 import { mapGetters, mapActions } from "vuex";
 import Sidebar from "./layouts/sidebar.vue";
 import Kepala from "./layouts/kepala.vue";
-import BottomNavbar from "./layouts/BottomNavbar.vue";
+
 
 /* contoh pages */
 import Dashboard from "./dashboard.vue";
@@ -81,7 +80,7 @@ export default {
     Sidebar,
     Kepala,
     Dashboard,
-    BottomNavbar,
+
   },
   mixins: [functioncustom],
   computed: {
