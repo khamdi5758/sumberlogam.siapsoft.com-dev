@@ -20,6 +20,8 @@ import lokasi from "./modules/lokasi";
 import history from "./modules/history";
 import invoiceModule from "./modules/invoice";
 import financeModule from "./modules/finance";
+import registerModule from "./modules/register";
+import registerbeliModule from "./modules/registerbeli";
 
 export default createStore({
   modules: {
@@ -45,5 +47,7 @@ export default createStore({
     invoice: invoiceModule,
     
     finance: financeModule,
+    register: registerModule,
+    registerbeli: registerbeliModule,
   },
 });

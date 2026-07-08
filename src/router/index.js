@@ -16,11 +16,23 @@ import DocumentList from "@/components/pages/documents/DocumentList.vue";
 import DocumentsTemplate from "@/components/pages/documents/DocumentsTemplate.vue";
 import DocumentsShortCode from "@/components/pages/documents/DocumentsShortCode.vue";
 import Invoice from "@/components/pages/Invoice/Invoice.vue";
-import RegisPo from "@/components/pages/Registrasi/Regis_Po.vue";
+
+//registrasi
+import RegisPo from "@/components/pages/Registrasi/MainRegis/RegisterPO.vue";
+import RegisSo from "@/components/pages/Registrasi/MainRegis/RegisterSO.vue";
+import RegisJual from "@/components/pages/Registrasi/MainRegis/RegisterJual.vue";
+import RegisBeli from "@/components/pages/Registrasi/MainRegis/RegisterBeli.vue";
+import RegisReturJual from "@/components/pages/Registrasi/MainRegis/RegisterReturJual.vue";
+import RegisReturBeli from "@/components/pages/Registrasi/MainRegis/RegisterReturBeli.vue";
+import RegisKoreksi from "@/components/pages/Registrasi/MainRegis/RegisterKoreksi.vue";
+import RegisRepacking from "@/components/pages/Registrasi/MainRegis/RegisterRepacking.vue";
+import RegisCrediteNote from "@/components/pages/Registrasi/MainRegis/RegisterCrediteNote.vue";
+
 import UserSetings from "@/components/pages/user/usersettings/usersetings.vue";
 import UserPermission from "@/components/pages/user/userpermission.vue";
 import UserTeam from "@/components/pages/user/userteam.vue";
 import User from "@/components/pages/user/user.vue";
+
 import SettingsPage from "@/components/Settings.vue";
 import Project from "@/components/pages/Projects/project.vue";
 import ProjectList from "@/components/pages/Projects/projectlist.vue";
@@ -188,15 +200,154 @@ const routes = [
         component: Invoice,
       },
       {
-        path: "register/po",
-        name: "RegisterPo",
-        component: RegisPo,
-        alias: [
-          "/crmAdmin/register",
-          "/crmAdmin/registrasi",
-          "/crmAdmin/register-po",
+        path: "register",
+        children: [
+          {
+            path: "po",
+            name: "RegisterPo",
+            component: RegisPo, 
+          },
+          {
+            path: "beli", 
+            name: "RegisterBeli",
+            component: RegisBeli,
+          },
+          {
+            path: "returbeli", 
+            name: "RegisterReturBeli",
+            component: RegisReturBeli,
+          },
+          {
+            path: "so", 
+            name: "RegisSo",
+            component: RegisSo,  
+          },
+          {
+            path: "jual", 
+            name: "RegisterJual",
+            component: RegisJual,
+          },
+          {
+            path: "returjual", 
+            name: "RegisterReturJual",
+            component: RegisReturJual,
+          },
+          {
+            path: "koreksi",
+            name: "RegisterKoreksi",
+            component: RegisKoreksi,
+          },
+          {
+            path: "repacking",
+            name: "RegisterRepacking",
+            component: RegisRepacking,
+          },
+          {
+            path: "creditenote",
+            name: "RegisterCrediteNote",
+            component: RegisCrediteNote,
+          },
+          {
+            path: "stock",
+            children: [
+              {
+                path: "serial",
+                name: "RegisterStockSerial",
+                component: () => import("@/components/pages/Registrasi/MainRegis/RegisterStockSerial.vue"),
+              },
+              {
+                path: "serialrekap",
+                name: "RegisterStockSerialRekap",
+                component: () => import("@/components/pages/Registrasi/MainRegis/RegisterStockSerialRekap.vue"),
+              },
+            ],
+          },
+          {
+            path: "outstanding",
+            children: [
+              {
+                path: "po",
+                name: "RegisterOutstandingPO",
+                component: () => import("@/components/pages/Registrasi/MainRegis/RegisterOutstandingPO.vue"),
+              },
+              {
+                path: "so",
+                name: "RegisterOutstandingSO",
+                component: () => import("@/components/pages/Registrasi/MainRegis/RegisterOutstandingSO.vue"),
+              },
+              {
+                path: "transfer",
+                name: "RegisterOutstandingTransfer",
+                component: () => import("@/components/pages/Registrasi/MainRegis/RegisterOutstandingTransfer.vue"),
+              },
+           ],
+          },
+          {
+            path: "cekstockminus",
+            name: "RegisterCekStockMinus",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterCekStockMinus.vue"),
+          },
+          {
+            path: "cekselisihstock",
+            name: "RegisterCekSelisihStock",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterCekSelisihStock.vue"),
+          },
+          {
+            path: "opname",
+            name: "RegisterOpname",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterOpname.vue"),
+          },
+          {
+            path: "control",
+            children: [
+              {
+                path: "piutang",
+                name: "RegisterControlPiutang",
+                component: () => import("@/components/pages/Registrasi/MainRegis/RegisterControlPiutang.vue"),
+              },
+              {
+                path: "hutang",
+                name: "RegisterControlHutang",
+                component: () => import("@/components/pages/Registrasi/MainRegis/RegisterControlHutang.vue"),
+              },
+            ],
+          },
+          {
+            path: "jatuhtempo",
+            name: "RegisterJatuhTempo",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterJatuhTempo1.vue"),
+          },
+          {
+            path: "jatuhtempoabal2",
+            name: "RegisterJatuhTempoAbal2",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterJatuhTempoAbal2.vue"),
+          },
+          {
+            path: "updateharga",
+            name: "RegisterUpdateHarga",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterUpdateHarga.vue"),
+          },
+          {
+            path: "jurnal",
+            name: "RegisterJurnal",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterJurnal.vue"),
+          },
+          {
+            path: "historyupdateharga",
+            name: "RegisterHistoryUpdateHarga",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterHistoryUpdateHarga.vue"),
+          },
+          {
+            path: "fpj",
+            children: [
+              {
+                path: "beli",
+                name: "RegisterFPJBeli",
+                component: () => import("@/components/pages/Registrasi/MainRegis/RegisterFPJBeli.vue"),
+              },
+            ],
+          },
         ],
-        meta: { title: "Register PO" },
       },
       {
         path: "users",

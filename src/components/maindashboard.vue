@@ -50,14 +50,11 @@
         :style="{ backgroundColor: 'var(--layout-content-bg)' }"
       >
         <router-view v-slot="{ Component, route }">
-          <!-- <keep-alive>  -->
           <keep-alive :include="this.nametabs">
-            <component :is="Component" :key="key" />
+            <component :is="Component" :key="$route.fullPath" />
           </keep-alive>
         </router-view>
       </main>
-
-     
     </div>
   </div>
 </template>
@@ -66,7 +63,6 @@
 import { mapGetters, mapActions } from "vuex";
 import Sidebar from "./layouts/sidebar.vue";
 import Kepala from "./layouts/kepala.vue";
-
 
 /* contoh pages */
 import Dashboard from "./dashboard.vue";
@@ -80,7 +76,6 @@ export default {
     Sidebar,
     Kepala,
     Dashboard,
-
   },
   mixins: [functioncustom],
   computed: {
