@@ -9,11 +9,7 @@
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
     :class="sidebarClasses"
-    :style="{
-      backgroundColor: 'var(--layout-sidebar-bg)',
-      color: 'var(--layout-sidebar-text)',
-      borderColor: 'var(--layout-sidebar-border)',
-    }"
+    :style="sidebarStyles"
   >
     <!-- Header -->
     <div
@@ -80,7 +76,7 @@
 
             <!-- Label -->
             <span v-show="isExpanded" class="truncate text-left">{{
-              mainMenu.NamaCaption
+              displayMenuCaption(mainMenu.NamaCaption)
             }}</span>
           </span>
 
@@ -126,7 +122,10 @@
                   }"
                 >
                   <span class="flex items-center gap-3 min-w-0">
-                    <div class="w-5 flex justify-center" v-if="child.ICON && iconMap[child.ICON]">
+                    <div
+                      class="w-5 flex justify-center"
+                      v-if="child.ICON && iconMap[child.ICON]"
+                    >
                       <component
                         :is="iconMap[child.ICON]"
                         :size="18"
@@ -134,7 +133,9 @@
                         :style="{ color: 'var(--layout-sidebar-muted)' }"
                       />
                     </div>
-                    <span class="truncate">{{ child.NamaCaption }}</span>
+                    <span class="truncate">{{
+                      displayMenuCaption(child.NamaCaption)
+                    }}</span>
                   </span>
                   <ChevronDown
                     v-if="childHasChildren(child)"
@@ -164,7 +165,10 @@
                     :style="{ color: 'var(--layout-sidebar-muted)' }"
                   >
                     <span class="flex items-center gap-3 min-w-0 w-full">
-                      <div class="w-4 flex justify-center" v-if="sub.ICON && iconMap[sub.ICON]">
+                      <div
+                        class="w-4 flex justify-center"
+                        v-if="sub.ICON && iconMap[sub.ICON]"
+                      >
                         <component
                           :is="iconMap[sub.ICON]"
                           :size="16"
@@ -172,7 +176,9 @@
                           :style="{ color: 'var(--layout-sidebar-muted)' }"
                         />
                       </div>
-                      <span class="truncate">{{ sub.NamaCaption }}</span>
+                      <span class="truncate">{{
+                        displayMenuCaption(sub.NamaCaption)
+                      }}</span>
                     </span>
                   </button>
                 </div>
@@ -190,6 +196,13 @@
         ></div> -->
       </div>
     </nav>
+
+    <div
+      v-if="!isMobileViewport"
+      class="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-transparent transition hover:bg-(--layout-sidebar-accent)/40"
+      @mousedown.prevent="startSidebarResize"
+      title="Drag untuk ubah lebar sidebar"
+    ></div>
 
     <!-- Log Out
     <div class="p-4 border-t border-slate-800 shrink-0">
@@ -327,6 +340,10 @@ export default {
       chevronAnimationMenuId: null,
       chevronAnimationDirection: "",
       chevronAnimationTimer: null,
+      sidebarCustomWidth: this.getStoredSidebarWidth(),
+      isResizingSidebar: false,
+      sidebarResizeStartX: 0,
+      sidebarResizeStartWidth: 0,
       // track expanded menus for inline sidebar dropdowns
       expandedMenuIds: [],
       dummySidebarChildren: {
@@ -389,14 +406,35 @@ export default {
       return this.isMobileViewport && !this.collapsed;
     },
 
+    sidebarStyles() {
+      const baseStyles = {
+        backgroundColor: "var(--layout-sidebar-bg)",
+        color: "var(--layout-sidebar-text)",
+        borderColor: "var(--layout-sidebar-border)",
+      };
+
+      if (this.isMobileViewport) {
+        return this.collapsed
+          ? baseStyles
+          : { ...baseStyles, width: `${this.sidebarCustomWidth}px` };
+      }
+
+      if (this.collapsed && !this.isHovered) {
+        return { ...baseStyles, width: "80px" };
+      }
+
+      return { ...baseStyles, width: `${this.sidebarCustomWidth}px` };
+    },
+
     sidebarClasses() {
-      const baseClasses =
-        "flex flex-col h-screen transition-all duration-300";
+      const baseClasses = "flex flex-col h-screen transition-all duration-300";
 
       if (this.isMobileViewport) {
         return [
           baseClasses,
-          this.collapsed ? "hidden" : "fixed left-0 top-0 h-full w-64 shadow-xl z-50",
+          this.collapsed
+            ? "hidden"
+            : "fixed left-0 top-0 h-full w-64 shadow-xl z-50",
         ];
       }
 
@@ -533,6 +571,13 @@ export default {
 
       this.expandMenuForItem(menuItem);
 
+      if (this.isRegisterMenu(menuItem)) {
+        this.$router.push({ name: "RegisterPo", query: { openPopup: "1" } });
+        this.$emit("opentabchange", menuItem);
+        this.closeMobileSidebar();
+        return;
+      }
+
       if (menuItem.pathfile) {
         const routeLocation = menuItem.query
           ? { path: menuItem.pathfile, query: menuItem.query }
@@ -548,6 +593,65 @@ export default {
       return String(caption || "")
         .trim()
         .toLowerCase();
+    },
+
+    displayMenuCaption(caption) {
+      return String(caption || "")
+        .replace(/^\s*\d+\s*[-–—.:]?\s*/, "")
+        .trim();
+    },
+
+    getStoredSidebarWidth() {
+      const storedWidth = Number(localStorage.getItem("sidebarCustomWidth"));
+
+      if (
+        Number.isFinite(storedWidth) &&
+        storedWidth >= 220 &&
+        storedWidth <= 420
+      ) {
+        return storedWidth;
+      }
+
+      return 256;
+    },
+
+    clampSidebarWidth(width) {
+      return Math.min(420, Math.max(220, width));
+    },
+
+    startSidebarResize(event) {
+      if (this.isMobileViewport) return;
+
+      this.isResizingSidebar = true;
+      this.sidebarResizeStartX = event.clientX;
+      this.sidebarResizeStartWidth = this.sidebarCustomWidth;
+
+      window.addEventListener("mousemove", this.onSidebarResizeMove);
+      window.addEventListener("mouseup", this.stopSidebarResize);
+      document.body.style.userSelect = "none";
+      document.body.style.cursor = "col-resize";
+    },
+
+    onSidebarResizeMove(event) {
+      if (!this.isResizingSidebar) return;
+
+      const nextWidth = this.clampSidebarWidth(
+        this.sidebarResizeStartWidth +
+          (event.clientX - this.sidebarResizeStartX),
+      );
+
+      this.sidebarCustomWidth = nextWidth;
+      localStorage.setItem("sidebarCustomWidth", String(nextWidth));
+    },
+
+    stopSidebarResize() {
+      if (!this.isResizingSidebar) return;
+
+      this.isResizingSidebar = false;
+      window.removeEventListener("mousemove", this.onSidebarResizeMove);
+      window.removeEventListener("mouseup", this.stopSidebarResize);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
     },
 
     getDummyChildren(menuItem) {
@@ -644,6 +748,22 @@ export default {
       return this.normalizeMenuCaption(menuItem?.NamaCaption) === "user";
     },
 
+    isRegisterMenu(menuItem) {
+      const caption = this.normalizeMenuCaption(menuItem?.NamaCaption);
+      const pathfile = this.normalizeMenuCaption(menuItem?.pathfile);
+
+      return (
+        caption === "register" ||
+        caption === "registrasi" ||
+        caption === "register po" ||
+        caption === "registerpo" ||
+        pathfile === "/crmadmin/register" ||
+        pathfile === "/crmadmin/registrasi" ||
+        pathfile === "/crmadmin/register/po" ||
+        pathfile === "/crmadmin/register-po"
+      );
+    },
+
     isDummyUserMenuExpanded(menuItem) {
       return this.isDummyUserMenu(menuItem) && this.userMenuExpanded;
     },
@@ -682,7 +802,17 @@ export default {
       if (!menuItem) return;
 
       if (this.childHasChildren(menuItem)) {
-        this.expandedMenuIds = [String(menuItem.L1)];
+        const menuId = String(menuItem.L1);
+        if (this.isMenuExpanded(menuId)) {
+          this.expandedMenuIds = this.expandedMenuIds.filter(
+            (id) => id !== menuId,
+          );
+          return;
+        }
+
+        const nextExpandedIds = this.getExpandedMenuChain(menuItem);
+        nextExpandedIds.push(menuId);
+        this.expandedMenuIds = Array.from(new Set(nextExpandedIds));
       } else {
         this.openTab(menuItem);
       }
@@ -968,6 +1098,7 @@ export default {
   beforeUnmount() {
     document.removeEventListener("click", this.handleClickOutside);
     window.removeEventListener("resize", this.handleResize);
+    this.stopSidebarResize();
     if (this.mediaQuery && this.mediaQuery.removeEventListener) {
       this.mediaQuery.removeEventListener("change", this.handleMedia);
     }

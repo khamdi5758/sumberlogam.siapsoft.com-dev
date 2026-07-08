@@ -16,6 +16,7 @@ import DocumentList from "@/components/pages/documents/DocumentList.vue";
 import DocumentsTemplate from "@/components/pages/documents/DocumentsTemplate.vue";
 import DocumentsShortCode from "@/components/pages/documents/DocumentsShortCode.vue";
 import Invoice from "@/components/pages/Invoice/Invoice.vue";
+import RegisPo from "@/components/pages/Registrasi/Regis_Po.vue";
 import UserSetings from "@/components/pages/user/usersettings/usersetings.vue";
 import UserPermission from "@/components/pages/user/userpermission.vue";
 import UserTeam from "@/components/pages/user/userteam.vue";
@@ -185,6 +186,17 @@ const routes = [
         path: "invoice",
         name: "Invoice",
         component: Invoice,
+      },
+      {
+        path: "register/po",
+        name: "RegisterPo",
+        component: RegisPo,
+        alias: [
+          "/crmAdmin/register",
+          "/crmAdmin/registrasi",
+          "/crmAdmin/register-po",
+        ],
+        meta: { title: "Register PO" },
       },
       {
         path: "users",

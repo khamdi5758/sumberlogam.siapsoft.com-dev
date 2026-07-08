@@ -15,7 +15,6 @@
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.6",
     "browser-image-compression": "^2.0.2",
-    "devextreme": "23.1.15",
     "devextreme-vue": "23.1.15",
     "exceljs": "^4.4.0",
     "file-saver-es": "^2.0.5",

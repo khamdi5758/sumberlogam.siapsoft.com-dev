@@ -1,33 +1,38 @@
 <template>
   <div
     class="md:hidden fixed bottom-0 w-full z-50 overflow-x-auto overflow-y-hidden h-16 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] custom-scrollbar"
-    :style="{ 
-      backgroundColor: 'var(--layout-sidebar-bg)', 
-      borderTop: '1px solid var(--layout-sidebar-border)' 
+    :style="{
+      backgroundColor: 'var(--layout-sidebar-bg)',
+      borderTop: '1px solid var(--layout-sidebar-border)',
     }"
   >
     <div class="flex flex-row h-full">
       <template v-for="item in parentMenus" :key="item.L1">
-
         <!-- Level 1: Parent Tab -->
         <div
           @click="handleL1Click(item)"
           class="flex flex-col items-center justify-center min-w-[72px] flex-shrink-0 h-full cursor-pointer transition-all duration-200 relative"
           :style="{
-            color: isActiveL1(item) ? 'var(--layout-sidebar-accent)' : 'var(--layout-sidebar-muted)',
-            backgroundColor: expandedL1 === item.L1
-              ? 'color-mix(in srgb, var(--layout-sidebar-accent) 10%, transparent)'
-              : 'transparent'
+            color: isActiveL1(item)
+              ? 'var(--layout-sidebar-accent)'
+              : 'var(--layout-sidebar-muted)',
+            backgroundColor:
+              expandedL1 === item.L1
+                ? 'color-mix(in srgb, var(--layout-sidebar-accent) 10%, transparent)'
+                : 'transparent',
           }"
         >
           <component :is="getIcon(item.ICON)" :size="20" />
-          <span class="text-[10px] mt-1 font-medium">{{ item.captionmenu }}</span>
+          <span class="text-[10px] mt-1 font-medium">{{
+            displayMenuCaption(item.captionmenu)
+          }}</span>
           <div
             v-if="getChildren(item.L1).length > 0"
             class="absolute top-1 right-1 transition-transform duration-200"
             :style="{
               color: 'var(--layout-sidebar-muted)',
-              transform: expandedL1 === item.L1 ? 'rotate(180deg)' : 'rotate(0deg)'
+              transform:
+                expandedL1 === item.L1 ? 'rotate(180deg)' : 'rotate(0deg)',
             }"
           >
             <ChevronUp :size="10" />
@@ -47,19 +52,28 @@
             <div
               v-for="child in getChildren(item.L1)"
               :key="child.L1"
-              :ref="el => { if (el) tabRefs[child.L1] = el }"
+              :ref="
+                (el) => {
+                  if (el) tabRefs[child.L1] = el;
+                }
+              "
               @click.stop="handleL2Click(child)"
               class="flex flex-col items-center justify-center min-w-[76px] flex-shrink-0 h-full cursor-pointer transition-all duration-150 relative"
               :style="{
-                color: isActiveL2(child) ? 'var(--layout-sidebar-accent)' : 'var(--layout-sidebar-muted)',
-                backgroundColor: expandedL2 === child.L1 || isActiveL2(child)
-                  ? 'color-mix(in srgb, var(--layout-sidebar-accent) 15%, transparent)'
-                  : 'color-mix(in srgb, var(--layout-sidebar-accent) 5%, transparent)'
+                color: isActiveL2(child)
+                  ? 'var(--layout-sidebar-accent)'
+                  : 'var(--layout-sidebar-muted)',
+                backgroundColor:
+                  expandedL2 === child.L1 || isActiveL2(child)
+                    ? 'color-mix(in srgb, var(--layout-sidebar-accent) 15%, transparent)'
+                    : 'color-mix(in srgb, var(--layout-sidebar-accent) 5%, transparent)',
               }"
             >
               <component :is="getIcon(child.ICON)" :size="18" />
-              <span class="text-[10px] mt-1 font-medium text-center leading-tight px-1">
-                {{ child.CAPTION }}
+              <span
+                class="text-[10px] mt-1 font-medium text-center leading-tight px-1"
+              >
+                {{ displayMenuCaption(child.CAPTION) }}
               </span>
               <!-- Chevron jika punya L3 -->
               <div
@@ -67,7 +81,8 @@
                 class="absolute top-1 right-1 transition-transform duration-200"
                 :style="{
                   color: 'var(--layout-sidebar-muted)',
-                  transform: expandedL2 === child.L1 ? 'rotate(180deg)' : 'rotate(0deg)'
+                  transform:
+                    expandedL2 === child.L1 ? 'rotate(180deg)' : 'rotate(0deg)',
                 }"
               >
                 <ChevronUp :size="10" />
@@ -81,7 +96,6 @@
             </div>
           </div>
         </Transition>
-
       </template>
     </div>
   </div>
@@ -98,7 +112,7 @@
           class="rounded-xl shadow-xl overflow-visible min-w-[160px]"
           :style="{
             backgroundColor: 'var(--layout-sidebar-bg)',
-            border: '1px solid var(--layout-sidebar-border)'
+            border: '1px solid var(--layout-sidebar-border)',
           }"
         >
           <!-- Label parent L2 -->
@@ -122,11 +136,13 @@
                   : 'var(--layout-sidebar-text)',
                 backgroundColor: isChildActive(grandchild)
                   ? 'color-mix(in srgb, var(--layout-sidebar-accent) 12%, transparent)'
-                  : 'transparent'
+                  : 'transparent',
               }"
             >
               <component :is="getIcon(grandchild.ICON)" :size="16" />
-              <span class="text-sm font-medium whitespace-nowrap">{{ grandchild.CAPTION }}</span>
+              <span class="text-sm font-medium whitespace-nowrap">{{
+                displayMenuCaption(grandchild.CAPTION)
+              }}</span>
             </div>
           </div>
 
@@ -137,7 +153,7 @@
               left: arrowLeft + 'px',
               backgroundColor: 'var(--layout-sidebar-bg)',
               borderRight: '1px solid var(--layout-sidebar-border)',
-              borderBottom: '1px solid var(--layout-sidebar-border)'
+              borderBottom: '1px solid var(--layout-sidebar-border)',
             }"
           />
         </div>
@@ -200,8 +216,8 @@ export default {
 
   data() {
     return {
-      expandedL1: null,      // L1 dari parent level 1 yang di-expand
-      expandedL2: null,      // L1 dari parent level 2 yang aktif popover
+      expandedL1: null, // L1 dari parent level 1 yang di-expand
+      expandedL2: null, // L1 dari parent level 2 yang aktif popover
       activePopoverL2: null, // item L2 yang popovernya terbuka
       popoverStyle: {},
       arrowLeft: 20,
@@ -216,6 +232,12 @@ export default {
   },
 
   methods: {
+    displayMenuCaption(caption) {
+      return String(caption || "")
+        .replace(/^\s*\d+\s*[-–—.:]?\s*/, "")
+        .trim();
+    },
+
     getIcon(iconName) {
       return ICON_MAP[iconName] || LayoutDashboard;
     },
@@ -278,8 +300,8 @@ export default {
       this.arrowLeft = Math.max(10, Math.min(arrowLeft, popoverWidth - 22));
 
       this.popoverStyle = {
-        left: left + 'px',
-        bottom: bottomNavHeight + 10 + 'px',
+        left: left + "px",
+        bottom: bottomNavHeight + 10 + "px",
       };
 
       this.expandedL2 = item.L1;
@@ -316,7 +338,9 @@ export default {
         return descendants.some((d) => this.$route.path.startsWith(d.pathfile));
       }
       if (item.pathfile === "/crmAdmin") {
-        return this.$route.path === "/crmAdmin" || this.$route.path === "/crmAdmin/";
+        return (
+          this.$route.path === "/crmAdmin" || this.$route.path === "/crmAdmin/"
+        );
       }
       return this.$route.path.startsWith(item.pathfile);
     },
@@ -346,12 +370,19 @@ export default {
 </script>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar { display: none; }
-.custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.custom-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
 .expand-x-enter-active,
 .expand-x-leave-active {
-  transition: max-width 0.25s ease, opacity 0.2s ease;
+  transition:
+    max-width 0.25s ease,
+    opacity 0.2s ease;
   max-width: 600px;
 }
 .expand-x-enter-from,
@@ -362,7 +393,9 @@ export default {
 
 .popover-enter-active,
 .popover-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 .popover-enter-from,
 .popover-leave-to {
