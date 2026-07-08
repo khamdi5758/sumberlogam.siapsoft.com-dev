@@ -95,7 +95,7 @@ import ArusKasLangsung from '@/components/finance/ArusKasLangsung.vue'
 import TrenSaldo      from '@/components/finance/TrenSaldo.vue'
 
 import financeService from '@/services/financeService'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
   name: 'FinanceDashboardView',
@@ -120,16 +120,25 @@ export default {
       daftarTahun: [2023, 2024, 2025, 2026],
 
       loading:        false,
-      kpi:            {},
-      grafikBulanan:  [],
-      distribusiBiaya:[],
-      arusKas:        {},
-      trenSaldo:      [],
-      transaksi:      [],
     }
   },
 
   computed: {
+    ...mapGetters("finance", [
+      "getKpi",
+      "getGrafikBulanan",
+      "getDistribusiBiaya",
+      "getArusKas",
+      "getTrenSaldo",
+      "getTransaksiTerbaru",
+    ]),
+    kpi() { return this.getKpi || {}; },
+    grafikBulanan() { return this.getGrafikBulanan || []; },
+    distribusiBiaya() { return this.getDistribusiBiaya || []; },
+    arusKas() { return this.getArusKas || {}; },
+    trenSaldo() { return this.getTrenSaldo || []; },
+    transaksi() { return this.getTransaksiTerbaru?.data || this.getTransaksiTerbaru || []; },
+
     periodeLabel() {
       const map = { 1: 'Jan–Mar', 2: 'Apr–Jun', 3: 'Jul–Sep', 4: 'Okt–Des' }
       return `Q${this.filterKuartal} · ${map[this.filterKuartal]} ${this.filterTahun}`
@@ -157,30 +166,6 @@ export default {
       }
     },
 
-    async loadKpi() {
-      const { data } = await financeService.getKpi(this.filterKuartal, this.filterTahun)
-      this.kpi = data
-    },
-    async loadGrafik() {
-      const { data } = await financeService.getGrafikBulanan(this.filterKuartal, this.filterTahun)
-      this.grafikBulanan = data
-    },
-    async loadDistribusi() {
-      const { data } = await financeService.getDistribusiBiaya(this.filterKuartal, this.filterTahun)
-      this.distribusiBiaya = data
-    },
-    async loadArusKas() {
-      const { data } = await financeService.getArusKas(this.filterKuartal, this.filterTahun)
-      this.arusKas = data
-    },
-    async loadTrenSaldo() {
-      const { data } = await financeService.getTrenSaldo(this.filterTahun)
-      this.trenSaldo = data
-    },
-    async loadTransaksi() {
-      const { data } = await financeService.getTransaksiTerbaru(this.filterKuartal, this.filterTahun)
-      this.transaksi = data.data
-    },
   },
 }
 </script>

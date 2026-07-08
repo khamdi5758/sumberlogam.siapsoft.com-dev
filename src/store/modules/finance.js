@@ -226,13 +226,15 @@ const actions = {
   },
 
   actFetchfinancedashAll(context, payload) {
-    context.dispatch("actKPI", payload);
-    context.dispatch("actGrafikBulanan", payload);
-    context.dispatch("actDistribusiBiaya", payload);
-    context.dispatch("actArusKas", payload);
-    context.dispatch("actTrenSaldo", payload);
-    context.dispatch("actTransaksiTerbaru", payload);
-    context.dispatch("actRingkasanBulanan", payload);
+    return Promise.all([
+      context.dispatch("actKPI", payload),
+      context.dispatch("actGrafikBulanan", payload),
+      context.dispatch("actDistribusiBiaya", payload),
+      context.dispatch("actArusKas", payload),
+      context.dispatch("actTrenSaldo", payload),
+      context.dispatch("actTransaksiTerbaru", payload),
+      context.dispatch("actRingkasanBulanan", payload),
+    ]);
   }
 };
 
