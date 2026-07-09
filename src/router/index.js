@@ -68,12 +68,12 @@ const routes = [
     component: { render: () => null },
   },
   {
-    path: "/crmAdmin",
+    path: "/app",
     component: MainDashboard,
     meta: { requiresAuth: true },
     children: [
       {
-        path: "",
+        path: "dashboard/dashboardku",
         name: "Dashboard",
         // component: Dashboard,
         component: FinanceDashboardView,
@@ -205,30 +205,30 @@ const routes = [
           {
             path: "po",
             name: "RegisterPo",
-            component: RegisPo, 
+            component: RegisPo,
           },
           {
-            path: "beli", 
+            path: "beli",
             name: "RegisterBeli",
             component: RegisBeli,
           },
           {
-            path: "returbeli", 
+            path: "returbeli",
             name: "RegisterReturBeli",
             component: RegisReturBeli,
           },
           {
-            path: "so", 
+            path: "so",
             name: "RegisSo",
-            component: RegisSo,  
+            component: RegisSo,
           },
           {
-            path: "jual", 
+            path: "jual",
             name: "RegisterJual",
             component: RegisJual,
           },
           {
-            path: "returjual", 
+            path: "returjual",
             name: "RegisterReturJual",
             component: RegisReturJual,
           },
@@ -280,7 +280,7 @@ const routes = [
                 name: "RegisterOutstandingTransfer",
                 component: () => import("@/components/pages/Registrasi/MainRegis/RegisterOutstandingTransfer.vue"),
               },
-           ],
+            ],
           },
           {
             path: "cekstockminus",

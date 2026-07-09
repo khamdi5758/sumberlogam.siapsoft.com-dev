@@ -57,6 +57,7 @@
       :initialStartDate="startDate"
       :initialEndDate="endDate"
       :initialGudang="selectedGudang"
+      :storeModule="storeModule"
       @apply="handleApplyFilter"
       @close="handleClosePopup"
     />
@@ -79,10 +80,21 @@ export default {
     apiEndpoint: { type: String, default: "report" },
   },
   data() {
+    const today = new Date();
+    const first = new Date(today.getFullYear(), today.getMonth(), 1);
+    const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    const formatDateLocal = (date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    };
+
     return {
       showFilter: true,
-      startDate: "",
-      endDate: "",
+      startDate: formatDateLocal(first),
+      endDate: formatDateLocal(last),
       selectedGudang: "",
       searchText: "",
       currentPage: 1,
@@ -223,11 +235,6 @@ export default {
     },
   },
   mounted() {
-    const today = new Date();
-    const first = new Date(today.getFullYear(), today.getMonth(), 1);
-    const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    this.startDate = this.formatDateLocal(first);
-    this.endDate = this.formatDateLocal(last);
     // Tunggu sampai popup diproses baru load data
     this.$nextTick(() => {
       if (!this.registerList || this.registerList.length === 0) {

@@ -89,7 +89,7 @@
 
           <!-- Gudang -->
           <div
-            v-if="type !== 'po'"
+            v-if="type !== 'po' && type !== 'so'"
             class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
           >
             <label for="warehouse" class="text-[14px] text-slate-700"
@@ -140,7 +140,6 @@
 
 <script>
 import { CalendarDays, X } from "lucide-vue-next";
-import { mapGetters } from "vuex";
 import api from "@/api";
 import FormBrowseDialog from "@/components/widgets/FormBrowseDialog.vue";
 
@@ -154,6 +153,7 @@ export default {
     initialStartDate: { type: String, default: "" },
     initialEndDate: { type: String, default: "" },
     initialGudang: { type: String, default: "" },
+    storeModule: { type: String, default: "registerbeli" },
   },
   data() {
     return {
@@ -166,9 +166,9 @@ export default {
     };
   },
   computed: {
-    ...mapGetters({
-      getGudangList: "registerbeli/gudangList", // sesuaikan dengan store Anda
-    }),
+    getGudangList() {
+      return this.$store.getters[`${this.storeModule}/gudangList`] || [];
+    },
   },
   watch: {
     getGudangList: {

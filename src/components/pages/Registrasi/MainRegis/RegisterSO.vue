@@ -2,7 +2,7 @@
   <RegisterBase
     title="Register SO"
     type="so"
-    storeModule="registerSO"
+    storeModule="registerso"
     apiEndpoint="report"
   />
 </template>

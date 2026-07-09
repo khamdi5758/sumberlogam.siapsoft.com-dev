@@ -22,6 +22,12 @@ import invoiceModule from "./modules/invoice";
 import financeModule from "./modules/finance";
 import registerModule from "./modules/register";
 import registerbeliModule from "./modules/registerbeli";
+import registerreturbeliModule from "./modules/registerreturbeli";
+import registersoModule from "./modules/registerso";
+import registerjualModule from "./modules/registerjual";
+import registerreturjualModule from "./modules/registerreturjual";
+import registerkoreksiModule from "./modules/registerkoreksi";
+import registerrepackingModule from "./modules/registerrepacking";
 
 export default createStore({
   modules: {
@@ -49,5 +55,11 @@ export default createStore({
     finance: financeModule,
     register: registerModule,
     registerbeli: registerbeliModule,
+    registerreturbeli: registerreturbeliModule,
+    registerso: registersoModule,
+    registerjual: registerjualModule,
+    registerreturjual: registerreturjualModule,
+    registerkoreksi: registerkoreksiModule,
+    registerrepacking: registerrepackingModule,
   },
 });

@@ -218,13 +218,24 @@ export default {
     X,
   },
   data() {
+    const today = new Date();
+    const first = new Date(today.getFullYear(), today.getMonth(), 1);
+    const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    const formatDateLocal = (date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    };
+
     return {
       isOpen: true,
       showWarehouseDialog: false,
       warehouseSearch: "",
       form: {
-        startDate: "2026-04-01",
-        endDate: "2026-04-30",
+        startDate: formatDateLocal(first),
+        endDate: formatDateLocal(last),
         warehouse: "", // akan berisi value (misal "utama")
       },
       warehouses: [
