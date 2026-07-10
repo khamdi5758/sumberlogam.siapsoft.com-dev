@@ -886,13 +886,37 @@ export default {
 
       if (this.columns && this.columns.length > 0) {
         // 🔥 Use fixed columns from props if available
-        cols = this.columns.map((col) => ({
-          ...col,
-          visible:
-            col.visible !== undefined
-              ? col.visible
-              : ![...this.disablecol, "id"].includes(col.dataField),
-        }));
+        cols = this.columns.map((col) => {
+          const normalizedKey = (col.dataField || "").toString().toLowerCase().replace(/[\s_]/g, "");
+          
+          let colAlignment = col.alignment;
+          if (!colAlignment && this.dataSource && this.dataSource.length > 0) {
+            colAlignment = "left";
+            for (const item of this.dataSource) {
+              const val = item[col.dataField];
+              if (val !== null && val !== undefined && val !== "") {
+              if (typeof val === "number") {
+                colAlignment = "right";
+              } else if (typeof val === "string") {
+                const cleanVal = val.replace(/[\s\u00A0\u202F.]/g, "").replace(/,/g, ".");
+                if (cleanVal !== "" && cleanVal !== "-" && !isNaN(cleanVal)) {
+                  colAlignment = "right";
+                }
+              }
+                break;
+              }
+            }
+          }
+
+          return {
+            ...col,
+            alignment: colAlignment || "left",
+            visible:
+              col.visible !== undefined
+                ? col.visible
+                : ![...this.disablecol, "id"].includes(col.dataField) && !["keyindex", "pagetotal"].includes(normalizedKey),
+          };
+        });
       } else {
         if (!this.dataSource.length) return [];
 
@@ -910,15 +934,31 @@ export default {
             caption = caption.substring(3);
           }
 
+          const normalizedKey = (key || "").toString().toLowerCase().replace(/[\s_]/g, "");
+
+          let colAlignment = "left";
+          for (const item of this.dataSource) {
+            const val = item[key];
+            if (val !== null && val !== undefined && val !== "") {
+              if (typeof val === "number") {
+                colAlignment = "right";
+              } else if (typeof val === "string") {
+                const cleanVal = val.replace(/[\s\u00A0\u202F.]/g, "").replace(/,/g, ".");
+                if (cleanVal !== "" && cleanVal !== "-" && !isNaN(cleanVal)) {
+                  colAlignment = "right";
+                }
+              }
+              break;
+            }
+          }
+
           return {
             dataField: key,
             caption: caption,
+            alignment: colAlignment,
             visible: ![
               ...this.disablecol,
-              "keyindex",
-              "PageTotal",
-              "id",
-            ].includes(key),
+            ].includes(key) && !["keyindex", "pagetotal", "id"].includes(normalizedKey),
           };
         });
       }
@@ -1272,11 +1312,21 @@ export default {
 
     onCellPrepared(e) {
       if (e.rowType === "data" && e.column) {
+        if (e.column.alignment) {
+          e.cellElement.style.textAlign = e.column.alignment;
+          return;
+        }
+
         const value = e.value;
         if (typeof value === "number") {
           e.cellElement.style.textAlign = "right";
-          // HAPUS baris ini:
-          // e.cellElement.innerText = new Intl.NumberFormat(...).format(value);
+        } else if (typeof value === "string") {
+          const cleanVal = value.replace(/[\s\u00A0\u202F.]/g, "").replace(/,/g, ".");
+          if (cleanVal !== "" && cleanVal !== "-" && !isNaN(cleanVal)) {
+            e.cellElement.style.textAlign = "right";
+          } else {
+            e.cellElement.style.textAlign = "left";
+          }
         } else {
           e.cellElement.style.textAlign = "left";
         }
