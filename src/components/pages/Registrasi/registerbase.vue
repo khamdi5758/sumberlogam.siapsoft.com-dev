@@ -4,11 +4,13 @@
     <!-- Loading -->
     <div
       v-if="isLoading"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50"
+      class="fixed inset-0 flex items-center justify-center bg-slate-900/20 backdrop-blur-[2px] z-50"
     >
-      <div
-        class="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"
-      ></div>
+      <div class="rounded-xl bg-white/80 p-4 shadow-lg backdrop-blur-sm">
+        <div
+          class="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent"
+        ></div>
+      </div>
     </div>
 
     <ReusableDataGrid
@@ -87,7 +89,7 @@ export default {
     const lastDay = new Date(y, today.getMonth() + 1, 0).getDate();
 
     return {
-      showFilter: true,
+      showFilter: false,
       startDate: `${y}-${m}-01`,
       endDate: `${y}-${m}-${String(lastDay).padStart(2, "0")}`,
       selectedGudang: "",
@@ -98,6 +100,13 @@ export default {
       hasGroupedColumns: false,
       isMobile: false,
     };
+  },
+  created() {
+    window.__registerVisited = window.__registerVisited || {};
+    if (!window.__registerVisited[this.storeModule]) {
+      this.showFilter = true;
+      window.__registerVisited[this.storeModule] = true;
+    }
   },
   computed: {
     ...mapGetters({}),
