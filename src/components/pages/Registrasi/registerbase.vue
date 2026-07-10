@@ -33,7 +33,7 @@
       :showFilterRow="true"
       :customToolbarItems="customToolbarItems"
       :keyExpr="keyfield"
-      :columnHidingEnabled="false"
+      :columnHidingEnabled="isMobile"
       :summaries="sumcolom"
       :avg="avgcolom"
       :focusedRowKey="focusedRowKey"
@@ -41,7 +41,7 @@
       :useBuiltInPager="true"
       :showGroupPanel="true"
       :allowGrouping="true"
-      :height="'calc(100vh - 131px)'"
+      :height="gridHeight"
       @optionChanged="onDataGridOptionChanged"
       @focusedRowChanged="onFocusedRowChanged"
       @group-changed="onGroupChanged"
@@ -57,7 +57,8 @@
       :initialStartDate="startDate"
       :initialEndDate="endDate"
       :initialGudang="selectedGudang"
-      :storeModule="storeModule"
+      :fullScreen="isMobile"
+      :width="isMobile ? '100%' : '600px'"
       @apply="handleApplyFilter"
       @close="handleClosePopup"
     />
@@ -81,32 +82,25 @@ export default {
   },
   data() {
     const today = new Date();
-    const first = new Date(today.getFullYear(), today.getMonth(), 1);
-    const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-    const formatDateLocal = (date) => {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      const d = String(date.getDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
-    };
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, "0");
+    const lastDay = new Date(y, today.getMonth() + 1, 0).getDate();
 
     return {
       showFilter: true,
-      startDate: formatDateLocal(first),
-      endDate: formatDateLocal(last),
+      startDate: `${y}-${m}-01`,
+      endDate: `${y}-${m}-${String(lastDay).padStart(2, "0")}`,
       selectedGudang: "",
       searchText: "",
       currentPage: 1,
       pageSize: 0,
       focusedRowKey: null,
       hasGroupedColumns: false,
+      isMobile: false,
     };
   },
   computed: {
-    ...mapGetters({
-      // kita akan akses getter dinamis via methods
-    }),
+    ...mapGetters({}),
     registerList() {
       return this.$store.getters[`${this.storeModule}/registerList`] || [];
     },
@@ -124,13 +118,32 @@ export default {
     },
     filteredData() {
       const list = Array.isArray(this.registerList) ? this.registerList : [];
-      if (!this.searchText) return list;
-      const lower = this.searchText.toLowerCase();
-      return list.filter((item) =>
-        Object.values(item).some(
-          (val) => val && val.toString().toLowerCase().includes(lower),
-        ),
-      );
+
+      let filtered = list;
+      if (this.searchText) {
+        const lower = this.searchText.toLowerCase();
+        filtered = list.filter((item) =>
+          Object.values(item).some(
+            (val) => val && val.toString().toLowerCase().includes(lower),
+          ),
+        );
+      }
+
+      const formatter = new Intl.NumberFormat("id-ID", {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 0,
+      });
+
+      return filtered.map((item) => {
+        const newItem = { ...item };
+        for (const key in newItem) {
+          const val = newItem[key];
+          if (typeof val === "number" && !isNaN(val)) {
+            newItem[key] = formatter.format(val);
+          }
+        }
+        return newItem;
+      });
     },
     customToolbarItems() {
       return [
@@ -160,6 +173,9 @@ export default {
         },
       ];
     },
+    gridHeight() {
+      return this.isMobile ? "calc(100vh - 180px)" : "calc(100vh - 131px)";
+    },
   },
   methods: {
     formatDateLocal(date) {
@@ -180,7 +196,6 @@ export default {
         sampaitgl: this.formatDateForSp(this.endDate, true),
         kodegdg: this.selectedGudang || "",
       };
-      // Cek apakah action ada
       const actionName = `${this.storeModule}/getRegister`;
       if (!this.$store._actions[actionName]) {
         console.warn(`Action ${actionName} not found, skipping loadData`);
@@ -191,18 +206,14 @@ export default {
       });
     },
     handleApplyFilter({ startDate, endDate, gudang }) {
-      // Tutup popup segera
       this.showFilter = false;
-      // Update data setelah popup tertutup
       this.startDate = startDate;
       this.endDate = endDate;
       this.selectedGudang = gudang;
-      // Load data
       this.loadData();
     },
     handleClosePopup() {
       this.showFilter = false;
-      console.log("Popup closed");
     },
     handleRefresh() {
       this.loadData();
@@ -233,20 +244,28 @@ export default {
     onFocusedRowChanged(e) {
       this.focusedRowKey = e.row ? e.row.key : null;
     },
+    checkMobile() {
+      this.isMobile = window.innerWidth < 768;
+    },
   },
   mounted() {
-    // Tunggu sampai popup diproses baru load data
+    this.checkMobile();
+    window.addEventListener("resize", this.checkMobile);
+
     this.$nextTick(() => {
       if (!this.registerList || this.registerList.length === 0) {
         this.loadData();
       }
     });
   },
+  beforeDestroy() {
+    window.removeEventListener("resize", this.checkMobile);
+  },
 };
 </script>
 
 <style scoped>
-/* Copy style dari RegisterBeli.vue yang sudah ada */
+/* BASE STYLES – semua warna tetap seperti semula (light mode) */
 :deep(.dx-checkbox .dx-checkbox-icon) {
   border: 1px solid #9ca3af !important;
   background-color: transparent !important;
@@ -258,6 +277,7 @@ export default {
 :deep(.dx-checkbox-checked .dx-checkbox-icon::before) {
   color: #ffffff !important;
 }
+
 :deep(.custom-refresh-button),
 :deep(.filter-button) {
   background-color: #002f6c !important;
@@ -287,5 +307,38 @@ export default {
   color: #ffffff !important;
   font-size: 14px !important;
   line-height: 1 !important;
+}
+
+/* MOBILE ADJUSTMENTS – hanya ubah ukuran, warna tetap */
+@media (max-width: 768px) {
+  :deep(.custom-refresh-button),
+  :deep(.filter-button) {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  :deep(.custom-refresh-button .dx-icon),
+  :deep(.filter-button .dx-icon) {
+    font-size: 12px !important;
+  }
+  :deep(.dx-toolbar .dx-searchbox) {
+    width: 120px !important;
+  }
+  :deep(.dx-toolbar) {
+    padding: 4px 8px !important;
+  }
+}
+@media (max-width: 480px) {
+  :deep(.dx-toolbar .dx-searchbox) {
+    width: 90px !important;
+  }
+  :deep(.custom-refresh-button),
+  :deep(.filter-button) {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  :deep(.custom-refresh-button .dx-icon),
+  :deep(.filter-button .dx-icon) {
+    font-size: 11px !important;
+  }
 }
 </style>

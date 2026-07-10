@@ -5,7 +5,7 @@ const state = {
   isLoading: false,
   sumcolom: [],
   avgcolom: [],
-  keyfield: "NoBukti",
+  keyfield: "",
 };
 
 const getters = {
@@ -56,6 +56,12 @@ const actions = {
       
       if (response.data?.sumcolom) {
          commit("setSumColom", response.data.sumcolom);
+      }
+      if (response.data?.avgcolom) {
+         commit("setAvgColom", response.data.avgcolom);
+      }
+      if (response.data?.keyfield) {
+         commit("setKeyfield", response.data.keyfield);
       }
     } catch (error) {
       console.error("Error getRegister PO:", error);
