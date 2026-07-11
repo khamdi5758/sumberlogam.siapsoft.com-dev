@@ -35,6 +35,7 @@
         <div class="space-y-4">
           <!-- Mulai Tanggal -->
           <div
+            v-if="type !== 'stock-serial-rekap' && !type.startsWith('outstanding-')"
             class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
           >
             <label for="start-date" class="text-[14px] text-slate-700"
@@ -87,9 +88,28 @@
             </div>
           </div>
 
+          <!-- Status (Khusus Outstanding) -->
+          <div
+            v-if="type.startsWith('outstanding-')"
+            class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+          >
+            <label for="status-dropdown" class="text-[14px] text-slate-700">Status</label>
+            <div class="flex items-center overflow-hidden rounded border border-slate-300">
+              <select
+                id="status-dropdown"
+                v-model="localStatus"
+                class="min-w-0 flex-1 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+              >
+                <option value="belum_diterima">Belum Diterima</option>
+                <option value="sudah_diterima">Sudah Diterima</option>
+                <option value="gabungan">Gabungan</option>
+              </select>
+            </div>
+          </div>
+
           <!-- Gudang -->
           <div
-            v-if="type !== 'po' && type !== 'so'"
+            v-if="type !== 'po' && type !== 'so' && type !== 'creditenote' && type !== 'stock-serial' && !type.startsWith('outstanding-')"
             class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
           >
             <label for="warehouse" class="text-[14px] text-slate-700"
@@ -153,6 +173,7 @@ export default {
     initialStartDate: { type: String, default: "" },
     initialEndDate: { type: String, default: "" },
     initialGudang: { type: String, default: "" },
+    initialStatus: { type: String, default: "gabungan" },
     storeModule: { type: String, default: "registerbeli" },
   },
   data() {
@@ -160,6 +181,7 @@ export default {
       localStartDate: this.initialStartDate,
       localEndDate: this.initialEndDate,
       localGudang: this.initialGudang,
+      localStatus: this.initialStatus,
       gudangList: [],
       gudangLabel: "",
       isDialogOpen: false,
@@ -187,6 +209,7 @@ export default {
         this.localStartDate = this.initialStartDate;
         this.localEndDate = this.initialEndDate;
         this.localGudang = this.initialGudang;
+        this.localStatus = this.initialStatus;
         this.updateGudangLabel();
       }
     },
@@ -245,6 +268,7 @@ export default {
         startDate: this.localStartDate,
         endDate: this.localEndDate,
         gudang: this.localGudang,
+        status: this.localStatus,
       });
       // Popup akan ditutup oleh parent via @apply
     },

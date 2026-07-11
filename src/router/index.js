@@ -42,7 +42,7 @@ import Notifications from "@/components/pages/Notifications/Notifications.vue";
 import FinanceDashboardView from "@/components/FinanceDashboardView.vue";
 import PiutangDashboardView from "@/components/PiutangDashboardView.vue";
 
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory, RouterView } from "vue-router";
 import store from "@/store";
 import { useCookies } from "vue3-cookies";
 const { cookies } = useCookies();
@@ -243,40 +243,42 @@ const routes = [
             component: RegisRepacking,
           },
           {
-            path: "creditenote",
+            path: "creditnote",
             name: "RegisterCrediteNote",
             component: RegisCrediteNote,
           },
           {
             path: "stock",
+            component: RouterView,
             children: [
               {
-                path: "serial",
+                path: "/app/register/stockbarangserial",
                 name: "RegisterStockSerial",
                 component: () => import("@/components/pages/Registrasi/MainRegis/RegisterStockSerial.vue"),
               },
               {
-                path: "serialrekap",
+                path: "/app/register/stockbarangserialrekap",
                 name: "RegisterStockSerialRekap",
                 component: () => import("@/components/pages/Registrasi/MainRegis/RegisterStockSerialRekap.vue"),
               },
-            ],
+            ]
           },
           {
             path: "outstanding",
+            component: RouterView,
             children: [
               {
-                path: "po",
+                path: "/app/register/outstandingpo",
                 name: "RegisterOutstandingPO",
                 component: () => import("@/components/pages/Registrasi/MainRegis/RegisterOutstandingPO.vue"),
               },
               {
-                path: "so",
+                path: "/app/register/outstandingso",
                 name: "RegisterOutstandingSO",
                 component: () => import("@/components/pages/Registrasi/MainRegis/RegisterOutstandingSO.vue"),
               },
               {
-                path: "transfer",
+                path: "/app/register/outstandingtransfer",
                 name: "RegisterOutstandingTransfer",
                 component: () => import("@/components/pages/Registrasi/MainRegis/RegisterOutstandingTransfer.vue"),
               },
@@ -299,6 +301,7 @@ const routes = [
           },
           {
             path: "control",
+            component: RouterView,
             children: [
               {
                 path: "piutang",
@@ -339,6 +342,7 @@ const routes = [
           },
           {
             path: "fpj",
+            component: RouterView,
             children: [
               {
                 path: "beli",

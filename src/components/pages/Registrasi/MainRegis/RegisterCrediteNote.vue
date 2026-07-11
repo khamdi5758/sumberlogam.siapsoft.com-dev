@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import RegisterBase from "@/components/pages/Registrasi/RegisterBase.vue";
+import RegisterBase from "@/components/pages/Registrasi/registerbase.vue";
 export default {
   name: "RegisterCrediteNote",
   components: { RegisterBase },

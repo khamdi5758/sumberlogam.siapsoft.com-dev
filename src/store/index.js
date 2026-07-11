@@ -28,6 +28,12 @@ import registerjualModule from "./modules/registerjual";
 import registerreturjualModule from "./modules/registerreturjual";
 import registerkoreksiModule from "./modules/registerkoreksi";
 import registerrepackingModule from "./modules/registerrepacking";
+import registercreditenoteModule from "./modules/registercreditenote";
+import registerstockserialModule from "./modules/registerstockserial";
+import registerstockserialrekapModule from "./modules/registerstockserialrekap";
+import registeroutstandingpoModule from "./modules/registeroutstandingpo";
+import registeroutstandingsoModule from "./modules/registeroutstandingso";
+import registeroutstandingtransferModule from "./modules/registeroutstandingtransfer";
 
 export default createStore({
   modules: {
@@ -61,5 +67,11 @@ export default createStore({
     registerreturjual: registerreturjualModule,
     registerkoreksi: registerkoreksiModule,
     registerrepacking: registerrepackingModule,
+    registercreditenote: registercreditenoteModule,
+    registerstockserial: registerstockserialModule,
+    registerstockserialrekap: registerstockserialrekapModule,
+    registeroutstandingpo: registeroutstandingpoModule,
+    registeroutstandingso: registeroutstandingsoModule,
+    registeroutstandingtransfer: registeroutstandingtransferModule,
   },
 });

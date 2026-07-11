@@ -60,8 +60,7 @@
             :key="'sum-' + index"
             :column="typeof summary === 'object' ? summary.column : summary"
             summaryType="sum"
-            :valueFormat="'#,##0'"
-            :displayFormat="'{0}'"
+            :customizeText="formatSummary"
             :alignment="'right'"
           />
           <DxTotalItem
@@ -69,8 +68,7 @@
             :key="'avg-' + index"
             :column="typeof summary === 'object' ? summary.column : summary"
             summaryType="avg"
-            :valueFormat="'#,##0'"
-            :displayFormat="'{0}'"
+            :customizeText="formatSummary"
             :alignment="'right'"
           />
 
@@ -81,8 +79,7 @@
             summary-type="sum"
             :alignByColumn="true"
             :showInGroupFooter="true"
-            valueFormat="#,##0"
-            displayFormat="{0}"
+            :customizeText="formatSummary"
             :alignment="'right'"
           />
 
@@ -93,8 +90,7 @@
             summary-type="avg"
             :alignByColumn="true"
             :showInGroupFooter="true"
-            valueFormat="#,##0"
-            displayFormat="{0}"
+            :customizeText="formatSummary"
             :alignment="'right'"
           />
         </DxSummary>
@@ -1054,6 +1050,15 @@ export default {
         element.focus();
       }
     },
+    formatSummary(e) {
+      if (e.value === null || e.value === undefined) return "";
+      const val = Number(e.value);
+      if (isNaN(val)) return e.value;
+      return new Intl.NumberFormat("id-ID", {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 0,
+      }).format(val);
+    },
     handlecontentready(e) {
       this.$emit("contentready", e);
       this.$nextTick(() => {
@@ -1584,6 +1589,15 @@ export default {
   border-left: none !important;
   border-right: none !important;
 }
+
+/* Penyesuaian alignment dan padding untuk total footer agar sejajar */
+:deep(.dx-datagrid-total-footer .dx-row td),
+:deep(.dx-datagrid-group-footer .dx-row td) {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  text-align: right !important;
+}
+
 
 /* Status badge — mirip di gambar */
 :deep(.dx-datagrid-rowsview .status-badge) {

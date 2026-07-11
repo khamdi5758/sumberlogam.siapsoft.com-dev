@@ -59,6 +59,8 @@
       :initialStartDate="startDate"
       :initialEndDate="endDate"
       :initialGudang="selectedGudang"
+      :initialStatus="selectedStatus"
+      :storeModule="storeModule"
       :fullScreen="isMobile"
       :width="isMobile ? '100%' : '600px'"
       @apply="handleApplyFilter"
@@ -93,6 +95,7 @@ export default {
       startDate: `${y}-${m}-01`,
       endDate: `${y}-${m}-${String(lastDay).padStart(2, "0")}`,
       selectedGudang: "",
+      selectedStatus: "gabungan",
       searchText: "",
       currentPage: 1,
       pageSize: 0,
@@ -102,10 +105,21 @@ export default {
     };
   },
   created() {
+    this._myRoutePath = this.$route.path;
     window.__registerVisited = window.__registerVisited || {};
     if (!window.__registerVisited[this.storeModule]) {
       this.showFilter = true;
       window.__registerVisited[this.storeModule] = true;
+    }
+  },
+  unmounted() {
+    const activeTabs = this.$store.getters["tabs/getTabs"] || [];
+    const isTabStillOpen = activeTabs.some(path => path.toLowerCase() === this._myRoutePath.toLowerCase());
+    
+    // Hanya hapus memori kunjungan jika tab-nya BENAR-BENAR ditutup (di-silang),
+    // bukan sekadar di-unmount oleh keep-alive Vue Router.
+    if (!isTabStillOpen && window.__registerVisited && window.__registerVisited[this.storeModule]) {
+      delete window.__registerVisited[this.storeModule];
     }
   },
   computed: {
@@ -204,6 +218,7 @@ export default {
         mulaitgl: this.formatDateForSp(this.startDate, false),
         sampaitgl: this.formatDateForSp(this.endDate, true),
         kodegdg: this.selectedGudang || "",
+        status: this.selectedStatus,
       };
       const actionName = `${this.storeModule}/getRegister`;
       if (!this.$store._actions[actionName]) {
@@ -214,11 +229,12 @@ export default {
         console.error("Error loading data:", err);
       });
     },
-    handleApplyFilter({ startDate, endDate, gudang }) {
+    handleApplyFilter({ startDate, endDate, gudang, status }) {
       this.showFilter = false;
       this.startDate = startDate;
       this.endDate = endDate;
       this.selectedGudang = gudang;
+      if (status !== undefined) this.selectedStatus = status;
       this.loadData();
     },
     handleClosePopup() {
