@@ -51,7 +51,7 @@
       >
         <button
           type="button"
-          class="menu-icon-container flex min-h-12 w-full items-start rounded-xl p-3 transition group hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
+          class="menu-icon-container flex h-12 w-full items-center rounded-xl p-3 transition group hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
           @click="handleMainMenuClick(mainMenu)"
           :class="
             isExpanded
@@ -61,20 +61,29 @@
           :title="!isExpanded ? mainMenu.NamaCaption : ''"
         >
           <span
-            class="flex items-start gap-3 min-w-0"
+            class="flex items-center gap-3 min-w-0"
             :class="isExpanded ? '' : 'justify-center'"
           >
-            <span
-              v-show="isExpanded"
-              class="break-words whitespace-normal leading-snug text-left text-base"
-              >{{ displayMenuCaption(mainMenu.NamaCaption) }}</span
-            >
+            <!-- Icon -->
+            <!-- <div class="w-6 flex justify-center">
+              <component
+                :is="iconMap[mainMenu.ICON]"
+                :size="20"
+                class="menu-icon group-hover:text-(--layout-sidebar-accent)"
+                :style="{ color: 'var(--layout-sidebar-muted)' }"
+              />
+            </div> -->
+
+            <!-- Label -->
+            <span v-show="isExpanded" class="truncate text-left">{{
+              displayMenuCaption(mainMenu.NamaCaption)
+            }}</span>
           </span>
 
           <ChevronDown
             v-if="isExpanded && hasChildren(mainMenu)"
             :size="16"
-            class="shrink-0 mt-0.5 cursor-pointer transform-gpu transition-transform duration-300 ease-in-out group-hover:text-(--layout-sidebar-accent)"
+            class="shrink-0 cursor-pointer transform-gpu transition-transform duration-300 ease-in-out group-hover:text-(--layout-sidebar-accent)"
             :style="{ color: 'var(--layout-sidebar-muted)' }"
             :class="
               isMenuExpanded(mainMenu.L1) || isDummyUserMenuExpanded(mainMenu)
@@ -107,12 +116,14 @@
                       ? handleChildMenuClick(child)
                       : openTab(child)
                   "
-                  class="group flex w-full items-start justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
-                  :style="{ color: 'var(--layout-sidebar-text)' }"
+                  class="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
+                  :style="{
+                    color: 'var(--layout-sidebar-text)',
+                  }"
                 >
-                  <span class="flex items-start gap-3 min-w-0">
+                  <span class="flex items-center gap-3 min-w-0">
                     <div
-                      class="w-5 flex justify-center shrink-0 mt-0.5"
+                      class="w-5 flex justify-center"
                       v-if="child.ICON && iconMap[child.ICON]"
                     >
                       <component
@@ -122,14 +133,14 @@
                         :style="{ color: 'var(--layout-sidebar-muted)' }"
                       />
                     </div>
-                    <span class="break-words whitespace-normal leading-snug">{{
+                    <span class="truncate">{{
                       displayMenuCaption(child.NamaCaption)
                     }}</span>
                   </span>
                   <ChevronDown
                     v-if="childHasChildren(child)"
                     :size="14"
-                    class="shrink-0 mt-0.5 cursor-pointer transform-gpu transition-transform duration-300 ease-in-out group-hover:text-(--layout-sidebar-accent)"
+                    class="shrink-0 cursor-pointer transform-gpu transition-transform duration-300 ease-in-out group-hover:text-(--layout-sidebar-accent)"
                     :style="{ color: 'var(--layout-sidebar-muted)' }"
                     :class="
                       isMenuExpanded(child.L1) ? 'rotate-180' : 'rotate-0'
@@ -150,25 +161,24 @@
                   <button
                     type="button"
                     @click="openTab(sub)"
-                    class="group flex w-full items-start rounded-lg px-3 py-1.5 text-left text-xs transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
-                    :style="{ color: 'var(--layout-sidebar-text)' }"
+                    class="group flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
+                    :style="{ color: 'var(--layout-sidebar-muted)' }"
                   >
-                    <span class="flex items-start gap-3 min-w-0 w-full">
+                    <span class="flex items-center gap-3 min-w-0 w-full">
                       <div
-                        class="w-4 flex justify-center shrink-0 mt-0.5"
+                        class="w-4 flex justify-center"
                         v-if="sub.ICON && iconMap[sub.ICON]"
                       >
                         <component
                           :is="iconMap[sub.ICON]"
-                          :size="14"
+                          :size="16"
                           class="menu-icon group-hover:text-(--layout-sidebar-accent)"
                           :style="{ color: 'var(--layout-sidebar-muted)' }"
                         />
                       </div>
-                      <span
-                        class="break-words whitespace-normal leading-snug"
-                        >{{ displayMenuCaption(sub.NamaCaption) }}</span
-                      >
+                      <span class="truncate">{{
+                        displayMenuCaption(sub.NamaCaption)
+                      }}</span>
                     </span>
                   </button>
                 </div>

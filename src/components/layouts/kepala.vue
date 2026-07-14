@@ -360,6 +360,7 @@
       </div>
 
       <div class="flex items-center gap-3 sm:gap-4">
+        
         <NotificationBell />
 
         <!-- User Profile Dropdown -->

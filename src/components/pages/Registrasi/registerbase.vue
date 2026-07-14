@@ -17,7 +17,7 @@
       ref="dgchildref"
       :dataSource="filteredData"
       :showBorders="false"
-      :rowAlternationEnabled="false"
+      :rowAlternationEnabled="true"
       :columnAutoWidth="true"
       :allowColumnResizing="true"
       :allowColumnReordering="true"
@@ -35,7 +35,6 @@
       :showFilterRow="true"
       :customToolbarItems="customToolbarItems"
       :keyExpr="keyfield"
-      :columnHidingEnabled="isMobile"
       :summaries="sumcolom"
       :avg="avgcolom"
       :focusedRowKey="focusedRowKey"
@@ -142,31 +141,16 @@ export default {
     filteredData() {
       const list = Array.isArray(this.registerList) ? this.registerList : [];
 
-      let filtered = list;
-      if (this.searchText) {
-        const lower = this.searchText.toLowerCase();
-        filtered = list.filter((item) =>
-          Object.values(item).some(
-            (val) => val && val.toString().toLowerCase().includes(lower),
-          ),
-        );
+      if (!this.searchText) {
+        return list;
       }
 
-      const formatter = new Intl.NumberFormat("id-ID", {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 0,
-      });
-
-      return filtered.map((item) => {
-        const newItem = { ...item };
-        for (const key in newItem) {
-          const val = newItem[key];
-          if (typeof val === "number" && !isNaN(val)) {
-            newItem[key] = formatter.format(val);
-          }
-        }
-        return newItem;
-      });
+      const lower = this.searchText.toLowerCase();
+      return list.filter((item) =>
+        Object.values(item).some(
+          (val) => val && val.toString().toLowerCase().includes(lower),
+        ),
+      );
     },
     customToolbarItems() {
       return [
@@ -279,7 +263,7 @@ export default {
 
     this.$nextTick(() => {
       if (!this.registerList || this.registerList.length === 0) {
-        this.loadData();
+        // this.loadData();
       }
     });
   },

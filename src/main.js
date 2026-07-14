@@ -11,6 +11,15 @@ import "devextreme/dist/css/dx.light.css";
 import "./style.css";
 import "./css/welcome.css";
 import "vue-select/dist/vue-select.css";
+import { locale, loadMessages } from "devextreme/localization";
+
+// Set the locale for DevExtreme
+locale("id");
+loadMessages({
+  "id": {
+    // Add your custom messages here
+  }
+});
 
 const app = createApp(App);
 

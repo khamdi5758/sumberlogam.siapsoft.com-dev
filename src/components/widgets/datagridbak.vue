@@ -1,11 +1,10 @@
 <template>
   <div class="mt-4 flex-1 min-h-1 relative">
-    <div class="h-full overflow-auto" :class="isMobile ? '' : 'overflow-x-auto'">
+    <div class="h-full overflow-auto overflow-x-auto">
       <DxDataGrid
         ref="dataGridRef"
         :dataSource="dataSource"
         :columnAutoWidth="columnAutoWidth"
-        :columnMinWidth="isMobile ? 100 : undefined"
         :allowColumnResizing="allowColumnResizing"
         :allowColumnReordering="allowColumnReordering"
         :showBorders="showBorders"
@@ -101,7 +100,7 @@
           :showScrollbar="showScrollbar"
           :columnRenderingMode="columnRenderingMode"
           :rowRenderingMode="rowRenderingMode"
-          :useNative="useNativeScrolling"
+          :useNative="false"
         />
         <DxExport :enabled="false" :allowExportSelectedData="false" />
         <DxPaging v-if="useBuiltInPager" :pageSize="pageSize" />
@@ -446,8 +445,6 @@ export default {
         showFilterRow: false,
         showHeaderFilter: false,
       },
-      // 🔥 Tracking lebar layar untuk deteksi mobile (dipakai untuk swipe & toolbar responsif)
-      windowWidth: typeof window !== "undefined" ? window.innerWidth : 1024,
     };
   },
 
@@ -690,7 +687,18 @@ export default {
 
     pageTitle: {
       type: String,
-      default: "DataGrid",
+      default: () => {
+        if (typeof window !== "undefined") {
+          const activeTab =
+            document.querySelector(".active") ||
+            document.querySelector('[aria-selected="true"]') ||
+            document.querySelector(".selected");
+          if (activeTab) {
+            return activeTab.textContent?.trim() || "DataGrid";
+          }
+        }
+        return "DataGrid";
+      },
     },
     columnHidingEnabled: {
       type: Boolean,
@@ -736,20 +744,13 @@ export default {
   },
 
   computed: {
+    // beforeUnmount() {
+    //   this.filterListPopupVisible = false;
+    // },
     isFocusEnabled() {
+      // return false;
       return Array.isArray(this.dataSource) && this.dataSource.length > 0;
     },
-
-    // 🔥 Deteksi mobile berdasarkan lebar layar
-    isMobile() {
-      return this.windowWidth < 768;
-    },
-
-    // 🔥 Native scroll di mobile (smooth untuk swipe jari), custom scroll di desktop
-    useNativeScrolling() {
-      return this.isMobile;
-    },
-
     customSearchOptions() {
       return {
         placeholder: "Cari ...",
@@ -844,6 +845,7 @@ export default {
         stylingMode: "contained",
         hint: "Filter List",
         elementAttr: { class: "filter-list-button" },
+        // focusStateEnabled: false,
         onClick: debounce(
           () => {
             if (!this.filterListPopupVisible) {
@@ -868,6 +870,7 @@ export default {
           this.showFilterRow = !this.showFilterRow;
           const grid = this.getGridInstance();
           if (grid) {
+            // grid.option("filterRow.visible", this.showFilterRow);
             grid.option("filterRow.visible", this.showFilterRow);
           }
         },
@@ -878,6 +881,7 @@ export default {
       let cols = [];
 
       if (this.columns && this.columns.length > 0) {
+        // 🔥 Use fixed columns from props if available
         cols = this.columns.map((col) => {
           const normalizedKey = (col.dataField || "")
             .toString()
@@ -898,6 +902,7 @@ export default {
       } else {
         if (!this.dataSource.length) return [];
 
+        // 🔥 Fallback: Scan all items in the current page to gather all available keys
         const allKeysSet = new Set();
         this.dataSource.forEach((item) => {
           if (item && typeof item === "object") {
@@ -973,7 +978,9 @@ export default {
       this.filterListPopupVisible = false;
     },
     dataSource: {
-      handler(newVal) {},
+      handler(newVal) {
+        // this.dataSource = newVal;
+      },
       immediate: true,
     },
     page: {
@@ -982,7 +989,9 @@ export default {
       },
       immediate: true,
     },
-    groupFields(e) {},
+    groupFields(e) {
+      // console.log(e);
+    },
   },
 
   emits: [
@@ -1023,11 +1032,13 @@ export default {
       const trimmed = value.trim();
       if (!trimmed) return false;
 
+      // Kalau ada huruf sama sekali, itu kode (mis. "01K00001", "01260701001-PO") -> bukan angka
       if (/[a-zA-Z]/.test(trimmed)) return false;
 
       const clean = trimmed.replace(/[\s\u00A0\u202F]/g, "");
       if (!clean || clean === "-" || clean === ".") return false;
 
+      // Leading zero diikuti digit lain (mis. "0020000111") -> kemungkinan besar kode/ID, bukan angka asli
       if (/^0[0-9]/.test(clean)) return false;
 
       const hasDot = clean.includes(".");
@@ -1110,8 +1121,28 @@ export default {
         grid.searchByText("");
         grid.state(null);
       }
+      // this.dataSource = [];
+      // setTimeout(() => {
+      //   this.dataSource = [];
+      // }, 0);
+      // this.$router.go(0);
     },
     handleOptionChanged(e) {
+      // if (e.fullName.startsWith("columns[")) {
+      //   const grid = this.getGridInstance();
+      //   if (grid) {
+      //     const groupedColumns = grid
+      //       .getVisibleColumns()
+      //       .filter((col) => col.groupIndex !== undefined);
+      //     this.isColumnGrouped = groupedColumns.length > 0;
+
+      //     this.$emit("group-changed", {
+      //       hasGroups: this.isColumnGrouped,
+      //       groupedColumns: groupedColumns,
+      //     });
+      //   }
+      // }
+
       this.$emit("option-changed", e);
     },
 
@@ -1203,6 +1234,10 @@ export default {
         return this.$route.name;
       }
 
+      // if (this.pageTitle && this.pageTitle !== "DataGrid") {
+      //   return this.pageTitle;
+      // }
+
       try {
         const activeTabSelectors = [
           ".active:not(.dx-state-disabled)",
@@ -1219,19 +1254,14 @@ export default {
           const activeTab = document.querySelector(selector);
           if (activeTab) {
             let tabText = activeTab.textContent?.trim();
-            if (tabText && tabText !== "" && !tabText.includes("×")) {
-              tabText = tabText.replace(/×/g, "").replace(/\s+/g, " ").trim();
+            if (tabText && tabText !== "" && !tabText.includes("Ã—")) {
+              tabText = tabText.replace(/Ã—/g, "").replace(/\s+/g, " ").trim();
               if (tabText && tabText.length > 0) {
                 return tabText;
               }
             }
           }
         }
-
-        if (this.pageTitle && this.pageTitle !== "DataGrid") {
-          return this.pageTitle;
-        }
-
         const titleSelectors = [
           "h1",
           ".page-title",
@@ -1279,6 +1309,7 @@ export default {
     },
 
     prevPage() {
+      console.log(this.page);
       this.$emit("prevpage");
     },
     nextPage() {
@@ -1287,6 +1318,7 @@ export default {
 
     fetchData($a) {
       this.$emit("caridata", $a);
+      console.log($a);
     },
 
     goToPage() {
@@ -1313,9 +1345,12 @@ export default {
 
     onCellPrepared(e) {
       if (e.rowType === "data" && e.column) {
+        // Pakai alignment yang sama dengan header (sudah dihitung di computedColumns)
         const alignment = e.column.alignment || "left";
         e.cellElement.style.textAlign = alignment;
 
+        // Format angka hanya kalau valuenya memang number,
+        // tapi alignment tetap ikut kolom, bukan tipe value mentah
         if (typeof e.value === "number") {
           e.cellElement.innerText = new Intl.NumberFormat("id-ID", {
             minimumFractionDigits: 0,
@@ -1355,6 +1390,7 @@ export default {
       this.$emit("row-removing", e);
     },
     handleFocusedRowChanged(e) {
+      console.log("Focused row changed:", e);
       this.focusedRowKey = e.row ? e.row.key : null;
       this.$emit("focused-row-changed", e);
     },
@@ -1400,16 +1436,9 @@ export default {
       const grid = this.getGridInstance();
       return grid ? grid.getSelectedRowsData() : [];
     },
-
-    // 🔥 Update lebar layar saat resize (dipakai untuk isMobile / useNativeScrolling)
-    handleWindowResize() {
-      this.windowWidth = window.innerWidth;
-    },
   },
 
   mounted() {
-    window.addEventListener("resize", this.handleWindowResize);
-
     this.$nextTick(() => {
       const gridElement = this.$refs.dataGridRef?.$el;
       if (gridElement) {
@@ -1420,7 +1449,12 @@ export default {
           ".dx-datagrid-headers .dx-datagrid-scroll-container",
         );
 
+        if (headerContainer) {
+          // headerContainer.style.overflowX = "hidden";
+        }
+
         if (headerScrollContainer) {
+          // headerScrollContainer.style.overflowX = "hidden";
           headerScrollContainer.addEventListener("scroll", (e) => {
             e.target.scrollLeft = 0;
           });
@@ -1445,40 +1479,55 @@ export default {
     });
   },
 
-  beforeUnmount() {
-    window.removeEventListener("resize", this.handleWindowResize);
-  },
-
   expose: ["getInstance", "resetGrid", "focusGrid"],
 };
 </script>
 
 <style scoped>
+/* Sembunyikan scrollbar horizontal di header */
+/*
+:deep(.dx-datagrid-headers) {
+  overflow: hidden !important;
+}
+
+:deep(.dx-datagrid-headers .dx-datagrid-scroll-container) {
+  overflow-x: hidden !important;
+}
+
+*/
+
 :deep(.dx-datagrid-header-panel) {
   overflow: hidden !important;
 }
 
+/* Sembunyikan scrollbar tapi tetap bisa scroll secara programatik */
 :deep(.dx-datagrid-headers)::-webkit-scrollbar {
   display: none !important;
 }
 
+/* Hover pada row data */
 :deep(.dx-datagrid-rowsview .dx-row.dx-state-hover td) {
   background-color: #acb3b9 !important;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
+/* Hover lebih gelap untuk row alternation (zebra) */
 :deep(.dx-datagrid-rowsview .dx-row-alt.dx-state-hover td) {
   background-color: #acb3b9 !important;
 }
 
+/* Hover dengan border kiri sebagai indikator */
 :deep(.dx-datagrid-rowsview .dx-row.dx-state-hover td:first-child) {
   border-left: 3px solid #1890ff !important;
 }
 
+/* Focused row */
 :deep(.dx-datagrid-rowsview .dx-row.dx-state-focused td) {
   background-color: #acb3b9 !important;
 }
+
+/* new style */
 
 :deep(.dx-datagrid) {
   font-family: "Montserrat", sans-serif;
@@ -1487,6 +1536,7 @@ export default {
   background: #fff;
 }
 
+/* Header kolom — style seperti di gambar */
 :deep(.dx-datagrid-headers .dx-datagrid-table .dx-header-row td) {
   background-color: #ffffff !important;
   color: #111827 !important;
@@ -1501,6 +1551,7 @@ export default {
 }
 
 :deep(.dx-datagrid-headers .dx-datagrid-table .dx-header-row td:hover) {
+  /* background-color: #4791db !important; */
   background-color: #acb3b9 !important;
   color: #374151 !important;
   cursor: pointer;
@@ -1509,6 +1560,7 @@ export default {
     color 0.2s ease;
 }
 
+/* Hilangkan border vertikal antar kolom */
 :deep(.dx-datagrid-rowsview .dx-row td) {
   border-left: none !important;
   border-right: none !important;
@@ -1519,29 +1571,39 @@ export default {
   color: #111827;
 }
 
-/* Row alternation (zebra) */
+/* Row alternation — matikan warna zebra default DevExtreme */
 :deep(.dx-datagrid-rowsview .dx-row.dx-data-row) td {
-  background-color: #ffffff;
+  background-color: #ffffff;   /* ← warna baris GANJIL (putih) */
 }
 
 :deep(.dx-datagrid-rowsview .dx-row-alt.dx-data-row) td {
-  background-color: #ebebf4 !important;
+  background-color: #ebebf4 !important;   /* ← warna baris GENAP (abu muda) */
 }
 
+/* Contact Name — bold seperti di gambar */
 :deep(.dx-datagrid-rowsview .dx-row td:nth-child(1)) {
   font-weight: 700;
   color: #111827;
 }
 
+/* Hover row */
+/* :deep(.dx-datagrid-rowsview .dx-row.dx-state-hover td) {
+  background-color: #f9fafb !important;
+  cursor: pointer;
+  border-left: none !important;
+} */
+
 :deep(.dx-datagrid-rowsview .dx-row.dx-state-hover td:first-child) {
   border-left: none !important;
 }
 
+/* Mengurangi tinggi baris agar lebih rapat */
 :deep(.dx-datagrid-rowsview .dx-data-row td) {
   padding-top: 8px !important;
   padding-bottom: 8px !important;
 }
 
+/* Focused & Selected row color override to #acb3b9 */
 :deep(.dx-datagrid-rowsview .dx-selection.dx-row:not(.dx-row-focused) > td),
 :deep(
   .dx-datagrid-rowsview .dx-selection.dx-row:not(.dx-row-focused):hover > td
@@ -1551,6 +1613,7 @@ export default {
   color: white !important;
 }
 
+/* Hilangkan border luar grid */
 :deep(.dx-datagrid-borders > .dx-datagrid-headers),
 :deep(.dx-datagrid-borders > .dx-datagrid-rowsview),
 :deep(.dx-datagrid-borders > .dx-datagrid-total-footer) {
@@ -1558,6 +1621,7 @@ export default {
   border-right: none !important;
 }
 
+/* Penyesuaian alignment dan padding untuk total footer agar sejajar */
 :deep(.dx-datagrid-total-footer .dx-row td),
 :deep(.dx-datagrid-group-footer .dx-row td) {
   padding-left: 16px !important;
@@ -1565,6 +1629,7 @@ export default {
   text-align: right !important;
 }
 
+/* Status badge — mirip di gambar */
 :deep(.dx-datagrid-rowsview .status-badge) {
   display: inline-block;
   padding: 3px 10px;
@@ -1575,6 +1640,7 @@ export default {
   color: #6b7280;
 }
 
+/* Toolbar bersih */
 /* Toolbar DevExtreme - samakan ukuran dengan toolbar custom app */
 :deep(.dx-toolbar) {
   min-height: 32px !important;
@@ -1597,16 +1663,6 @@ export default {
 
 :deep(.dx-toolbar .dx-button-content) {
   padding: 4px 6px !important;
-}
-
-/* 🔥 Aktifkan swipe horizontal & vertikal yang mulus di mobile */
-@media (max-width: 767px) {
-  :deep(.dx-datagrid-rowsview),
-  :deep(.dx-datagrid-content),
-  :deep(.dx-scrollable-container) {
-    touch-action: pan-x pan-y !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
 }
 
 /* Lebih ramping lagi khusus mobile */
@@ -1634,6 +1690,7 @@ export default {
     padding: 2px 4px !important;
   }
 
+  /* Kurangi gap antar tombol toolbar biar muat di layar sempit */
   :deep(.dx-toolbar-item) {
     margin-right: 2px !important;
   }

@@ -35,13 +35,22 @@
         <div class="space-y-4">
           <!-- Mulai Tanggal -->
           <div
-            v-if="type !== 'stock-serial-rekap' && !type.startsWith('outstanding-')"
+            v-if="
+              type !== 'stock-serial-rekap' && !type.startsWith('outstanding-')
+            "
             class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
           >
             <label for="start-date" class="text-[14px] text-slate-700"
               >Mulai Tanggal</label
             >
-            <div
+            <DxDateBox
+              v-model:value="localStartDate"
+              type="date"
+              display-format="dd-MM-yyyy"
+              :use-mask-behavior="true"
+              styling-mode="outlined"
+            />
+            <!-- <div
               class="flex items-center overflow-hidden rounded border border-slate-300"
             >
               <input
@@ -58,7 +67,7 @@
               >
                 <CalendarDays :size="14" />
               </button>
-            </div>
+            </div> -->
           </div>
 
           <!-- Sampai Tanggal -->
@@ -68,7 +77,14 @@
             <label for="end-date" class="text-[14px] text-slate-700"
               >Sampai Tanggal</label
             >
-            <div
+            <DxDateBox
+              v-model:value="localEndDate"
+              type="date"
+              display-format="dd-MM-yyyy"
+              :use-mask-behavior="true"
+              styling-mode="outlined"
+            />
+            <!-- <div
               class="flex items-center overflow-hidden rounded border border-slate-300"
             >
               <input
@@ -85,7 +101,7 @@
               >
                 <CalendarDays :size="14" />
               </button>
-            </div>
+            </div> -->
           </div>
 
           <!-- Status (Khusus Outstanding) -->
@@ -93,8 +109,12 @@
             v-if="type.startsWith('outstanding-')"
             class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
           >
-            <label for="status-dropdown" class="text-[14px] text-slate-700">Status</label>
-            <div class="flex items-center overflow-hidden rounded border border-slate-300">
+            <label for="status-dropdown" class="text-[14px] text-slate-700"
+              >Status</label
+            >
+            <div
+              class="flex items-center overflow-hidden rounded border border-slate-300"
+            >
               <select
                 id="status-dropdown"
                 v-model="localStatus"
@@ -109,7 +129,13 @@
 
           <!-- Gudang -->
           <div
-            v-if="type !== 'po' && type !== 'so' && type !== 'creditenote' && type !== 'stock-serial' && !type.startsWith('outstanding-')"
+            v-if="
+              type !== 'po' &&
+              type !== 'so' &&
+              type !== 'creditenote' &&
+              type !== 'stock-serial' &&
+              !type.startsWith('outstanding-')
+            "
             class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
           >
             <label for="warehouse" class="text-[14px] text-slate-700"
@@ -162,10 +188,11 @@
 import { CalendarDays, X } from "lucide-vue-next";
 import api from "@/api";
 import FormBrowseDialog from "@/components/widgets/FormBrowseDialog.vue";
+import { DxDateBox } from "devextreme-vue/date-box";
 
 export default {
   name: "RegisterFilterPopup",
-  components: { CalendarDays, X },
+  components: { CalendarDays, X ,DxDateBox},
   props: {
     visible: { type: Boolean, default: false },
     title: { type: String, default: "Filter" },
@@ -220,7 +247,8 @@ export default {
         (item) => item.id === this.localGudang,
       );
       if (found) {
-        this.gudangLabel = found.nama || found.ket || found.NamaGudang || found.label;
+        this.gudangLabel =
+          found.nama || found.ket || found.NamaGudang || found.label;
       }
     },
     focusDateInput(which) {
@@ -237,25 +265,33 @@ export default {
           kode: 8, // 8 = Gudang sesuai sp_webfrbrowse
           cari: cari,
           startDate: this.localStartDate,
-          endDate: this.localEndDate
+          endDate: this.localEndDate,
         });
-        
+
         const data = response.data?.datafrbrowse || [];
-        
+
         const selected = await FormBrowseDialog.show({
           title: "Pilih Gudang",
           dataSource: data,
           keyField: "id", // Bisa disesuaikan dengan key dari backend (misal "kodegdg")
-          disablecol: response.data?.disablecol || ["id", "ket"]
+          disablecol: response.data?.disablecol || ["id", "ket"],
         });
-        
+
         if (selected) {
           // Simpan ke gudangList agar terdeteksi oleh method updateGudangLabel()
           if (!this.gudangList.find((g) => g.id === selected.id)) {
             this.gudangList.push(selected);
           }
-          this.localGudang = selected.id || selected.kodegdg || selected.KodeGdg || selected.kode;
-          this.gudangLabel = selected.NamaGudang || selected.nama || selected.ket || selected.label;
+          this.localGudang =
+            selected.id ||
+            selected.kodegdg ||
+            selected.KodeGdg ||
+            selected.kode;
+          this.gudangLabel =
+            selected.NamaGudang ||
+            selected.nama ||
+            selected.ket ||
+            selected.label;
         }
       } catch (err) {
         if (err !== "cancelled") {

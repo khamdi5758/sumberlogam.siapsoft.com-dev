@@ -3,22 +3,19 @@
     <DxPopup
       :visible="isVisible"
       :show-title="true"
-      :width="650"
-      :height="600"
+      :width="popupWidth"
+      :height="popupHeight"
       :hide-on-outside-click="false"
       :drag-enabled="false"
       :show-close-button="false"
+      :full-screen="false"
       title="Pilih Item"
+      :position="popupPosition"
       @hiding="handleCancel"
       @shown="onPopupShown"
     >
       <template #content>
         <div class="p-2">
-          <input
-            v-model="searchText"
-            placeholder="Search..."
-            class="mb-2 px-3 py-2 border rounded w-full"
-          />
           <DxDataGrid
             id="formbrows"
             ref="myDataGrid"
@@ -33,7 +30,7 @@
             :focused-row-enabled="true"
             :auto-navigate-to-focused-row="true"
             :key-expr="keyField"
-            height="350"
+            :height="gridHeight"
             @cell-prepared="onCellPrepared"
             @focused-row-changed="onFocusedRowChanged"
             @key-down="onGridKeyDown"
@@ -172,11 +169,14 @@ const FormBrowseDialog = {
       selectedItem: null,
       // tempSelectedItem: null,
       isGridReady: false,
-      container: null, // diisi oleh caller untuk cleanup,
-      searchText:'',
+      container: null, // diisi oleh caller untuk cleanup
+      windowWidth: window.innerWidth,
     };
   },
   methods: {
+    onResize() {
+      this.windowWidth = window.innerWidth;
+    },
     onCellPrepared(e) {
       if (e.rowType === "header") {
         e.cellElement.style.backgroundColor = "#002e72";
@@ -211,17 +211,19 @@ const FormBrowseDialog = {
     },
     handleOk() {
       console.log(this.selectedItem);
-      // gunakan this._resolve yang diset oleh static show()
+      if (this._settled) return;
+      this._settled = true;
       if (this._resolve) this._resolve(this.selectedItem);
       this.cleanup();
     },
     handleCancel() {
+      if (this._settled) return;
+      this._settled = true;
       if (this._reject) this._reject("cancelled");
       this.cleanup();
     },
     cleanup() {
       this.isVisible = false;
-      // Hapus vnode dari DOM setelah closing animation (nextTick)
       this.$nextTick(() => {
         if (this.container) {
           render(null, this.container);
@@ -310,6 +312,28 @@ const FormBrowseDialog = {
     },
   },
   computed: {
+    popupPosition() {
+      return {
+        my: "center",
+        at: "center",
+        of: this.isMobile ? document.body : window,
+      };
+    },
+    isMobile() {
+      return this.windowWidth <= 768;
+    },
+
+    popupWidth() {
+      return this.isMobile ? "92%" : this.width || 500;
+    },
+
+    popupHeight() {
+      return this.isMobile ? "85%" : this.height || 500;
+    },
+
+    gridHeight() {
+      return this.isMobile ? "calc(85vh - 180px)" : 350;
+    },
     computedColumns() {
       if (!this.dataSource || !this.dataSource.length) return [];
       const sample = this.dataSource[0];
@@ -368,43 +392,97 @@ const FormBrowseDialog = {
       };
     },
   },
+  mounted() {
+    window.addEventListener("resize", this.onResize);
+  },
+  beforeUnmount() {
+    window.removeEventListener("resize", this.onResize);
+  },
 };
 
 // Static show method — panggil: await FormBrowseDialog.show({...})
+// FormBrowseDialog.show = function (options = {}) {
+//   return new Promise((resolve, reject) => {
+//     const container = document.createElement("div");
+//     document.body.appendChild(container);
+
+//     // buat vnode dan sediakan props
+//     const vnode = createVNode(FormBrowseDialog, {
+//       ...options,
+//       visible: true,
+//     });
+
+//     // render vnode ke container
+//     render(vnode, container);
+
+//     // setelah mount, set container & resolve/reject ke instance supaya bisa diakses method cleanup
+//     // vnode.component mungkin belum tersedia syncronous di beberapa runtime, jadi gunakan setTimeout 0 untuk memastikan
+//     setTimeout(() => {
+//       const comp = vnode.component && vnode.component.proxy;
+//       if (comp) {
+//         comp.container = container;
+//         comp._settled = false;
+//         comp._resolve = (data) => {
+//           resolve(data);
+//         };
+//         comp._reject = (err) => {
+//           reject(err);
+//         };
+//       } else {
+//         // fallback: kalau tidak dapat instance, bersihkan dan reject
+//         render(null, container);
+//         if (container.parentNode) container.parentNode.removeChild(container);
+//         reject(new Error("Failed to mount FormBrowseDialog instance"));
+//       }
+//     }, 0);
+//   });
+// };
+// FormBrowseDialog.show — ganti seluruhnya dengan ini
 FormBrowseDialog.show = function (options = {}) {
-  return new Promise((resolve, reject) => {
+  // 🔒 Kalau sudah ada instance yang terbuka, jangan buka lagi.
+  // Kembalikan promise yang sama supaya caller tetap dapat hasilnya nanti.
+  if (FormBrowseDialog._activePromise) {
+    console.warn(
+      "FormBrowseDialog sudah terbuka, mengabaikan pemanggilan baru.",
+    );
+    return FormBrowseDialog._activePromise;
+  }
+
+  const promise = new Promise((resolve, reject) => {
     const container = document.createElement("div");
     document.body.appendChild(container);
 
-    // buat vnode dan sediakan props
     const vnode = createVNode(FormBrowseDialog, {
       ...options,
       visible: true,
     });
 
-    // render vnode ke container
     render(vnode, container);
 
-    // setelah mount, set container & resolve/reject ke instance supaya bisa diakses method cleanup
-    // vnode.component mungkin belum tersedia syncronous di beberapa runtime, jadi gunakan setTimeout 0 untuk memastikan
     setTimeout(() => {
       const comp = vnode.component && vnode.component.proxy;
       if (comp) {
         comp.container = container;
+        comp._settled = false;
         comp._resolve = (data) => {
+          FormBrowseDialog._activePromise = null; // 🔓 buka kunci
           resolve(data);
         };
         comp._reject = (err) => {
+          FormBrowseDialog._activePromise = null; // 🔓 buka kunci
           reject(err);
         };
       } else {
-        // fallback: kalau tidak dapat instance, bersihkan dan reject
+        FormBrowseDialog._activePromise = null;
         render(null, container);
         if (container.parentNode) container.parentNode.removeChild(container);
         reject(new Error("Failed to mount FormBrowseDialog instance"));
       }
     }, 0);
   });
+
+  FormBrowseDialog._activePromise = promise; // 🔒 kunci sebelum resolve/reject
+  return promise;
 };
 
 export default FormBrowseDialog;
@@ -512,5 +590,42 @@ export default FormBrowseDialog;
   font-size: 14px !important;
   font-family: inherit;
   font-weight: 600 !important;
+}
+
+/* Mobile fullscreen popup */
+:deep(.dx-popup-wrapper.dx-overlay-modal .dx-popup-content) {
+  padding: 8px !important;
+}
+
+@media (max-width: 768px) {
+  :deep(.dx-popup-wrapper .dx-overlay-content) {
+    border-radius: 12px !important;
+    overflow: hidden;
+  }
+
+  :deep(.dx-popup-wrapper .dx-popup-title) {
+    font-size: 16px !important;
+    padding: 12px 16px !important;
+  }
+
+  :deep(.dx-popup-wrapper .dx-toolbar.dx-popup-bottom) {
+    padding: 8px 12px !important;
+  }
+
+  :deep(.dx-popup-wrapper .dx-popup-bottom .dx-button) {
+    min-width: 80px !important;
+    height: 38px !important;
+    font-size: 13px !important;
+  }
+
+  :deep(#formbrows .dx-data-row td) {
+    height: 38px !important;
+    font-size: 13px !important;
+  }
+
+  :deep(#formbrows .dx-header-row td) {
+    height: 40px !important;
+    font-size: 13px !important;
+  }
 }
 </style>
