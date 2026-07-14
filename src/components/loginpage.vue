@@ -18,7 +18,7 @@
 
         <!-- Illustration -->
         <img
-          src="/public/login.svg"
+          src="/login.svg"
           alt="illustration"
           class="w-80 mt-10 drop-shadow-md"
         />

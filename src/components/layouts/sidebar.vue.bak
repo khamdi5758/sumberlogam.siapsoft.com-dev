@@ -6,30 +6,40 @@
   ></div>
   <aside
     ref="sidebarContainer"
-    @mouseleave="handleSidebarLeave"
+    @mouseenter="isHovered = true"
+    @mouseleave="isHovered = false"
     :class="sidebarClasses"
     :style="sidebarStyles"
   >
     <!-- Header -->
     <div
       :class="[
-        'px-2 py-3 font-bold flex flex-col items-center border-b shrink-0 h-[65px]',
+        'px-5 py-2 text-2xl font-bold flex items-center border-b shrink-0',
+        isExpanded ? 'gap-2 justify-start' : 'justify-center',
       ]"
       :style="{
         color: 'var(--layout-sidebar-text)',
         borderBottomColor: 'var(--layout-sidebar-border)',
       }"
     >
-      <span v-if="!isMobileViewport" class="text-[12px] truncate text-center leading-tight mt-1">Siap App</span>
-      <span v-else class="text-xl truncate text-center w-full flex items-center justify-between px-4">
-        Siap App
-        <button @click="toggleCollapsed" class="ml-auto"><ListCollapse :size="20" /></button>
-      </span>
+      <span v-show="isExpanded" class="truncate">Siap App</span>
+      <button
+        @click="toggleCollapsed"
+        :class="[
+          'w-8 h-8 rounded-lg flex items-center justify-center transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)',
+          isExpanded ? 'ml-auto' : '',
+        ]"
+        :style="{
+          color: 'var(--layout-sidebar-muted)',
+        }"
+      >
+        <ListCollapse :size="20" />
+      </button>
     </div>
 
     <!-- Navigation -->
     <nav
-      class="flex-1 min-h-0 py-2 px-1 space-y-1 overflow-y-auto overflow-x-hidden custom-scrollbar menu"
+      class="flex-1 min-h-0 p-4 space-y-1 overflow-y-auto menu"
       id="menufl"
       v-if="getlayoutmenuweb"
     >
@@ -39,166 +49,165 @@
         class="menu-item relative"
         :ref="`menuItem${mainMenu.L1}`"
       >
-        <!-- Desktop Mode (Hover Trigger) -->
         <button
-          v-if="!isMobileViewport"
           type="button"
-          class="flex flex-col items-center justify-center w-full min-h-[72px] rounded-xl p-2 transition group hover:bg-[var(--layout-sidebar-hover)] hover:text-[var(--layout-sidebar-accent)]"
-          @mouseenter="handleMainMenuHover(mainMenu.L1, $event)"
-          @click="!hasChildren(mainMenu) ? openTab(mainMenu) : null"
-          :class="activeMenuId === mainMenu.L1 ? 'bg-[var(--layout-sidebar-hover)] text-[var(--layout-sidebar-accent)]' : ''"
-          :title="mainMenu.NamaCaption"
+          class="menu-icon-container flex min-h-12 w-full items-start rounded-xl p-3 transition group hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
+          @click="handleMainMenuClick(mainMenu)"
+          :class="
+            isExpanded
+              ? 'gap-3 justify-between cursor-pointer'
+              : 'justify-center cursor-pointer'
+          "
+          :title="!isExpanded ? mainMenu.NamaCaption : ''"
         >
-          <div class="mb-1.5 flex justify-center w-full">
-            <component :is="iconMap[mainMenu.ICON] || iconMap.LayoutDashboard" :size="22" class="group-hover:text-[var(--layout-sidebar-accent)]" :style="{ color: activeMenuId === mainMenu.L1 ? 'var(--layout-sidebar-accent)' : 'var(--layout-sidebar-muted)' }" />
-          </div>
-          <span class="text-[10px] font-semibold text-center leading-tight whitespace-normal w-full px-1" :style="{ color: activeMenuId === mainMenu.L1 ? 'var(--layout-sidebar-accent)' : 'var(--layout-sidebar-text)' }">
-            {{ displayMenuCaption(mainMenu.NamaCaption) }}
+          <span
+            class="flex items-start gap-3 min-w-0"
+            :class="isExpanded ? '' : 'justify-center'"
+          >
+            <span
+              v-show="isExpanded"
+              class="break-words whitespace-normal leading-snug text-left text-base"
+              >{{ displayMenuCaption(mainMenu.NamaCaption) }}</span
+            >
           </span>
+
+          <ChevronDown
+            v-if="isExpanded && hasChildren(mainMenu)"
+            :size="16"
+            class="shrink-0 mt-0.5 cursor-pointer transform-gpu transition-transform duration-300 ease-in-out group-hover:text-(--layout-sidebar-accent)"
+            :style="{ color: 'var(--layout-sidebar-muted)' }"
+            :class="
+              isMenuExpanded(mainMenu.L1) || isDummyUserMenuExpanded(mainMenu)
+                ? 'rotate-180'
+                : 'rotate-0'
+            "
+          />
         </button>
 
-        <!-- Mobile Mode (Click Trigger, Accordion) -->
-        <template v-else>
-          <button
-            type="button"
-            class="flex min-h-12 w-full items-start justify-between rounded-xl p-3 transition group hover:bg-[var(--layout-sidebar-hover)] hover:text-[var(--layout-sidebar-accent)] cursor-pointer"
-            @click="handleMainMenuClick(mainMenu)"
+        <!-- Inline child menu (when sidebar expanded) -->
+        <div
+          v-if="
+            isMenuExpanded(mainMenu.L1) || isDummyUserMenuExpanded(mainMenu)
+          "
+        >
+          <div
+            v-if="getChildren(mainMenu.L1, mainMenu).length"
+            class="pl-6 mt-1 space-y-1"
           >
-            <span class="flex items-start gap-3 min-w-0">
-              <component :is="iconMap[mainMenu.ICON] || iconMap.LayoutDashboard" :size="20" class="group-hover:text-[var(--layout-sidebar-accent)]" :style="{ color: 'var(--layout-sidebar-muted)' }" />
-              <span class="break-words whitespace-normal leading-snug text-left text-base">{{ displayMenuCaption(mainMenu.NamaCaption) }}</span>
-            </span>
-            <ChevronDown
-              v-if="hasChildren(mainMenu)"
-              :size="16"
-              class="shrink-0 mt-0.5 cursor-pointer transform-gpu transition-transform duration-300 ease-in-out group-hover:text-[var(--layout-sidebar-accent)]"
-              :style="{ color: 'var(--layout-sidebar-muted)' }"
-              :class="isMenuExpanded(mainMenu.L1) || isDummyUserMenuExpanded(mainMenu) ? 'rotate-180' : 'rotate-0'"
-            />
-          </button>
-
-          <!-- Inline child menu for Mobile -->
-          <div v-if="isMenuExpanded(mainMenu.L1) || isDummyUserMenuExpanded(mainMenu)">
-            <div v-if="getChildren(mainMenu.L1, mainMenu).length" class="pl-6 mt-1 space-y-1">
-              <div v-for="child in getChildren(mainMenu.L1, mainMenu)" :key="child.L1" class="flex flex-col">
+            <div
+              v-for="child in getChildren(mainMenu.L1, mainMenu)"
+              :key="child.L1"
+              class="flex flex-col"
+            >
+              <div class="flex items-center">
                 <button
                   type="button"
-                  @click.stop="childHasChildren(child) ? handleChildMenuClick(child) : openTab(child)"
-                  class="group flex w-full items-start justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-[var(--layout-sidebar-hover)] hover:text-[var(--layout-sidebar-accent)]"
+                  @click.stop="
+                    childHasChildren(child)
+                      ? handleChildMenuClick(child)
+                      : openTab(child)
+                  "
+                  class="group flex w-full items-start justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
                   :style="{ color: 'var(--layout-sidebar-text)' }"
                 >
                   <span class="flex items-start gap-3 min-w-0">
-                    <div class="w-5 flex justify-center shrink-0 mt-0.5" v-if="child.ICON && iconMap[child.ICON]">
-                      <component :is="iconMap[child.ICON]" :size="18" class="group-hover:text-[var(--layout-sidebar-accent)]" :style="{ color: 'var(--layout-sidebar-muted)' }" />
+                    <div
+                      class="w-5 flex justify-center shrink-0 mt-0.5"
+                      v-if="child.ICON && iconMap[child.ICON]"
+                    >
+                      <component
+                        :is="iconMap[child.ICON]"
+                        :size="18"
+                        class="menu-icon group-hover:text-(--layout-sidebar-accent)"
+                        :style="{ color: 'var(--layout-sidebar-muted)' }"
+                      />
                     </div>
-                    <span class="break-words whitespace-normal leading-snug">{{ displayMenuCaption(child.NamaCaption) }}</span>
+                    <span class="break-words whitespace-normal leading-snug">{{
+                      displayMenuCaption(child.NamaCaption)
+                    }}</span>
                   </span>
                   <ChevronDown
                     v-if="childHasChildren(child)"
                     :size="14"
-                    class="shrink-0 mt-0.5 cursor-pointer transform-gpu transition-transform duration-300 ease-in-out"
+                    class="shrink-0 mt-0.5 cursor-pointer transform-gpu transition-transform duration-300 ease-in-out group-hover:text-(--layout-sidebar-accent)"
                     :style="{ color: 'var(--layout-sidebar-muted)' }"
-                    :class="isMenuExpanded(child.L1) ? 'rotate-180' : 'rotate-0'"
+                    :class="
+                      isMenuExpanded(child.L1) ? 'rotate-180' : 'rotate-0'
+                    "
                   />
                 </button>
-                <div v-if="isMenuExpanded(child.L1) && getChildren(child.L1, child).length" class="pl-4 mt-1">
-                  <div v-for="sub in getChildren(child.L1, child)" :key="sub.L1">
-                    <button
-                      type="button"
-                      @click="openTab(sub)"
-                      class="group flex w-full items-start rounded-lg px-3 py-1.5 text-left text-xs transition hover:bg-[var(--layout-sidebar-hover)] hover:text-[var(--layout-sidebar-accent)]"
-                      :style="{ color: 'var(--layout-sidebar-text)' }"
-                    >
-                      <span class="flex items-start gap-3 min-w-0 w-full">
-                        <div class="w-4 flex justify-center shrink-0 mt-0.5" v-if="sub.ICON && iconMap[sub.ICON]">
-                          <component :is="iconMap[sub.ICON]" :size="14" class="group-hover:text-[var(--layout-sidebar-accent)]" :style="{ color: 'var(--layout-sidebar-muted)' }" />
-                        </div>
-                        <span class="break-words whitespace-normal leading-snug">{{ displayMenuCaption(sub.NamaCaption) }}</span>
-                      </span>
-                    </button>
-                  </div>
+              </div>
+
+              <!-- level-2 inline submenu -->
+              <div
+                v-if="
+                  isMenuExpanded(child.L1) &&
+                  getChildren(child.L1, child).length
+                "
+                class="pl-4 mt-1"
+              >
+                <div v-for="sub in getChildren(child.L1, child)" :key="sub.L1">
+                  <button
+                    type="button"
+                    @click="openTab(sub)"
+                    class="group flex w-full items-start rounded-lg px-3 py-1.5 text-left text-xs transition hover:bg-(--layout-sidebar-hover) hover:text-(--layout-sidebar-accent)"
+                    :style="{ color: 'var(--layout-sidebar-text)' }"
+                  >
+                    <span class="flex items-start gap-3 min-w-0 w-full">
+                      <div
+                        class="w-4 flex justify-center shrink-0 mt-0.5"
+                        v-if="sub.ICON && iconMap[sub.ICON]"
+                      >
+                        <component
+                          :is="iconMap[sub.ICON]"
+                          :size="14"
+                          class="menu-icon group-hover:text-(--layout-sidebar-accent)"
+                          :style="{ color: 'var(--layout-sidebar-muted)' }"
+                        />
+                      </div>
+                      <span
+                        class="break-words whitespace-normal leading-snug"
+                        >{{ displayMenuCaption(sub.NamaCaption) }}</span
+                      >
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-        </template>
+        </div>
+
+        <!-- Separator -->
+        <!-- <div
+          :class="[
+            'h-[0.75px] my-3 bg-outline transition-all duration-300',
+            isExpanded ? 'w-20 mx-auto' : 'w-6 mx-auto',
+          ]"
+        ></div> -->
       </div>
     </nav>
 
     <div
       v-if="!isMobileViewport"
-      class="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-transparent transition hover:bg-[var(--layout-sidebar-accent)]/40"
+      class="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-transparent transition hover:bg-(--layout-sidebar-accent)/40"
       @mousedown.prevent="startSidebarResize"
       title="Drag untuk ubah lebar sidebar"
     ></div>
 
-    <!-- POPUP MENUS -->
-    <!-- Level 1 Popup -->
-    <div
-      v-if="!isMobileViewport && showSubmenu.length > 0 && activeMenuId"
-      class="bg-white rounded-xl shadow-2xl border border-slate-100 pb-2 w-[250px] transition-opacity duration-200"
-      :style="submenuStyle"
-      @mouseenter="clearHoverTimeout"
-      @mouseleave="handleSidebarLeave"
-    >
-      <div class="px-4 pt-4 pb-2 font-bold text-slate-800 border-b border-slate-100 mb-2 sticky top-0 bg-white z-10 rounded-t-xl">
-        {{ getMenuCaptionById(activeMenuId) }}
-      </div>
-      <div
-        v-for="child in showSubmenu"
-        :key="child.L1"
-        :ref="`level1Item${child.L1}`"
+    <!-- Log Out
+    <div class="p-4 border-t border-slate-800 shrink-0">
+      <button
+        :class="[
+          'flex items-center p-3 w-full rounded-xl transition text-white hover:bg-[var(--layout-sidebar-hover)]',
+          isExpanded ? 'gap-3 justify-start text-left' : 'justify-center',
+        ]"
+        :style="{ backgroundColor: 'var(--layout-sidebar-danger)' }"
+        :title="!isExpanded ? 'Log Out' : ''"
       >
-        <button
-          type="button"
-          class="w-full flex items-center justify-between px-4 py-2 text-sm transition hover:bg-blue-50 hover:text-blue-700 group"
-          :class="activeLevel2MenuId === child.L1 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'"
-          @mouseenter="handleChildHover(child.L1, $event)"
-          @click="!childHasChildren(child) ? openTab(child) : null"
-          :title="child.NamaCaption"
-        >
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 transition-colors group-hover:bg-white">
-              <component :is="iconMap[child.ICON] || iconMap.LayoutDashboard" :size="18" :class="activeLevel2MenuId === child.L1 ? 'text-blue-700' : 'text-slate-400 group-hover:text-blue-700'" />
-            </div>
-            <span class="font-medium text-left leading-snug">{{ displayMenuCaption(child.NamaCaption) }}</span>
-          </div>
-          <ChevronDown v-if="childHasChildren(child)" :size="14" class="-rotate-90 text-slate-400 shrink-0" />
-        </button>
-      </div>
-    </div>
-
-    <!-- Level 2 Popup -->
-    <div
-      v-if="!isMobileViewport && showLevel2Submenu.length > 0 && activeLevel2MenuId"
-      class="bg-white rounded-xl shadow-2xl border border-slate-100 pb-2 w-[230px] transition-opacity duration-200"
-      :style="level2SubmenuStyle"
-      @mouseenter="clearHoverTimeout"
-      @mouseleave="handleSidebarLeave"
-    >
-      <div class="px-4 pt-4 pb-2 font-bold text-slate-800 border-b border-slate-100 mb-2 sticky top-0 bg-white z-10 rounded-t-xl">
-        {{ getMenuCaptionById(activeLevel2MenuId) }}
-      </div>
-      <div
-        v-for="sub in showLevel2Submenu"
-        :key="sub.L1"
-      >
-        <button
-          type="button"
-          class="w-full flex items-center px-4 py-2 text-sm transition hover:bg-blue-50 hover:text-blue-700 text-slate-600 group"
-          @click="openTab(sub)"
-          :title="sub.NamaCaption"
-        >
-          <div class="flex items-center gap-3 w-full">
-            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 transition-colors group-hover:bg-white">
-              <component :is="iconMap[sub.ICON] || iconMap.LayoutDashboard" :size="18" class="text-slate-400 group-hover:text-blue-700" />
-            </div>
-            <span class="font-medium text-left leading-snug">{{ displayMenuCaption(sub.NamaCaption) }}</span>
-          </div>
-        </button>
-      </div>
-    </div>
-
+        <LogOut :size="20" />
+        <span v-show="isExpanded" class="font-medium truncate"> Log Out </span>
+      </button>
+    </div> -->
   </aside>
 </template>
 
@@ -327,7 +336,6 @@ export default {
       sidebarResizeStartWidth: 0,
       // track expanded menus for inline sidebar dropdowns
       expandedMenuIds: [],
-      hoverTimer: null,
       dummySidebarChildren: {
         users: [
           {
@@ -401,8 +409,11 @@ export default {
           : { ...baseStyles, width: `${this.sidebarCustomWidth}px` };
       }
 
-      // Always fixed width for desktop
-      return { ...baseStyles, width: `95px` };
+      if (this.collapsed && !this.isHovered) {
+        return { ...baseStyles, width: "80px" };
+      }
+
+      return { ...baseStyles, width: `${this.sidebarCustomWidth}px` };
     },
 
     sidebarClasses() {
@@ -419,7 +430,11 @@ export default {
 
       return [
         baseClasses,
-        "relative shrink-0 z-40",
+        this.collapsed
+          ? this.isHovered
+            ? "left-0 top-0 w-64 shadow-xl z-50"
+            : "relative w-20"
+          : "relative w-64",
       ];
     },
 
@@ -450,27 +465,13 @@ export default {
         Map,
         HandCoins,
         Landmark,
-        // Backend string mappings
-        "i-Pie-Chart-2": BarChart3,
-        "i-Map2": Map,
-        "i-Motorcycle": Package,
-        "i-Pound": FileText,
-        "i-Tag-5": ListCollapse,
-        "i-Financial": Landmark,
-        "i-University1": Building2,
-        "i-Dollar-Sign": HandCoins,
-        "i-Bar-Chart": BarChart3,
-        "i-Book": FileText,
-        "i-Gear": Settings,
-        "i-Boy": Users,
-        "i-Clothing-Store": Building2,
       };
     },
 
     mainMenuItems() {
       if (this.getlayoutmenuweb && this.getlayoutmenuweb.dbmenu2) {
         return this.getlayoutmenuweb.dbmenu2.filter(
-          (item) => item.L0 === "0" || item.Parent === "0" // ✅ Fetch root level items properly
+          (item) => item.L0 === "0", // ✅ tampilkan semua parent, akses dicek dari children
         );
       }
       return [];
@@ -585,9 +586,10 @@ export default {
     },
 
     displayMenuCaption(caption) {
-      return String(caption || "")
-        .replace(/^\s*\d+\s*[-–—.:]?\s*/, "")
-        .trim();
+      // return String(caption || "")
+      //   .replace(/^\s*\d+\s*[-–—.:]?\s*/, "")
+      //   .trim();
+      return caption;
     },
 
     getStoredSidebarWidth() {
@@ -643,44 +645,6 @@ export default {
       document.body.style.cursor = "";
     },
 
-    handleMainMenuHover(menuId, event) {
-      if (this.isMobileViewport) return;
-      this.clearHoverTimeout();
-      const target = event.currentTarget;
-      this.toggleSubmenu(menuId, target);
-    },
-
-    handleChildHover(menuId, event) {
-      if (this.isMobileViewport) return;
-      this.clearHoverTimeout();
-      const target = event.currentTarget;
-      this.toggleLevel2Submenu(menuId, target);
-    },
-
-    handleSidebarLeave() {
-      if (this.isMobileViewport) return;
-      this.hoverTimer = setTimeout(() => {
-        this.closeAllMenus();
-      }, 300);
-    },
-
-    clearHoverTimeout() {
-      if (this.hoverTimer) {
-        clearTimeout(this.hoverTimer);
-        this.hoverTimer = null;
-      }
-    },
-
-    getMenuCaptionById(menuId) {
-      if (!this.getlayoutmenuweb || !this.getlayoutmenuweb.dbmenu2) return "";
-      const item = this.getlayoutmenuweb.dbmenu2.find(m => String(m.L1) === String(menuId));
-      if (item) return item.NamaCaption;
-      
-      // Check dummy
-      const dummyItem = this.dummySidebarChildren.users.find(m => String(m.L1) === String(menuId));
-      return dummyItem ? dummyItem.NamaCaption : "";
-    },
-
     getDummyChildren(menuItem) {
       const caption = this.normalizeMenuCaption(menuItem?.NamaCaption);
 
@@ -728,20 +692,7 @@ export default {
       }
 
       const backendChildren = this.getlayoutmenuweb.dbmenu2.filter((item) => {
-        return String(item.Parent) === String(menuId) && item.HASACCESS === "1";
-      });
-
-      backendChildren.sort((a, b) => {
-        const aCaption = String(a.NamaCaption || "").toLowerCase();
-        const bCaption = String(b.NamaCaption || "").toLowerCase();
-        
-        const aPriority = aCaption.includes("register outstanding") ? 2 : (aCaption.includes("register stock") ? 1 : 0);
-        const bPriority = bCaption.includes("register outstanding") ? 2 : (bCaption.includes("register stock") ? 1 : 0);
-        
-        if (aPriority > bPriority) return -1;
-        if (aPriority < bPriority) return 1;
-        
-        return 0;
+        return String(item.Parent) === String(menuId) && item.HASACCESS === "1"; // ✅ sudah benar
       });
 
       return backendChildren;
@@ -963,84 +914,130 @@ export default {
       this.expandedMenuIds = [id];
     },
 
-    toggleSubmenu(menuId, targetElement = null) {
+    toggleSubmenu(menuId, menuIndex = null) {
       this.activeMenuId = menuId;
       this.closeLevel2Submenu();
-      
-      const item = this.getlayoutmenuweb.dbmenu2?.find(m => String(m.L1) === String(menuId));
-      this.showSubmenu = this.getChildren(menuId, item);
+      this.showSubmenu = this.getlayoutmenuweb.dbmenu2.filter((item) => {
+        return item.Parent == menuId;
+      });
 
-      if (targetElement !== null) {
+      if (menuIndex !== null) {
         this.$nextTick(() => {
-          this.calculateSubmenuPosition(targetElement);
+          this.calculateSubmenuPosition(menuId, menuIndex);
         });
       }
     },
 
-    toggleLevel2Submenu(menuId, targetElement = null) {
+    toggleLevel2Submenu(menuId, event) {
       this.activeLevel2MenuId = menuId;
 
-      const item = this.getlayoutmenuweb.dbmenu2?.find(m => String(m.L1) === String(menuId));
-      this.showLevel2Submenu = this.getChildren(menuId, item);
+      this.showLevel2Submenu = this.getlayoutmenuweb.dbmenu2.filter((item) => {
+        return item.Parent == menuId && item.HASACCESS === "1";
+      });
 
-      if (targetElement !== null) {
-        this.$nextTick(() => {
-          this.calculateLevel2SubmenuPosition(targetElement);
-        });
+      this.$nextTick(() => {
+        this.calculateLevel2SubmenuPosition(menuId, event);
+      });
+    },
+
+    calculateSubmenuPosition(menuId, menuIndex) {
+      const menuElement = this.$refs[`menuItem${menuId}`];
+
+      if (menuElement && menuElement[0]) {
+        const menuRect = menuElement[0].getBoundingClientRect();
+        const sidebarRect = this.$el.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        const itemCount = this.showSubmenu.length;
+        const headerHeight = 65;
+        const itemHeight = 56;
+        const padding = 32;
+        const calculatedHeight =
+          headerHeight + itemCount * itemHeight + padding;
+        const maxReasonableHeight = Math.min(windowHeight * 0.7, 450);
+        const submenuHeight = Math.min(calculatedHeight, maxReasonableHeight);
+
+        let topPosition = menuRect.top - sidebarRect.top;
+
+        const submenuBottom = menuRect.top + submenuHeight;
+
+        if (submenuBottom > windowHeight - 20) {
+          topPosition = windowHeight - 20 - submenuHeight - sidebarRect.top;
+          if (topPosition < 20) {
+            topPosition = 20;
+            const availableHeight = windowHeight - 40;
+            this.submenuStyle = {
+              position: "absolute",
+              left: "95px",
+              top: `${topPosition}px`,
+              zIndex: 1000,
+              height: `${Math.min(submenuHeight, availableHeight)}px`,
+              maxHeight: `${Math.min(submenuHeight, availableHeight)}px`,
+              overflowY: "auto",
+            };
+            return;
+          }
+        }
+
+        this.submenuStyle = {
+          position: "absolute",
+          left: "95px",
+          top: `${Math.max(topPosition, 0)}px`,
+          zIndex: 1000,
+          height: `${submenuHeight}px`,
+          maxHeight: `${submenuHeight}px`,
+          overflowY: submenuHeight < calculatedHeight ? "auto" : "hidden",
+        };
       }
     },
 
-    calculatePopupStyle(targetElement, anchorRightPosition, itemCount, zIndex) {
-      if (!targetElement || !this.$refs.sidebarContainer) return {};
-      
-      const rect = targetElement.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      
-      let topPosition = rect.top;
-      let availableBelow = windowHeight - topPosition - 20;
-      
-      const maxAllowedHeight = 310; // Cap at approx 5 items
-      const expectedHeight = 50 + (itemCount * 48) + 16;
-      const actualHeight = Math.min(expectedHeight, maxAllowedHeight);
-      
-      if (actualHeight > availableBelow) {
-        const shortfall = actualHeight - availableBelow;
-        topPosition = Math.max(20, topPosition - shortfall);
-        availableBelow = windowHeight - topPosition - 20;
+    calculateLevel2SubmenuPosition(menuId, event) {
+      const targetElement = this.$refs[`level1Item${menuId}`];
+
+      if (targetElement && targetElement[0]) {
+        const itemRect = targetElement[0].getBoundingClientRect();
+        const sidebarRect = this.$el.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        const itemCount = this.showLevel2Submenu.length;
+        const headerHeight = 65;
+        const itemHeight = 56;
+        const padding = 32;
+        const calculatedHeight =
+          headerHeight + itemCount * itemHeight + padding;
+        const maxReasonableHeight = Math.min(windowHeight * 0.6, 400);
+        const level2Height = Math.min(calculatedHeight, maxReasonableHeight);
+        let topPosition = itemRect.top - sidebarRect.top;
+        const leftPosition = 95 + 280;
+
+        const level2Bottom = itemRect.top + level2Height;
+
+        if (level2Bottom > windowHeight - 20) {
+          topPosition = windowHeight - 20 - level2Height - sidebarRect.top;
+          if (topPosition < 20) {
+            topPosition = 20;
+            const availableHeight = windowHeight - 40;
+            this.level2SubmenuStyle = {
+              position: "absolute",
+              left: `${leftPosition}px`,
+              top: `${topPosition}px`,
+              zIndex: 1001,
+              height: `${Math.min(level2Height, availableHeight)}px`,
+              maxHeight: `${Math.min(level2Height, availableHeight)}px`,
+              overflowY: "auto",
+            };
+            return;
+          }
+        }
+
+        this.level2SubmenuStyle = {
+          position: "absolute",
+          left: `${leftPosition}px`,
+          top: `${Math.max(topPosition, 0)}px`,
+          zIndex: 1001,
+          height: `${level2Height}px`,
+          maxHeight: `${level2Height}px`,
+          overflowY: "auto",
+        };
       }
-      
-      const finalMaxHeight = Math.min(availableBelow, maxAllowedHeight);
-      
-      return {
-        position: "fixed",
-        left: `${anchorRightPosition + 6}px`,
-        top: `${topPosition}px`,
-        zIndex: zIndex,
-        maxHeight: `${finalMaxHeight}px`,
-        overflowY: "auto",
-      };
-    },
-
-    calculateSubmenuPosition(targetElement) {
-      if (!targetElement) return;
-      const sidebarRect = this.$refs.sidebarContainer.getBoundingClientRect();
-      this.submenuStyle = this.calculatePopupStyle(
-        targetElement,
-        sidebarRect.right,
-        this.showSubmenu.length,
-        1000
-      );
-    },
-
-    calculateLevel2SubmenuPosition(targetElement) {
-      if (!targetElement) return;
-      const itemRect = targetElement.getBoundingClientRect();
-      this.level2SubmenuStyle = this.calculatePopupStyle(
-        targetElement,
-        itemRect.right,
-        this.showLevel2Submenu.length,
-        1001
-      );
     },
 
     isLongText(caption) {
