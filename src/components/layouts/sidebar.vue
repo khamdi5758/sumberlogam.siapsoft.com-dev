@@ -20,10 +20,11 @@
         borderBottomColor: 'var(--layout-sidebar-border)',
       }"
     >
-      <span v-if="!isMobileViewport" class="text-[12px] truncate text-center leading-tight mt-1">Siap App</span>
-      <span v-else class="text-xl truncate text-center w-full flex items-center justify-between px-4">
-        Siap App
-        <button @click="toggleCollapsed" class="ml-auto"><ListCollapse :size="20" /></button>
+      <span class="text-[12px] font-bold truncate text-center leading-tight flex flex-col items-center justify-center gap-1 w-full">
+        <span class="mt-1">Siap App</span>
+        <button v-if="isMobileViewport" @click="toggleCollapsed" class="p-1 text-slate-400 hover:text-slate-200 mt-1">
+          <ListCollapse :size="18" />
+        </button>
       </span>
     </div>
 
@@ -41,11 +42,10 @@
       >
         <!-- Desktop Mode (Hover Trigger) -->
         <button
-          v-if="!isMobileViewport"
           type="button"
           class="flex flex-col items-center justify-center w-full min-h-[72px] rounded-xl p-2 transition group hover:bg-[var(--layout-sidebar-hover)] hover:text-[var(--layout-sidebar-accent)]"
-          @mouseenter="handleMainMenuHover(mainMenu.L1, $event)"
-          @click="!hasChildren(mainMenu) ? openTab(mainMenu) : null"
+          @mouseenter="!isMobileViewport ? handleMainMenuHover(mainMenu.L1, $event) : null"
+          @click="!hasChildren(mainMenu) ? openTab(mainMenu) : handleMainMenuClick(mainMenu)"
           :class="activeMenuId === mainMenu.L1 ? 'bg-[var(--layout-sidebar-hover)] text-[var(--layout-sidebar-accent)]' : ''"
           :title="mainMenu.NamaCaption"
         >
@@ -56,72 +56,6 @@
             {{ displayMenuCaption(mainMenu.NamaCaption) }}
           </span>
         </button>
-
-        <!-- Mobile Mode (Click Trigger, Accordion) -->
-        <template v-else>
-          <button
-            type="button"
-            class="flex min-h-12 w-full items-start justify-between rounded-xl p-3 transition group hover:bg-[var(--layout-sidebar-hover)] hover:text-[var(--layout-sidebar-accent)] cursor-pointer"
-            @click="handleMainMenuClick(mainMenu)"
-          >
-            <span class="flex items-start gap-3 min-w-0">
-              <component :is="iconMap[mainMenu.ICON] || iconMap.LayoutDashboard" :size="20" class="group-hover:text-[var(--layout-sidebar-accent)]" :style="{ color: 'var(--layout-sidebar-muted)' }" />
-              <span class="break-words whitespace-normal leading-snug text-left text-base">{{ displayMenuCaption(mainMenu.NamaCaption) }}</span>
-            </span>
-            <ChevronDown
-              v-if="hasChildren(mainMenu)"
-              :size="16"
-              class="shrink-0 mt-0.5 cursor-pointer transform-gpu transition-transform duration-300 ease-in-out group-hover:text-[var(--layout-sidebar-accent)]"
-              :style="{ color: 'var(--layout-sidebar-muted)' }"
-              :class="isMenuExpanded(mainMenu.L1) || isDummyUserMenuExpanded(mainMenu) ? 'rotate-180' : 'rotate-0'"
-            />
-          </button>
-
-          <!-- Inline child menu for Mobile -->
-          <div v-if="isMenuExpanded(mainMenu.L1) || isDummyUserMenuExpanded(mainMenu)">
-            <div v-if="getChildren(mainMenu.L1, mainMenu).length" class="pl-6 mt-1 space-y-1">
-              <div v-for="child in getChildren(mainMenu.L1, mainMenu)" :key="child.L1" class="flex flex-col">
-                <button
-                  type="button"
-                  @click.stop="childHasChildren(child) ? handleChildMenuClick(child) : openTab(child)"
-                  class="group flex w-full items-start justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-[var(--layout-sidebar-hover)] hover:text-[var(--layout-sidebar-accent)]"
-                  :style="{ color: 'var(--layout-sidebar-text)' }"
-                >
-                  <span class="flex items-start gap-3 min-w-0">
-                    <div class="w-5 flex justify-center shrink-0 mt-0.5" v-if="child.ICON && iconMap[child.ICON]">
-                      <component :is="iconMap[child.ICON]" :size="18" class="group-hover:text-[var(--layout-sidebar-accent)]" :style="{ color: 'var(--layout-sidebar-muted)' }" />
-                    </div>
-                    <span class="break-words whitespace-normal leading-snug">{{ displayMenuCaption(child.NamaCaption) }}</span>
-                  </span>
-                  <ChevronDown
-                    v-if="childHasChildren(child)"
-                    :size="14"
-                    class="shrink-0 mt-0.5 cursor-pointer transform-gpu transition-transform duration-300 ease-in-out"
-                    :style="{ color: 'var(--layout-sidebar-muted)' }"
-                    :class="isMenuExpanded(child.L1) ? 'rotate-180' : 'rotate-0'"
-                  />
-                </button>
-                <div v-if="isMenuExpanded(child.L1) && getChildren(child.L1, child).length" class="pl-4 mt-1">
-                  <div v-for="sub in getChildren(child.L1, child)" :key="sub.L1">
-                    <button
-                      type="button"
-                      @click="openTab(sub)"
-                      class="group flex w-full items-start rounded-lg px-3 py-1.5 text-left text-xs transition hover:bg-[var(--layout-sidebar-hover)] hover:text-[var(--layout-sidebar-accent)]"
-                      :style="{ color: 'var(--layout-sidebar-text)' }"
-                    >
-                      <span class="flex items-start gap-3 min-w-0 w-full">
-                        <div class="w-4 flex justify-center shrink-0 mt-0.5" v-if="sub.ICON && iconMap[sub.ICON]">
-                          <component :is="iconMap[sub.ICON]" :size="14" class="group-hover:text-[var(--layout-sidebar-accent)]" :style="{ color: 'var(--layout-sidebar-muted)' }" />
-                        </div>
-                        <span class="break-words whitespace-normal leading-snug">{{ displayMenuCaption(sub.NamaCaption) }}</span>
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </template>
       </div>
     </nav>
 
@@ -132,17 +66,28 @@
       title="Drag untuk ubah lebar sidebar"
     ></div>
 
+    <!-- Mobile Backdrop for Popups -->
+    <Teleport to="body" v-if="isMobileViewport && (showSubmenu.length > 0 || showLevel2Submenu.length > 0)">
+      <div class="fixed inset-0 z-[1005] bg-black/40" @click="closeSubmenu"></div>
+    </Teleport>
+
     <!-- POPUP MENUS -->
     <!-- Level 1 Popup -->
+    <Teleport to="body" :disabled="!isMobileViewport">
     <div
-      v-if="!isMobileViewport && showSubmenu.length > 0 && activeMenuId"
-      class="bg-white rounded-xl shadow-2xl border border-slate-100 pb-2 w-[250px] transition-opacity duration-200"
-      :style="submenuStyle"
-      @mouseenter="clearHoverTimeout"
-      @mouseleave="handleSidebarLeave"
+      v-if="showSubmenu.length > 0 && activeMenuId && (!isMobileViewport || !activeLevel2MenuId)"
+      class="bg-white rounded-xl shadow-2xl border border-slate-100 pb-2 transition-opacity duration-200"
+      :class="isMobileViewport ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[400px] z-[1010]' : 'w-[250px]'"
+      :style="!isMobileViewport ? submenuStyle : { maxHeight: '80vh', overflowY: 'auto' }"
+      @click.stop
+      @mouseenter="!isMobileViewport ? clearHoverTimeout() : null"
+      @mouseleave="!isMobileViewport ? handleSidebarLeave() : null"
     >
-      <div class="px-4 pt-4 pb-2 font-bold text-slate-800 border-b border-slate-100 mb-2 sticky top-0 bg-white z-10 rounded-t-xl">
-        {{ getMenuCaptionById(activeMenuId) }}
+      <div class="px-4 pt-4 pb-2 font-bold text-slate-800 border-b border-slate-100 mb-2 sticky top-0 bg-white z-10 rounded-t-xl flex justify-between items-center">
+        <span>{{ getMenuCaptionById(activeMenuId) }}</span>
+        <button v-if="isMobileViewport" @click.stop="closeSubmenu" class="text-slate-400 hover:text-slate-600">
+           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <div
         v-for="child in showSubmenu"
@@ -153,8 +98,8 @@
           type="button"
           class="w-full flex items-center justify-between px-4 py-2 text-sm transition hover:bg-blue-50 hover:text-blue-700 group"
           :class="activeLevel2MenuId === child.L1 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'"
-          @mouseenter="handleChildHover(child.L1, $event)"
-          @click="!childHasChildren(child) ? openTab(child) : null"
+          @mouseenter="!isMobileViewport ? handleChildHover(child.L1, $event) : null"
+          @click="!childHasChildren(child) ? openTab(child) : (isMobileViewport ? toggleLevel2Submenu(child.L1) : null)"
           :title="child.NamaCaption"
         >
           <div class="flex items-center gap-3">
@@ -167,17 +112,29 @@
         </button>
       </div>
     </div>
+    </Teleport>
 
     <!-- Level 2 Popup -->
+    <Teleport to="body" :disabled="!isMobileViewport">
     <div
-      v-if="!isMobileViewport && showLevel2Submenu.length > 0 && activeLevel2MenuId"
-      class="bg-white rounded-xl shadow-2xl border border-slate-100 pb-2 w-[230px] transition-opacity duration-200"
-      :style="level2SubmenuStyle"
-      @mouseenter="clearHoverTimeout"
-      @mouseleave="handleSidebarLeave"
+      v-if="showLevel2Submenu.length > 0 && activeLevel2MenuId"
+      class="bg-white rounded-xl shadow-2xl border border-slate-100 pb-2 transition-opacity duration-200"
+      :class="isMobileViewport ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[400px] z-[1010]' : 'w-[230px]'"
+      :style="!isMobileViewport ? level2SubmenuStyle : { maxHeight: '80vh', overflowY: 'auto' }"
+      @click.stop
+      @mouseenter="!isMobileViewport ? clearHoverTimeout() : null"
+      @mouseleave="!isMobileViewport ? handleSidebarLeave() : null"
     >
-      <div class="px-4 pt-4 pb-2 font-bold text-slate-800 border-b border-slate-100 mb-2 sticky top-0 bg-white z-10 rounded-t-xl">
-        {{ getMenuCaptionById(activeLevel2MenuId) }}
+      <div class="px-4 pt-4 pb-2 font-bold text-slate-800 border-b border-slate-100 mb-2 sticky top-0 bg-white z-10 rounded-t-xl flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <button v-if="isMobileViewport" @click.stop="closeLevel2Submenu" class="text-slate-400 hover:text-slate-600">
+             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <span>{{ getMenuCaptionById(activeLevel2MenuId) }}</span>
+        </div>
+        <button v-if="isMobileViewport" @click.stop="closeSubmenu" class="text-slate-400 hover:text-slate-600">
+           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <div
         v-for="sub in showLevel2Submenu"
@@ -198,6 +155,7 @@
         </button>
       </div>
     </div>
+    </Teleport>
 
   </aside>
 </template>
@@ -284,6 +242,7 @@ import {
 
 export default {
   name: "Sidebar",
+  inheritAttrs: false,
   emits: ["opentabchange"],
   components: {
     LayoutDashboard,
@@ -398,7 +357,7 @@ export default {
       if (this.isMobileViewport) {
         return this.collapsed
           ? baseStyles
-          : { ...baseStyles, width: `${this.sidebarCustomWidth}px` };
+          : { ...baseStyles, width: `95px` };
       }
 
       // Always fixed width for desktop
@@ -413,7 +372,7 @@ export default {
           baseClasses,
           this.collapsed
             ? "hidden"
-            : "fixed left-0 top-0 h-full w-64 shadow-xl z-50",
+            : "fixed left-0 top-0 h-full w-[95px] shadow-xl z-50",
         ];
       }
 
@@ -512,6 +471,7 @@ export default {
         this.$store.dispatch("settingsfe/setSidebarCollapsed", true);
         this.$emit("update:collapsed", true);
       }
+      this.closeSubmenu();
     },
 
     getIconClass(iconName) {
@@ -757,31 +717,19 @@ export default {
 
     handleMainMenuClick(menuItem) {
       if (!menuItem) return;
-      const menuId = String(menuItem.L1);
-      const isCurrentlyExpanded = this.isDummyUserMenu(menuItem)
-        ? this.userMenuExpanded
-        : this.isMenuExpanded(menuId);
-
-      this.triggerChevronAnimation(menuId, isCurrentlyExpanded);
 
       if (this.isDummyUserMenu(menuItem)) {
         this.userMenuExpanded = !this.userMenuExpanded;
-        this.expandedMenuIds = this.userMenuExpanded ? [menuId] : [];
+        this.expandedMenuIds = this.userMenuExpanded ? [String(menuItem.L1)] : [];
         return;
       }
 
-      if (this.hasChildren(menuItem)) {
-        // ✅ toggle: collapse jika sudah expand, expand jika belum
-        if (isCurrentlyExpanded) {
-          this.expandedMenuIds = this.expandedMenuIds.filter(
-            (id) => id !== menuId,
-          );
-        } else {
-          this.expandedMenuIds = [menuId];
-        }
-      } else {
+      if (!this.hasChildren(menuItem)) {
         this.openTab(menuItem);
+        return;
       }
+
+      this.toggleSubmenu(menuItem.L1);
     },
 
     isDummyUserMenu(menuItem) {
