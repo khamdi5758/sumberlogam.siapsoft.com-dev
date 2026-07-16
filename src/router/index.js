@@ -380,6 +380,17 @@ const routes = [
         component: SettingsPage,
       },
       {
+        path: "master",
+        name: "Master",
+        children: [
+          {
+            path: "barang",
+            name: "MasterBarang",
+            component: () => import("@/components/pages/master/barang/masterbarang.vue"),
+          },
+        ],
+      },
+      {
         path: "notifications",
         name: "Notifications",
         component: Notifications,
