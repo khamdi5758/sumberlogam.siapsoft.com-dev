@@ -1,41 +1,71 @@
 <template>
   <div class="master-barang-page">
-    <!-- Header halaman -->
-    <div class="page-header">
-      <h1 class="page-title">📦 Master Barang</h1>
-      <span class="total-barang">{{ products.length }} barang</span>
+    <!-- Header dengan statistik -->
+    <div class="page-header-card">
+      <div class="header-top">
+        <div class="header-title-group">
+          <div class="title-icon">📦</div>
+          <div>
+            <h1 class="page-title">Master Barang</h1>
+            <p class="page-subtitle">Kelola data inventaris barang</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn-add" @click="tambahBarang">
+            <span class="btn-icon">＋</span>
+            Tambah Barang
+          </button>
+        </div>
+      </div>
+
+      <!-- Statistik ringkas -->
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-value">{{ products.length }}</span>
+          <span class="stat-label">Total Barang</span>
+        </div>
+        <div class="stat-item stat-aman">
+          <span class="stat-value">{{ stokAman }}</span>
+          <span class="stat-label">Stok Aman</span>
+        </div>
+        <div class="stat-item stat-menipis">
+          <span class="stat-value">{{ stokMenipis }}</span>
+          <span class="stat-label">Menipis</span>
+        </div>
+        <div class="stat-item stat-habis">
+          <span class="stat-value">{{ stokHabis }}</span>
+          <span class="stat-label">Habis</span>
+        </div>
+      </div>
     </div>
 
-    <!-- DataGrid -->
-    <DataGrid
-      ref="dataGrid"
-      :dataSource="products"
-      :keyExpr="'id'"
-      :columns="columns"
-      :showToolbar="true"
-      :showAddButton="true"
-      :addButtonText="'Tambah Barang'"
-      :showEditAction="true"
-      :showDeleteAction="true"
-      :allowUpdating="true"
-      :allowDeleting="true"
-      :allowAdding="true"
-      :showRefreshButton="true"
-      :showExportButton="true"
-      :showSearchPanel="true"
-      :searchPlaceholder="'Cari barang...'"
-      :useBuiltInPager="true"
-      :pageSize="10"
-      :allowedPageSizes="[5, 10, 20, 50]"
-      :height="'calc(100vh - 180px)'"
-      :columnAutoWidth="true"
-      :columnHidingEnabled="true"
-      :allowColumnResizing="true"
-      :rowAlternationEnabled="true"
-      :showBorders="true"
-      @add-click="tambahBarang"
-      @refresh-click="refreshData"
-    />
+    <!-- DataGrid - Full width -->
+    <div class="grid-wrapper">
+      <DataGrid
+        ref="dataGrid"
+        :dataSource="products"
+        :keyExpr="'id'"
+        :columns="columns"
+        :showToolbar="true"
+        :showAddButton="false"
+        :showEditAction="true"
+        :showDeleteAction="true"
+        :showRefreshButton="true"
+        :showExportButton="true"
+        :showSearchPanel="true"
+        :searchPlaceholder="'Cari barang...'"
+        :useBuiltInPager="true"
+        :pageSize="10"
+        :allowedPageSizes="[5, 10, 20, 50]"
+        :height="'calc(100vh - 340px)'"
+        :columnAutoWidth="true"
+        :columnHidingEnabled="true"
+        :allowColumnResizing="true"
+        :rowAlternationEnabled="true"
+        :showBorders="true"
+        @refresh-click="refreshData"
+      />
+    </div>
   </div>
 </template>
 
@@ -128,14 +158,12 @@ export default {
           dataField: "nama",
           caption: "Nama Barang",
           dataType: "string",
-          width: 200,
           minWidth: 120,
         },
         {
           dataField: "kategori",
           caption: "Kategori",
           dataType: "string",
-          width: 150,
           minWidth: 100,
         },
         {
@@ -144,7 +172,6 @@ export default {
           dataType: "number",
           format: { type: "currency", currency: "IDR" },
           alignment: "right",
-          width: 150,
           minWidth: 100,
         },
         {
@@ -152,48 +179,54 @@ export default {
           caption: "Stok",
           dataType: "number",
           alignment: "right",
-          width: 100,
-          minWidth: 70,
-          // Custom cell template via cellTemplate
+          minWidth: 100,
           cellTemplate: (container, options) => {
             const stok = options.value;
-            let className = "status-aman";
+            let status = "aman";
             let label = "Aman";
             if (stok === 0) {
-              className = "status-habis";
+              status = "habis";
               label = "Habis";
             } else if (stok <= 5) {
-              className = "status-menipis";
+              status = "menipis";
               label = "Menipis";
             }
             container.innerHTML = `
-              <span class="stock-cell">
-                <strong>${stok}</strong>
-                <span class="status-badge ${className}">${label}</span>
-              </span>
-            `;
+                            <div class="stock-cell">
+                                <span class="stock-number">${stok}</span>
+                                <span class="stock-badge badge-${status}">${label}</span>
+                            </div>
+                        `;
           },
         },
         {
           dataField: "satuan",
           caption: "Satuan",
           dataType: "string",
-          width: 100,
           minWidth: 70,
         },
         {
           dataField: "lokasi",
           caption: "Lokasi",
           dataType: "string",
-          width: 180,
           minWidth: 120,
         },
       ],
     };
   },
+  computed: {
+    stokAman() {
+      return this.products.filter((p) => p.stok > 5).length;
+    },
+    stokMenipis() {
+      return this.products.filter((p) => p.stok > 0 && p.stok <= 5).length;
+    },
+    stokHabis() {
+      return this.products.filter((p) => p.stok === 0).length;
+    },
+  },
   methods: {
     tambahBarang() {
-      // Simulasi tambah data (nanti diganti modal)
       const nama = prompt("Nama Barang:");
       if (!nama) return;
       const kategori = prompt("Kategori:") || "";
@@ -213,10 +246,8 @@ export default {
         satuan,
         lokasi,
       });
-
       this.$refs.dataGrid.refreshGrid();
     },
-
     refreshData() {
       this.$refs.dataGrid.refreshGrid();
     },
@@ -225,115 +256,525 @@ export default {
 </script>
 
 <style scoped>
+/* ===== Menggunakan variabel dari welcome.css ===== */
 .master-barang-page {
-  padding: 20px;
+  --primary: #2a7de1;
+  --primary-dark: #1a5fb4;
+  --primary-light: #e8f0fe;
+  --success: var(--color-good-green);
+  --success-bg: #e6f7ed;
+  --warning: #e8a830;
+  --warning-bg: #fef7e6;
+  --danger: var(--color-red);
+  --danger-bg: #fdeaea;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --transition: 0.25s ease;
+
+  padding: 24px;
   background: var(--layout-content-bg);
   min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--color-main-text);
 }
 
-.page-header {
+/* ===== HEADER CARD ===== */
+.page-header-card {
+  background: var(--color-white);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--layout-content-border);
+  transition: box-shadow var(--transition);
+}
+
+.page-header-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.title-icon {
+  font-size: 2rem;
+  line-height: 1;
+  background: var(--primary-light);
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
 }
 
 .page-title {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: var(--color-main-text);
   margin: 0;
-  border-left: 5px solid var(--color-good-green);
-  padding-left: 16px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
-.total-barang {
+.page-subtitle {
   font-size: 0.9rem;
   color: var(--color-sub-text);
-  background: var(--color-light-base);
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-weight: 600;
+  margin: 2px 0 0 0;
+  font-weight: 400;
 }
 
-/* --- Styling untuk badge stok di dalam grid --- */
-:deep(.stock-cell) {
-  display: flex;
+.header-actions {
+  flex-shrink: 0;
+}
+
+.btn-add {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  justify-content: flex-end;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    transform var(--transition),
+    box-shadow var(--transition);
+  box-shadow: 0 2px 8px rgba(42, 125, 225, 0.3);
+  font-family: inherit;
 }
 
-:deep(.stock-cell strong) {
-  font-weight: 700;
+.btn-add:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(42, 125, 225, 0.35);
 }
 
-:deep(.status-badge) {
-  display: inline-block;
-  font-size: 0.6rem;
+.btn-add:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(42, 125, 225, 0.25);
+}
+
+.btn-icon {
+  font-size: 1.1rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* ===== STATS ROW ===== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  border-top: 1px solid var(--layout-content-border);
+  padding-top: 20px;
+}
+
+.stat-item {
+  background: var(--color-light-base);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  text-align: center;
+  border: 1px solid var(--layout-content-border);
+  transition:
+    border-color var(--transition),
+    background var(--transition);
+}
+
+.stat-item:hover {
+  border-color: var(--color-outline);
+  background: var(--color-white);
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.5rem;
   font-weight: 700;
-  padding: 2px 10px;
-  border-radius: 30px;
+  color: var(--color-main-text);
+  line-height: 1.2;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-sub-text);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
 }
 
-:deep(.status-aman) {
+.stat-aman .stat-value {
   color: var(--color-good-green);
-  background: #d1fae5;
 }
-
-:deep(.status-menipis) {
-  color: var(--color-yellow);
-  background: #fef3c7;
+.stat-menipis .stat-value {
+  color: var(--warning);
 }
-
-:deep(.status-habis) {
+.stat-habis .stat-value {
   color: var(--color-red);
-  background: #fee2e2;
 }
 
-/* --- Responsif mobile --- */
+/* ===== GRID WRAPPER - FULL WIDTH ===== */
+.grid-wrapper {
+  width: 100%;
+  background: var(--color-white);
+  border-radius: var(--radius);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--layout-content-border);
+  overflow: hidden;
+  transition: box-shadow var(--transition);
+}
+
+.grid-wrapper:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== FORCE DATAGRID TO TAKE FULL WIDTH ===== */
+.master-barang-page :deep(.dx-datagrid) {
+  width: 100% !important;
+  border: none !important;
+  border-radius: 0 !important;
+  font-family: var(--font-sans) !important;
+}
+
+.master-barang-page :deep(.dx-datagrid-content) {
+  width: 100% !important;
+}
+
+.master-barang-page :deep(.dx-datagrid-headers) {
+  background: var(--color-light-base) !important;
+  border-bottom: 2px solid var(--layout-content-border) !important;
+}
+
+.master-barang-page :deep(.dx-datagrid-headers .dx-header-row td) {
+  font-weight: 600 !important;
+  color: var(--color-sub-text) !important;
+  font-size: 0.8rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 12px 14px !important;
+  border-bottom: none !important;
+  background: transparent !important;
+}
+
+.master-barang-page :deep(.dx-datagrid-rowsview .dx-row td) {
+  padding: 10px 14px !important;
+  font-size: 0.9rem !important;
+  color: var(--color-main-text) !important;
+  border-bottom: 1px solid var(--layout-content-border) !important;
+  vertical-align: middle !important;
+  background: transparent !important;
+}
+
+.master-barang-page :deep(.dx-datagrid-rowsview .dx-row.dx-data-row:hover td) {
+  background: var(--primary-light) !important;
+}
+
+.master-barang-page
+  :deep(.dx-datagrid-rowsview .dx-row.dx-data-row.dx-state-hover td) {
+  background: var(--primary-light) !important;
+}
+
+/* Zebra */
+.master-barang-page
+  :deep(.dx-datagrid-rowsview .dx-row.dx-data-row:nth-child(even) td) {
+  background: var(--color-baris-genap);
+}
+
+.master-barang-page
+  :deep(.dx-datagrid-rowsview .dx-row.dx-data-row:nth-child(even):hover td) {
+  background: var(--primary-light) !important;
+}
+
+/* Toolbar */
+.master-barang-page :deep(.dx-datagrid-toolbar) {
+  padding: 12px 14px !important;
+  background: var(--color-white) !important;
+  border-bottom: 1px solid var(--layout-content-border) !important;
+}
+
+.master-barang-page :deep(.dx-toolbar) {
+  background: transparent !important;
+  min-height: 40px !important;
+}
+
+.master-barang-page :deep(.dx-toolbar .dx-button) {
+  border-radius: var(--radius-sm) !important;
+  font-weight: 500 !important;
+  font-size: 0.8rem !important;
+  transition:
+    background var(--transition),
+    transform var(--transition);
+}
+
+.master-barang-page :deep(.dx-toolbar .dx-button:hover) {
+  transform: translateY(-1px);
+}
+
+.master-barang-page :deep(.dx-toolbar .dx-button.dx-button-normal) {
+  background: var(--color-light-base) !important;
+  border: 1px solid var(--layout-content-border) !important;
+  color: var(--color-sub-text) !important;
+}
+
+.master-barang-page :deep(.dx-toolbar .dx-button.dx-button-normal:hover) {
+  background: var(--color-outline) !important;
+  border-color: var(--color-sub-text) !important;
+}
+
+.master-barang-page :deep(.dx-toolbar .dx-button.dx-button-success) {
+  background: var(--color-good-green) !important;
+  border-color: var(--color-good-green) !important;
+  color: #fff !important;
+}
+
+.master-barang-page :deep(.dx-toolbar .dx-button.dx-button-success:hover) {
+  background: #1a8f4a !important;
+  border-color: #1a8f4a !important;
+}
+
+/* Search box */
+.master-barang-page :deep(.dx-texteditor.dx-editor-outlined) {
+  border-radius: var(--radius-sm) !important;
+  border-color: var(--layout-content-border) !important;
+  background: var(--color-white) !important;
+}
+
+.master-barang-page :deep(.dx-texteditor.dx-editor-outlined.dx-state-focused) {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(42, 125, 225, 0.12) !important;
+}
+
+.master-barang-page :deep(.dx-texteditor .dx-placeholder) {
+  color: var(--color-sub-text) !important;
+  font-size: 0.85rem !important;
+  opacity: 0.5 !important;
+}
+
+/* Pager */
+.master-barang-page :deep(.dx-datagrid-pager) {
+  border-top: 1px solid var(--layout-content-border) !important;
+  padding: 12px 14px !important;
+  background: var(--color-white) !important;
+}
+
+.master-barang-page :deep(.dx-page) {
+  border-radius: 4px !important;
+  font-weight: 500 !important;
+}
+
+.master-barang-page :deep(.dx-page.dx-selection) {
+  background: var(--primary) !important;
+  color: #fff !important;
+  border-color: var(--primary) !important;
+}
+
+.master-barang-page :deep(.dx-page:not(.dx-selection):hover) {
+  background: var(--primary-light) !important;
+  border-color: var(--primary-light) !important;
+}
+
+/* ===== STOCK CELL ===== */
+.stock-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 2px 0;
+}
+
+.stock-number {
+  font-weight: 600;
+  color: var(--color-main-text);
+  font-size: 0.95rem;
+  min-width: 28px;
+  text-align: right;
+}
+
+.stock-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.badge-aman {
+  background: var(--success-bg);
+  color: var(--color-good-green);
+}
+
+.badge-menipis {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.badge-habis {
+  background: var(--danger-bg);
+  color: var(--color-red);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+  .master-barang-page {
+    padding: 16px;
+  }
+
+  .page-header-card {
+    padding: 20px;
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .stat-item {
+    padding: 10px 12px;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+}
+
 @media (max-width: 768px) {
   .master-barang-page {
     padding: 12px;
   }
 
+  .page-header-card {
+    padding: 16px 18px;
+    border-radius: var(--radius-sm);
+  }
+
+  .header-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .header-title-group {
+    gap: 12px;
+  }
+
+  .title-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.5rem;
+  }
+
   .page-title {
-    font-size: 1.4rem;
-    padding-left: 12px;
+    font-size: 1.3rem;
   }
 
-  .page-header {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
-  .total-barang {
+  .page-subtitle {
     font-size: 0.8rem;
-    padding: 2px 10px;
   }
 
-  /* Grid lebih ramping di mobile */
-  :deep(.dx-datagrid) {
-    font-size: 12px !important;
+  .header-actions {
+    width: 100%;
   }
 
-  :deep(.dx-datagrid-headers .dx-datagrid-table .dx-header-row td) {
-    font-size: 11px !important;
+  .btn-add {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding-top: 14px;
+  }
+
+  .stat-item {
+    padding: 8px 6px;
+    border-radius: 6px;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+  }
+
+  .stat-label {
+    font-size: 0.6rem;
+  }
+
+  .grid-wrapper {
+    border-radius: var(--radius-sm);
+  }
+
+  .master-barang-page :deep(.dx-datagrid-headers .dx-header-row td) {
+    font-size: 0.7rem !important;
+    padding: 8px 8px !important;
+  }
+
+  .master-barang-page :deep(.dx-datagrid-rowsview .dx-row td) {
+    padding: 8px 8px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .stock-cell {
+    gap: 6px;
+  }
+
+  .stock-number {
+    font-size: 0.85rem;
+    min-width: 20px;
+  }
+
+  .stock-badge {
+    font-size: 0.55rem !important;
+    padding: 1px 8px !important;
+  }
+
+  .master-barang-page :deep(.dx-datagrid-toolbar) {
     padding: 8px 10px !important;
   }
 
-  :deep(.dx-datagrid-rowsview .dx-row td) {
-    padding: 8px 10px !important;
-    font-size: 12px !important;
+  .master-barang-page :deep(.dx-toolbar .dx-button) {
+    font-size: 0.7rem !important;
+    padding: 4px 8px !important;
+    min-height: 28px !important;
   }
 
-  :deep(.status-badge) {
-    font-size: 0.5rem !important;
-    padding: 1px 6px !important;
+  .master-barang-page :deep(.dx-datagrid-pager) {
+    padding: 8px 10px !important;
+  }
+
+  .master-barang-page :deep(.dx-page) {
+    font-size: 0.75rem !important;
+    padding: 2px 8px !important;
+    min-width: 28px !important;
+    height: 28px !important;
   }
 }
 
@@ -342,39 +783,108 @@ export default {
     padding: 8px;
   }
 
-  .page-title {
+  .page-header-card {
+    padding: 12px 14px;
+  }
+
+  .header-title-group {
+    gap: 10px;
+  }
+
+  .title-icon {
+    width: 38px;
+    height: 38px;
     font-size: 1.2rem;
   }
 
-  /* Pastikan grid bisa di-scroll horizontal di HP */
-  :deep(.dx-datagrid-rowsview),
-  :deep(.dx-datagrid-content),
-  :deep(.dx-scrollable-container) {
-    touch-action: pan-x pan-y !important;
-    -webkit-overflow-scrolling: touch !important;
+  .page-title {
+    font-size: 1.1rem;
   }
 
-  /* Toolbar lebih kecil */
-  :deep(.dx-toolbar) {
-    min-height: 28px !important;
+  .page-subtitle {
+    font-size: 0.7rem;
   }
-  :deep(.dx-toolbar-items-container) {
-    height: 28px !important;
+
+  .btn-add {
+    font-size: 0.8rem;
+    padding: 8px 12px;
   }
-  :deep(.dx-toolbar .dx-button) {
-    height: 24px !important;
+
+  .stats-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    padding-top: 12px;
+  }
+
+  .stat-item {
+    padding: 6px 4px;
+  }
+
+  .stat-value {
+    font-size: 0.95rem;
+  }
+
+  .stat-label {
+    font-size: 0.5rem;
+    letter-spacing: 0.02em;
+  }
+
+  .master-barang-page :deep(.dx-datagrid-headers .dx-header-row td) {
+    font-size: 0.6rem !important;
+    padding: 4px 6px !important;
+  }
+
+  .master-barang-page :deep(.dx-datagrid-rowsview .dx-row td) {
+    padding: 6px 6px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .stock-number {
+    font-size: 0.75rem;
+    min-width: 16px;
+  }
+
+  .stock-badge {
+    font-size: 0.45rem !important;
+    padding: 1px 6px !important;
+    letter-spacing: 0.02em;
+  }
+
+  .master-barang-page :deep(.dx-datagrid-toolbar) {
+    padding: 4px 6px !important;
+  }
+
+  .master-barang-page :deep(.dx-toolbar .dx-button) {
+    font-size: 0.6rem !important;
+    padding: 2px 6px !important;
+    min-height: 24px !important;
     min-width: 24px !important;
   }
-  :deep(.dx-toolbar .dx-button .dx-icon) {
-    font-size: 12px !important;
-    width: 12px !important;
-    height: 12px !important;
+
+  .master-barang-page :deep(.dx-toolbar .dx-button .dx-icon) {
+    font-size: 0.8rem !important;
   }
-  :deep(.dx-toolbar .dx-button-content) {
-    padding: 2px 4px !important;
-  }
-  :deep(.dx-toolbar-item) {
+
+  .master-barang-page :deep(.dx-toolbar-item) {
     margin-right: 2px !important;
+  }
+
+  .master-barang-page :deep(.dx-datagrid-pager) {
+    padding: 4px 6px !important;
+  }
+
+  .master-barang-page :deep(.dx-page) {
+    font-size: 0.65rem !important;
+    padding: 0 6px !important;
+    min-width: 22px !important;
+    height: 22px !important;
+  }
+
+  .master-barang-page :deep(.dx-datagrid-rowsview),
+  .master-barang-page :deep(.dx-datagrid-content),
+  .master-barang-page :deep(.dx-scrollable-container) {
+    touch-action: pan-x pan-y !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 }
 </style>
