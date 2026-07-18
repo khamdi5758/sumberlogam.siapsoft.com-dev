@@ -46,6 +46,11 @@
         :dataSource="products"
         :keyExpr="'id'"
         :columns="columns"
+        :showBorders="false"
+        :rowAlternationEnabled="true"
+        :columnAutoWidth="true"
+        :allowColumnResizing="true"
+        :allowColumnReordering="true"
         :showToolbar="true"
         :showAddButton="false"
         :showEditAction="true"
@@ -54,15 +59,18 @@
         :showExportButton="true"
         :showSearchPanel="true"
         :searchPlaceholder="'Cari barang...'"
-        :useBuiltInPager="true"
+        :showPager="true"
         :pageSize="10"
+        :showPageSizeSelector="true"
         :allowedPageSizes="[5, 10, 20, 50]"
-        :height="'calc(100vh - 340px)'"
-        :columnAutoWidth="true"
+        :showNavigationButtons="true"
+        :showFilterRow="true"
+        :wordwrap="false"
+        :useBuiltInPager="true"
+        :showGroupPanel="true"
+        :allowGrouping="true"
+        :height="'auto'"
         :columnHidingEnabled="true"
-        :allowColumnResizing="true"
-        :rowAlternationEnabled="true"
-        :showBorders="true"
         @refresh-click="refreshData"
       />
     </div>
@@ -84,7 +92,7 @@ export default {
           id: 1,
           nama: "Baut M8 x 25mm",
           kategori: "Komponen Mesin",
-          hargaBeli: 2500,
+          hargaJual: 2500,
           stok: 120,
           satuan: "pcs",
           lokasi: "Gudang A - Rak 3",
@@ -93,7 +101,7 @@ export default {
           id: 2,
           nama: "Oli Mesin SAE 10W-40",
           kategori: "Pelumas",
-          hargaBeli: 45000,
+          hargaJual: 45000,
           stok: 18,
           satuan: "liter",
           lokasi: "Gudang B - Rak 1",
@@ -102,7 +110,7 @@ export default {
           id: 3,
           nama: "Kabel Listrik NYA 2.5mm²",
           kategori: "Elektrikal",
-          hargaBeli: 35000,
+          hargaJual: 35000,
           stok: 0,
           satuan: "meter",
           lokasi: "Gudang C - Rak 5",
@@ -111,7 +119,7 @@ export default {
           id: 4,
           nama: "Mur M10",
           kategori: "Komponen Mesin",
-          hargaBeli: 3000,
+          hargaJual: 3000,
           stok: 75,
           satuan: "pcs",
           lokasi: "Gudang A - Rak 4",
@@ -120,7 +128,7 @@ export default {
           id: 5,
           nama: "Filter Udara",
           kategori: "Suku Cadang",
-          hargaBeli: 125000,
+          hargaJual: 125000,
           stok: 8,
           satuan: "pcs",
           lokasi: "Gudang B - Rak 2",
@@ -129,7 +137,7 @@ export default {
           id: 6,
           nama: "Roda Gigi Baja",
           kategori: "Komponen Mesin",
-          hargaBeli: 75000,
+          hargaJual: 75000,
           stok: 3,
           satuan: "pcs",
           lokasi: "Gudang A - Rak 1",
@@ -138,7 +146,7 @@ export default {
           id: 7,
           nama: "Pompa Air 1 HP",
           kategori: "Peralatan",
-          hargaBeli: 850000,
+          hargaJual: 850000,
           stok: 2,
           satuan: "unit",
           lokasi: "Gudang C - Rak 2",
@@ -147,7 +155,7 @@ export default {
           id: 8,
           nama: "Bearing 6205ZZ",
           kategori: "Komponen Mesin",
-          hargaBeli: 22000,
+          hargaJual: 22000,
           stok: 45,
           satuan: "pcs",
           lokasi: "Gudang A - Rak 2",
@@ -167,8 +175,8 @@ export default {
           minWidth: 100,
         },
         {
-          dataField: "hargaBeli",
-          caption: "Harga Beli",
+          dataField: "hargaJual",
+          caption: "Harga Jual",
           dataType: "number",
           format: { type: "currency", currency: "IDR" },
           alignment: "right",
@@ -230,7 +238,7 @@ export default {
       const nama = prompt("Nama Barang:");
       if (!nama) return;
       const kategori = prompt("Kategori:") || "";
-      const hargaBeli = parseFloat(prompt("Harga Beli:")) || 0;
+      const hargaJual = parseFloat(prompt("Harga Jual:")) || 0;
       const stok = parseInt(prompt("Stok:"), 10) || 0;
       const satuan = prompt("Satuan:") || "";
       const lokasi = prompt("Lokasi Gudang:") || "";
@@ -241,7 +249,7 @@ export default {
         id: newId,
         nama,
         kategori,
-        hargaBeli,
+        hargaJual,
         stok,
         satuan,
         lokasi,
@@ -450,150 +458,6 @@ export default {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
-/* ===== FORCE DATAGRID TO TAKE FULL WIDTH ===== */
-.master-barang-page :deep(.dx-datagrid) {
-  width: 100% !important;
-  border: none !important;
-  border-radius: 0 !important;
-  font-family: var(--font-sans) !important;
-}
-
-.master-barang-page :deep(.dx-datagrid-content) {
-  width: 100% !important;
-}
-
-.master-barang-page :deep(.dx-datagrid-headers) {
-  background: var(--color-light-base) !important;
-  border-bottom: 2px solid var(--layout-content-border) !important;
-}
-
-.master-barang-page :deep(.dx-datagrid-headers .dx-header-row td) {
-  font-weight: 600 !important;
-  color: var(--color-sub-text) !important;
-  font-size: 0.8rem !important;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 12px 14px !important;
-  border-bottom: none !important;
-  background: transparent !important;
-}
-
-.master-barang-page :deep(.dx-datagrid-rowsview .dx-row td) {
-  padding: 10px 14px !important;
-  font-size: 0.9rem !important;
-  color: var(--color-main-text) !important;
-  border-bottom: 1px solid var(--layout-content-border) !important;
-  vertical-align: middle !important;
-  background: transparent !important;
-}
-
-.master-barang-page :deep(.dx-datagrid-rowsview .dx-row.dx-data-row:hover td) {
-  background: var(--primary-light) !important;
-}
-
-.master-barang-page
-  :deep(.dx-datagrid-rowsview .dx-row.dx-data-row.dx-state-hover td) {
-  background: var(--primary-light) !important;
-}
-
-/* Zebra */
-.master-barang-page
-  :deep(.dx-datagrid-rowsview .dx-row.dx-data-row:nth-child(even) td) {
-  background: var(--color-baris-genap);
-}
-
-.master-barang-page
-  :deep(.dx-datagrid-rowsview .dx-row.dx-data-row:nth-child(even):hover td) {
-  background: var(--primary-light) !important;
-}
-
-/* Toolbar */
-.master-barang-page :deep(.dx-datagrid-toolbar) {
-  padding: 12px 14px !important;
-  background: var(--color-white) !important;
-  border-bottom: 1px solid var(--layout-content-border) !important;
-}
-
-.master-barang-page :deep(.dx-toolbar) {
-  background: transparent !important;
-  min-height: 40px !important;
-}
-
-.master-barang-page :deep(.dx-toolbar .dx-button) {
-  border-radius: var(--radius-sm) !important;
-  font-weight: 500 !important;
-  font-size: 0.8rem !important;
-  transition:
-    background var(--transition),
-    transform var(--transition);
-}
-
-.master-barang-page :deep(.dx-toolbar .dx-button:hover) {
-  transform: translateY(-1px);
-}
-
-.master-barang-page :deep(.dx-toolbar .dx-button.dx-button-normal) {
-  background: var(--color-light-base) !important;
-  border: 1px solid var(--layout-content-border) !important;
-  color: var(--color-sub-text) !important;
-}
-
-.master-barang-page :deep(.dx-toolbar .dx-button.dx-button-normal:hover) {
-  background: var(--color-outline) !important;
-  border-color: var(--color-sub-text) !important;
-}
-
-.master-barang-page :deep(.dx-toolbar .dx-button.dx-button-success) {
-  background: var(--color-good-green) !important;
-  border-color: var(--color-good-green) !important;
-  color: #fff !important;
-}
-
-.master-barang-page :deep(.dx-toolbar .dx-button.dx-button-success:hover) {
-  background: #1a8f4a !important;
-  border-color: #1a8f4a !important;
-}
-
-/* Search box */
-.master-barang-page :deep(.dx-texteditor.dx-editor-outlined) {
-  border-radius: var(--radius-sm) !important;
-  border-color: var(--layout-content-border) !important;
-  background: var(--color-white) !important;
-}
-
-.master-barang-page :deep(.dx-texteditor.dx-editor-outlined.dx-state-focused) {
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 0 3px rgba(42, 125, 225, 0.12) !important;
-}
-
-.master-barang-page :deep(.dx-texteditor .dx-placeholder) {
-  color: var(--color-sub-text) !important;
-  font-size: 0.85rem !important;
-  opacity: 0.5 !important;
-}
-
-/* Pager */
-.master-barang-page :deep(.dx-datagrid-pager) {
-  border-top: 1px solid var(--layout-content-border) !important;
-  padding: 12px 14px !important;
-  background: var(--color-white) !important;
-}
-
-.master-barang-page :deep(.dx-page) {
-  border-radius: 4px !important;
-  font-weight: 500 !important;
-}
-
-.master-barang-page :deep(.dx-page.dx-selection) {
-  background: var(--primary) !important;
-  color: #fff !important;
-  border-color: var(--primary) !important;
-}
-
-.master-barang-page :deep(.dx-page:not(.dx-selection):hover) {
-  background: var(--primary-light) !important;
-  border-color: var(--primary-light) !important;
-}
 
 /* ===== STOCK CELL ===== */
 .stock-cell {
@@ -732,16 +596,6 @@ export default {
     border-radius: var(--radius-sm);
   }
 
-  .master-barang-page :deep(.dx-datagrid-headers .dx-header-row td) {
-    font-size: 0.7rem !important;
-    padding: 8px 8px !important;
-  }
-
-  .master-barang-page :deep(.dx-datagrid-rowsview .dx-row td) {
-    padding: 8px 8px !important;
-    font-size: 0.8rem !important;
-  }
-
   .stock-cell {
     gap: 6px;
   }
@@ -754,27 +608,6 @@ export default {
   .stock-badge {
     font-size: 0.55rem !important;
     padding: 1px 8px !important;
-  }
-
-  .master-barang-page :deep(.dx-datagrid-toolbar) {
-    padding: 8px 10px !important;
-  }
-
-  .master-barang-page :deep(.dx-toolbar .dx-button) {
-    font-size: 0.7rem !important;
-    padding: 4px 8px !important;
-    min-height: 28px !important;
-  }
-
-  .master-barang-page :deep(.dx-datagrid-pager) {
-    padding: 8px 10px !important;
-  }
-
-  .master-barang-page :deep(.dx-page) {
-    font-size: 0.75rem !important;
-    padding: 2px 8px !important;
-    min-width: 28px !important;
-    height: 28px !important;
   }
 }
 
