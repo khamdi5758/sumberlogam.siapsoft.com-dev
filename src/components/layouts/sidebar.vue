@@ -6,7 +6,6 @@
   ></div>
   <aside
     ref="sidebarContainer"
-    @mouseleave="handleSidebarLeave"
     :class="sidebarClasses"
     :style="sidebarStyles"
   >
@@ -45,7 +44,7 @@
           type="button"
           class="flex flex-col items-center justify-center w-full min-h-[72px] rounded-xl p-2 transition group hover:bg-[var(--layout-sidebar-hover)] hover:text-[var(--layout-sidebar-accent)]"
           @mouseenter="!isMobileViewport ? handleMainMenuHover(mainMenu.L1, $event) : null"
-          @click="!hasChildren(mainMenu) ? openTab(mainMenu) : handleMainMenuClick(mainMenu)"
+          @click="!hasChildren(mainMenu) ? openTab(mainMenu) : handleMainMenuClick(mainMenu, $event)"
           :class="activeMenuId === mainMenu.L1 ? 'bg-[var(--layout-sidebar-hover)] text-[var(--layout-sidebar-accent)]' : ''"
           :title="mainMenu.NamaCaption"
         >
@@ -67,94 +66,55 @@
     ></div>
 
     <!-- Mobile Backdrop for Popups -->
-    <Teleport to="body" v-if="isMobileViewport && (showSubmenu.length > 0 || showLevel2Submenu.length > 0)">
-      <div class="fixed inset-0 z-[1005] bg-black/40" @click="closeSubmenu"></div>
+    <Teleport to="body" v-if="isMobileViewport && menuStack.length > 0">
+      <div class="fixed inset-0 z-[1005] bg-black/40" @click="closeAllMenus"></div>
     </Teleport>
 
-    <!-- POPUP MENUS -->
-    <!-- Level 1 Popup -->
+    <!-- POPUP MENUS - Multi Level (unlimited depth) -->
     <Teleport to="body" :disabled="!isMobileViewport">
-    <div
-      v-if="showSubmenu.length > 0 && activeMenuId && (!isMobileViewport || !activeLevel2MenuId)"
-      class="bg-white rounded-xl shadow-2xl border border-slate-100 pb-2 transition-opacity duration-200"
-      :class="isMobileViewport ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[400px] z-[1010]' : 'w-[250px]'"
-      :style="!isMobileViewport ? submenuStyle : { maxHeight: '80vh', overflowY: 'auto' }"
-      @click.stop
-      @mouseenter="!isMobileViewport ? clearHoverTimeout() : null"
-      @mouseleave="!isMobileViewport ? handleSidebarLeave() : null"
-    >
-      <div class="px-4 pt-4 pb-2 font-bold text-slate-800 border-b border-slate-100 mb-2 sticky top-0 bg-white z-10 rounded-t-xl flex justify-between items-center">
-        <span>{{ getMenuCaptionById(activeMenuId) }}</span>
-        <button v-if="isMobileViewport" @click.stop="closeSubmenu" class="text-slate-400 hover:text-slate-600">
-           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      </div>
       <div
-        v-for="child in showSubmenu"
-        :key="child.L1"
-        :ref="`level1Item${child.L1}`"
+        v-for="(level, depth) in menuStack"
+        :key="depth"
+        v-show="!isMobileViewport || depth === menuStack.length - 1"
+        class="bg-white rounded-xl shadow-2xl border border-slate-100 pb-2 transition-opacity duration-200"
+        :class="isMobileViewport ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[400px] z-[1010]' : 'w-[250px]'"
+        :style="!isMobileViewport ? level.style : { maxHeight: '80vh', overflowY: 'auto' }"
+        @click.stop
       >
-        <button
-          type="button"
-          class="w-full flex items-center justify-between px-4 py-2 text-sm transition hover:bg-blue-50 hover:text-blue-700 group"
-          :class="activeLevel2MenuId === child.L1 ? 'bg-blue-50 text-blue-700' : 'text-slate-600'"
-          @mouseenter="!isMobileViewport ? handleChildHover(child.L1, $event) : null"
-          @click="!childHasChildren(child) ? openTab(child) : (isMobileViewport ? toggleLevel2Submenu(child.L1) : null)"
-          :title="child.NamaCaption"
-        >
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 transition-colors group-hover:bg-white">
-              <component :is="iconMap[child.ICON] || iconMap.LayoutDashboard" :size="18" :class="activeLevel2MenuId === child.L1 ? 'text-blue-700' : 'text-slate-400 group-hover:text-blue-700'" />
-            </div>
-            <span class="font-medium text-left leading-snug">{{ displayMenuCaption(child.NamaCaption) }}</span>
+        <div class="px-4 pt-4 pb-2 font-bold text-slate-800 border-b border-slate-100 mb-2 sticky top-0 bg-white z-10 rounded-t-xl flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <button v-if="isMobileViewport && depth > 0" @click.stop="goBackLevel" class="text-slate-400 hover:text-slate-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <span>{{ getMenuCaptionById(level.parentId) }}</span>
           </div>
-          <ChevronDown v-if="childHasChildren(child)" :size="14" class="-rotate-90 text-slate-400 shrink-0" />
-        </button>
-      </div>
-    </div>
-    </Teleport>
-
-    <!-- Level 2 Popup -->
-    <Teleport to="body" :disabled="!isMobileViewport">
-    <div
-      v-if="showLevel2Submenu.length > 0 && activeLevel2MenuId"
-      class="bg-white rounded-xl shadow-2xl border border-slate-100 pb-2 transition-opacity duration-200"
-      :class="isMobileViewport ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[400px] z-[1010]' : 'w-[230px]'"
-      :style="!isMobileViewport ? level2SubmenuStyle : { maxHeight: '80vh', overflowY: 'auto' }"
-      @click.stop
-      @mouseenter="!isMobileViewport ? clearHoverTimeout() : null"
-      @mouseleave="!isMobileViewport ? handleSidebarLeave() : null"
-    >
-      <div class="px-4 pt-4 pb-2 font-bold text-slate-800 border-b border-slate-100 mb-2 sticky top-0 bg-white z-10 rounded-t-xl flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <button v-if="isMobileViewport" @click.stop="closeLevel2Submenu" class="text-slate-400 hover:text-slate-600">
-             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          <button v-if="isMobileViewport" @click.stop="closeAllMenus" class="text-slate-400 hover:text-slate-600">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
-          <span>{{ getMenuCaptionById(activeLevel2MenuId) }}</span>
         </div>
-        <button v-if="isMobileViewport" @click.stop="closeSubmenu" class="text-slate-400 hover:text-slate-600">
-           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      </div>
-      <div
-        v-for="sub in showLevel2Submenu"
-        :key="sub.L1"
-      >
-        <button
-          type="button"
-          class="w-full flex items-center px-4 py-2 text-sm transition hover:bg-blue-50 hover:text-blue-700 text-slate-600 group"
-          @click="openTab(sub)"
-          :title="sub.NamaCaption"
+
+        <div
+          v-for="item in level.items"
+          :key="item.L1"
         >
-          <div class="flex items-center gap-3 w-full">
-            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 transition-colors group-hover:bg-white">
-              <component :is="iconMap[sub.ICON] || iconMap.LayoutDashboard" :size="18" class="text-slate-400 group-hover:text-blue-700" />
+          <button
+            type="button"
+            class="w-full flex items-center justify-between px-4 py-2 text-sm transition hover:bg-blue-50 hover:text-blue-700 group"
+            :class="menuStack[depth + 1] && String(menuStack[depth + 1].parentId) === String(item.L1) ? 'bg-blue-50 text-blue-700' : 'text-slate-600'"
+            @mouseenter="!isMobileViewport ? handleChildItemHover(depth, item, $event) : null"
+            @click="!childHasChildren(item) ? openTab(item) : (isMobileViewport ? openLevel(depth + 1, item.L1, $event.currentTarget) : null)"
+            :title="item.NamaCaption"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 transition-colors group-hover:bg-white">
+                <component :is="iconMap[item.ICON] || iconMap.LayoutDashboard" :size="18" :class="menuStack[depth + 1] && String(menuStack[depth + 1].parentId) === String(item.L1) ? 'text-blue-700' : 'text-slate-400 group-hover:text-blue-700'" />
+              </div>
+              <span class="font-medium text-left leading-snug">{{ displayMenuCaption(item.NamaCaption) }}</span>
             </div>
-            <span class="font-medium text-left leading-snug">{{ displayMenuCaption(sub.NamaCaption) }}</span>
-          </div>
-        </button>
+            <ChevronDown v-if="childHasChildren(item)" :size="14" class="-rotate-90 text-slate-400 shrink-0" />
+          </button>
+        </div>
       </div>
-    </div>
     </Teleport>
 
   </aside>
@@ -208,10 +168,6 @@ import TaskList from "@/components/pages/task/tasklist.vue";
 import TaskCard from "@/components/pages/task/taskcard.vue";
 import TaskCalender from "@/components/pages/task/taskcalender.vue";
 import EmailBroadcast from "@/components/EmailBroadcast.vue";
-// import Documents from "@/components/documents/Documents.vue";
-// import DocumentList from "@/components/documents/DocumentList.vue";
-// import DocumentsTemplate from "@/components/documents/DocumentsTemplate.vue";
-// import DocumentsShortCode from "@/components/documents/DocumentsShortCode.vue";
 import UserSetings from "@/components/pages/user/usersettings/usersetings.vue";
 import UserPermission from "@/components/pages/user/userpermission.vue";
 import UserTeam from "@/components/pages/user/userteam.vue";
@@ -266,16 +222,10 @@ export default {
 
   data() {
     return {
-      // collapsed removed - now using Vuex
       isHovered: false,
       mediaQuery: null,
       isMobileViewport: false,
-      showSubmenu: [],
-      showLevel2Submenu: [],
-      activeMenuId: null,
-      activeLevel2MenuId: null,
-      submenuStyle: {},
-      level2SubmenuStyle: {},
+      menuStack: [],
       userMenuExpanded: false,
       chevronAnimationMenuId: null,
       chevronAnimationDirection: "",
@@ -284,9 +234,7 @@ export default {
       isResizingSidebar: false,
       sidebarResizeStartX: 0,
       sidebarResizeStartWidth: 0,
-      // track expanded menus for inline sidebar dropdowns
       expandedMenuIds: [],
-      hoverTimer: null,
       dummySidebarChildren: {
         users: [
           {
@@ -327,7 +275,6 @@ export default {
   },
 
   computed: {
-    // Get collapsed state from Vuex
     collapsed() {
       return this.$store.getters["settingsfe/isSidebarCollapsed"];
     },
@@ -360,7 +307,6 @@ export default {
           : { ...baseStyles, width: `95px` };
       }
 
-      // Always fixed width for desktop
       return { ...baseStyles, width: `95px` };
     },
 
@@ -380,6 +326,14 @@ export default {
         baseClasses,
         "relative shrink-0 z-40",
       ];
+    },
+
+    activeMenuId() {
+      return this.menuStack[0] ? this.menuStack[0].parentId : null;
+    },
+
+    activeLevel2MenuId() {
+      return this.menuStack[1] ? this.menuStack[1].parentId : null;
     },
 
     ...mapGetters({
@@ -409,7 +363,6 @@ export default {
         Map,
         HandCoins,
         Landmark,
-        // Backend string mappings
         "i-Pie-Chart-2": BarChart3,
         "i-Map2": Map,
         "i-Motorcycle": Package,
@@ -429,15 +382,18 @@ export default {
     mainMenuItems() {
       if (this.getlayoutmenuweb && this.getlayoutmenuweb.dbmenu2) {
         return this.getlayoutmenuweb.dbmenu2.filter(
-          (item) => item.L0 === "0" || item.Parent === "0" // ✅ Fetch root level items properly
+          (item) =>
+            (item.L0 === "0" || item.Parent === "0") &&
+            item.HASACCESS === "1"
         );
       }
       return [];
     },
 
-    // SESUDAH - hapus salah satu
     submenuHasAccess() {
-      return this.showSubmenu.filter((item) => item.hasaccess === 1); // ✅ satu saja
+      return this.menuStack[0]
+        ? this.menuStack[0].items.filter((item) => item.hasaccess === 1)
+        : [];
     },
   },
 
@@ -452,7 +408,6 @@ export default {
 
   methods: {
     handleMedia(e) {
-      // Update Vuex state instead of local
       this.$store.dispatch("settingsfe/setSidebarCollapsed", e.matches);
     },
 
@@ -461,7 +416,6 @@ export default {
     },
 
     toggleCollapsed() {
-      // Toggle via Vuex
       this.$store.dispatch("settingsfe/toggleSidebar");
       this.$emit("update:collapsed", !this.collapsed);
     },
@@ -471,7 +425,7 @@ export default {
         this.$store.dispatch("settingsfe/setSidebarCollapsed", true);
         this.$emit("update:collapsed", true);
       }
-      this.closeSubmenu();
+      this.closeAllMenus();
     },
 
     getIconClass(iconName) {
@@ -515,9 +469,6 @@ export default {
     },
 
     openTab(menuItem) {
-      // console.log("sidebaropentab", menuItem);
-      // console.log("sidebaropentab", this.$router.getRoutes());
-
       this.expandMenuForItem(menuItem);
 
       if (this.isRegisterMenu(menuItem)) {
@@ -605,29 +556,15 @@ export default {
 
     handleMainMenuHover(menuId, event) {
       if (this.isMobileViewport) return;
-      this.clearHoverTimeout();
-      const target = event.currentTarget;
-      this.toggleSubmenu(menuId, target);
+      this.openLevel(0, menuId, event.currentTarget);
     },
 
-    handleChildHover(menuId, event) {
-      if (this.isMobileViewport) return;
-      this.clearHoverTimeout();
-      const target = event.currentTarget;
-      this.toggleLevel2Submenu(menuId, target);
-    },
-
-    handleSidebarLeave() {
-      if (this.isMobileViewport) return;
-      this.hoverTimer = setTimeout(() => {
-        this.closeAllMenus();
-      }, 300);
-    },
-
-    clearHoverTimeout() {
-      if (this.hoverTimer) {
-        clearTimeout(this.hoverTimer);
-        this.hoverTimer = null;
+    handleChildItemHover(depth, item, event) {
+      if (this.childHasChildren(item)) {
+        this.openLevel(depth + 1, item.L1, event.currentTarget);
+      } else {
+        // Potong level stack di bawah kedalaman saat ini jika item tidak punya anak
+        this.menuStack = this.menuStack.slice(0, depth + 1);
       }
     },
 
@@ -635,8 +572,7 @@ export default {
       if (!this.getlayoutmenuweb || !this.getlayoutmenuweb.dbmenu2) return "";
       const item = this.getlayoutmenuweb.dbmenu2.find(m => String(m.L1) === String(menuId));
       if (item) return item.NamaCaption;
-      
-      // Check dummy
+
       const dummyItem = this.dummySidebarChildren.users.find(m => String(m.L1) === String(menuId));
       return dummyItem ? dummyItem.NamaCaption : "";
     },
@@ -651,30 +587,68 @@ export default {
       return [];
     },
 
+    openLevel(depth, menuId, targetElement) {
+      const item = this.getlayoutmenuweb?.dbmenu2?.find(
+        (m) => String(m.L1) === String(menuId)
+      ) || this.dummySidebarChildren.users.find(
+        (m) => String(m.L1) === String(menuId)
+      );
+
+      const children = this.getChildren(menuId, item);
+
+      // Selalu potong stack level ini (dan level di bawahnya) dulu,
+      // supaya popup child dari menu sebelumnya tidak nyangkut/tetap
+      // terbuka ketika mouse pindah ke menu lain — termasuk saat menu
+      // yang baru di-hover ternyata tidak punya child sama sekali.
+      this.menuStack = this.menuStack.slice(0, depth);
+
+      if (!children.length) return;
+
+      this.menuStack.push({
+        parentId: menuId,
+        items: children,
+        style: {},
+      });
+
+      if (targetElement) {
+        this.$nextTick(() => {
+          this.calculateLevelPosition(depth, targetElement);
+        });
+      }
+    },
+
+    calculateLevelPosition(depth, targetElement) {
+      if (!targetElement || !this.menuStack[depth]) return;
+
+      let anchorRight;
+      if (depth === 0) {
+        const sidebarRect = this.$refs.sidebarContainer.getBoundingClientRect();
+        anchorRight = sidebarRect.right;
+      } else {
+        const rect = targetElement.getBoundingClientRect();
+        anchorRight = rect.right;
+      }
+
+      const zIndex = 1000 + depth;
+      this.menuStack[depth].style = this.calculatePopupStyle(
+        targetElement,
+        anchorRight,
+        this.menuStack[depth].items.length,
+        zIndex
+      );
+    },
+
+    goBackLevel() {
+      if (this.menuStack.length > 1) {
+        this.menuStack.pop();
+      } else {
+        this.closeAllMenus();
+      }
+    },
+
     closeAllMenus() {
-      this.showSubmenu = [];
-      this.showLevel2Submenu = [];
-      this.activeMenuId = null;
-      this.activeLevel2MenuId = null;
-      this.submenuStyle = {};
-      this.level2SubmenuStyle = {};
+      this.menuStack = [];
       this.expandedMenuIds = [];
-    },
-
-    closeSubmenu() {
-      this.showSubmenu = [];
-      this.showLevel2Submenu = [];
-      this.activeMenuId = null;
-      this.activeLevel2MenuId = null;
-      this.submenuStyle = {};
-      this.level2SubmenuStyle = {};
-      this.expandedMenuIds = [];
-    },
-
-    closeLevel2Submenu() {
-      this.showLevel2Submenu = [];
-      this.activeLevel2MenuId = null;
-      this.level2SubmenuStyle = {};
     },
 
     getChildren(menuId, menuItem = null) {
@@ -694,13 +668,13 @@ export default {
       backendChildren.sort((a, b) => {
         const aCaption = String(a.NamaCaption || "").toLowerCase();
         const bCaption = String(b.NamaCaption || "").toLowerCase();
-        
+
         const aPriority = aCaption.includes("register outstanding") ? 2 : (aCaption.includes("register stock") ? 1 : 0);
         const bPriority = bCaption.includes("register outstanding") ? 2 : (bCaption.includes("register stock") ? 1 : 0);
-        
+
         if (aPriority > bPriority) return -1;
         if (aPriority < bPriority) return 1;
-        
+
         return 0;
       });
 
@@ -715,7 +689,7 @@ export default {
       return this.getChildren(item.L1, item).length > 0;
     },
 
-    handleMainMenuClick(menuItem) {
+    handleMainMenuClick(menuItem, event) {
       if (!menuItem) return;
 
       if (this.isDummyUserMenu(menuItem)) {
@@ -729,7 +703,7 @@ export default {
         return;
       }
 
-      this.toggleSubmenu(menuItem.L1);
+      this.openLevel(0, menuItem.L1, event ? event.currentTarget : null);
     },
 
     isDummyUserMenu(menuItem) {
@@ -911,54 +885,27 @@ export default {
       this.expandedMenuIds = [id];
     },
 
-    toggleSubmenu(menuId, targetElement = null) {
-      this.activeMenuId = menuId;
-      this.closeLevel2Submenu();
-      
-      const item = this.getlayoutmenuweb.dbmenu2?.find(m => String(m.L1) === String(menuId));
-      this.showSubmenu = this.getChildren(menuId, item);
-
-      if (targetElement !== null) {
-        this.$nextTick(() => {
-          this.calculateSubmenuPosition(targetElement);
-        });
-      }
-    },
-
-    toggleLevel2Submenu(menuId, targetElement = null) {
-      this.activeLevel2MenuId = menuId;
-
-      const item = this.getlayoutmenuweb.dbmenu2?.find(m => String(m.L1) === String(menuId));
-      this.showLevel2Submenu = this.getChildren(menuId, item);
-
-      if (targetElement !== null) {
-        this.$nextTick(() => {
-          this.calculateLevel2SubmenuPosition(targetElement);
-        });
-      }
-    },
-
     calculatePopupStyle(targetElement, anchorRightPosition, itemCount, zIndex) {
       if (!targetElement || !this.$refs.sidebarContainer) return {};
-      
+
       const rect = targetElement.getBoundingClientRect();
       const windowHeight = window.innerHeight;
-      
+
       let topPosition = rect.top;
       let availableBelow = windowHeight - topPosition - 20;
-      
-      const maxAllowedHeight = 310; // Cap at approx 5 items
+
+      const maxAllowedHeight = 310;
       const expectedHeight = 50 + (itemCount * 48) + 16;
       const actualHeight = Math.min(expectedHeight, maxAllowedHeight);
-      
+
       if (actualHeight > availableBelow) {
         const shortfall = actualHeight - availableBelow;
         topPosition = Math.max(20, topPosition - shortfall);
         availableBelow = windowHeight - topPosition - 20;
       }
-      
+
       const finalMaxHeight = Math.min(availableBelow, maxAllowedHeight);
-      
+
       return {
         position: "fixed",
         left: `${anchorRightPosition + 6}px`,
@@ -969,28 +916,6 @@ export default {
       };
     },
 
-    calculateSubmenuPosition(targetElement) {
-      if (!targetElement) return;
-      const sidebarRect = this.$refs.sidebarContainer.getBoundingClientRect();
-      this.submenuStyle = this.calculatePopupStyle(
-        targetElement,
-        sidebarRect.right,
-        this.showSubmenu.length,
-        1000
-      );
-    },
-
-    calculateLevel2SubmenuPosition(targetElement) {
-      if (!targetElement) return;
-      const itemRect = targetElement.getBoundingClientRect();
-      this.level2SubmenuStyle = this.calculatePopupStyle(
-        targetElement,
-        itemRect.right,
-        this.showLevel2Submenu.length,
-        1001
-      );
-    },
-
     isLongText(caption) {
       if (!caption) return false;
       return caption.includes(",") || caption.length > 19;
@@ -998,29 +923,23 @@ export default {
 
     handleClickOutside(event) {
       const sidebar = this.$refs.sidebarContainer;
-      if (sidebar && !sidebar.contains(event.target)) {
+      const clickedInsideSidebar = sidebar && sidebar.contains(event.target);
+      const clickedInsidePopup = event.target.closest &&
+        event.target.closest(".bg-white.rounded-xl.shadow-2xl");
+
+      if (!clickedInsideSidebar && !clickedInsidePopup) {
         this.closeAllMenus();
       }
     },
 
     handleResize() {
       this.updateMobileViewport();
-
-      if (this.showSubmenu.length > 0 && this.activeMenuId) {
-        const menuIndex = this.mainMenuItems.findIndex(
-          (item) => item.L1 === this.activeMenuId,
-        );
-        this.calculateSubmenuPosition(this.activeMenuId, menuIndex);
-      }
-      if (this.showLevel2Submenu.length > 0 && this.activeLevel2MenuId) {
-        this.calculateLevel2SubmenuPosition(this.activeLevel2MenuId, null);
-      }
+      this.closeAllMenus();
     },
   },
 
   mounted() {
     this.mediaQuery = window.matchMedia("(max-width: 1200px)");
-    // Initialize Vuex state with media query
     this.updateMobileViewport();
     this.$store.dispatch(
       "settingsfe/setSidebarCollapsed",

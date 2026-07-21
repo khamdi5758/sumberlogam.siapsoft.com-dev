@@ -35,6 +35,8 @@ import registeroutstandingpoModule from "./modules/registeroutstandingpo";
 import registeroutstandingsoModule from "./modules/registeroutstandingso";
 import registeroutstandingtransferModule from "./modules/registeroutstandingtransfer";
 
+import masterbarang from "./modules/masterbarang";
+
 export default createStore({
   modules: {
     auth: authModule,
@@ -73,5 +75,7 @@ export default createStore({
     registeroutstandingpo: registeroutstandingpoModule,
     registeroutstandingso: registeroutstandingsoModule,
     registeroutstandingtransfer: registeroutstandingtransferModule,
+
+    masterbarang: masterbarang,
   },
 });

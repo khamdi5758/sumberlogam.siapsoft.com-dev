@@ -1,6 +1,9 @@
 <template>
   <div class="mt-4 flex-1 min-h-1 relative">
-    <div class="h-full overflow-auto" :class="isMobile ? '' : 'overflow-x-auto'">
+    <div
+      class="h-full overflow-auto"
+      :class="isMobile ? '' : 'overflow-x-auto'"
+    >
       <DxDataGrid
         ref="dataGridRef"
         :dataSource="dataSource"
@@ -1073,6 +1076,9 @@ export default {
           this.applyFilterOptionsToGrid();
           setTimeout(() => {
             grid.updateDimensions();
+            if (!this.isMobile) {
+              this.autoFitGridWidth(grid);
+            }
           }, 100);
         }
       });
@@ -1404,6 +1410,34 @@ export default {
     // 🔥 Update lebar layar saat resize (dipakai untuk isMobile / useNativeScrolling)
     handleWindowResize() {
       this.windowWidth = window.innerWidth;
+    },
+
+    autoFitGridWidth(grid) {
+      const gridElement = this.$refs.dataGridRef?.$el;
+      if (!gridElement) return;
+
+      const headerTable = gridElement.querySelector(
+        ".dx-datagrid-headers table",
+      );
+      if (!headerTable) return;
+
+      // Hitung total lebar asli dari semua <col> di header (sudah auto-fit oleh DevExtreme)
+      const cols = headerTable.querySelectorAll("colgroup col");
+      let totalWidth = 0;
+      cols.forEach((col) => {
+        totalWidth += col.offsetWidth || 0;
+      });
+
+      const scrollableEl = gridElement.querySelector(".dx-datagrid-rowsview");
+      const containerWidth = gridElement.parentElement?.clientWidth || 0;
+
+      if (totalWidth > 0 && totalWidth < containerWidth) {
+        // Konten lebih kecil dari container -> jangan biarkan grid stretch full width
+        gridElement.style.width = totalWidth + "px";
+      } else {
+        // Konten lebih besar -> biarkan full width + scroll horizontal
+        gridElement.style.width = "100%";
+      }
     },
   },
 

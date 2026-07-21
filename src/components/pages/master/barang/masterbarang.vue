@@ -1,723 +1,331 @@
+<!-- components/barangBase.vue -->
 <template>
-  <div class="master-barang-page">
-    <!-- Header dengan statistik -->
-    <div class="page-header-card">
-      <div class="header-top">
-        <div class="header-title-group">
-          <div class="title-icon">📦</div>
-          <div>
-            <h1 class="page-title">Master Barang</h1>
-            <p class="page-subtitle">Kelola data inventaris barang</p>
-          </div>
-        </div>
-        <div class="header-actions">
-          <button class="btn-add" @click="tambahBarang">
-            <span class="btn-icon">＋</span>
-            Tambah Barang
-          </button>
-        </div>
-      </div>
-
-      <!-- Statistik ringkas -->
-      <div class="stats-row">
-        <div class="stat-item">
-          <span class="stat-value">{{ products.length }}</span>
-          <span class="stat-label">Total Barang</span>
-        </div>
-        <div class="stat-item stat-aman">
-          <span class="stat-value">{{ stokAman }}</span>
-          <span class="stat-label">Stok Aman</span>
-        </div>
-        <div class="stat-item stat-menipis">
-          <span class="stat-value">{{ stokMenipis }}</span>
-          <span class="stat-label">Menipis</span>
-        </div>
-        <div class="stat-item stat-habis">
-          <span class="stat-value">{{ stokHabis }}</span>
-          <span class="stat-label">Habis</span>
-        </div>
+  <div class="flex h-screen flex-col py-6 bg-gray-50">
+    <!-- Loading -->
+    <div
+      v-if="isLoading"
+      class="fixed inset-0 flex items-center justify-center bg-slate-900/20 backdrop-blur-[2px] z-50"
+    >
+      <div class="rounded-xl bg-white/80 p-4 shadow-lg backdrop-blur-sm">
+        <div
+          class="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent"
+        ></div>
       </div>
     </div>
 
-    <!-- DataGrid - Full width -->
-    <div class="grid-wrapper">
-      <DataGrid
-        ref="dataGrid"
-        :dataSource="products"
-        :keyExpr="'id'"
-        :columns="columns"
-        :showBorders="false"
-        :rowAlternationEnabled="true"
-        :columnAutoWidth="true"
-        :allowColumnResizing="true"
-        :allowColumnReordering="true"
-        :showToolbar="true"
-        :showAddButton="false"
-        :showEditAction="true"
-        :showDeleteAction="true"
-        :showRefreshButton="true"
-        :showExportButton="true"
-        :showSearchPanel="true"
-        :searchPlaceholder="'Cari barang...'"
-        :showPager="true"
-        :pageSize="10"
-        :showPageSizeSelector="true"
-        :allowedPageSizes="[5, 10, 20, 50]"
-        :showNavigationButtons="true"
-        :showFilterRow="true"
-        :wordwrap="false"
-        :useBuiltInPager="true"
-        :showGroupPanel="true"
-        :allowGrouping="true"
-        :height="'auto'"
-        :columnHidingEnabled="true"
-        @refresh-click="refreshData"
-      />
-    </div>
+    <ReusableDataGrid
+      ref="dgchildref"
+      :dataSource="filteredData"
+      :showBorders="false"
+      :rowAlternationEnabled="true"
+      :columnAutoWidth="true"
+      :allowColumnResizing="true"
+      :allowColumnReordering="true"
+      :showToolbar="true"
+      :showAddButton="false"
+      :showPrintButton="true"
+      :showRefreshButton="false"
+      :showSearchPanel="true"
+      :searchPlaceholder="'Search ' + title + '...'"
+      :showActionColumn="false"
+      :showPager="true"
+      :pageSize="pageSize"
+      :showPageSizeSelector="true"
+      :showNavigationButtons="true"
+      :showFilterRow="true"
+      :customToolbarItems="customToolbarItems"
+      :keyExpr="keyfield"
+      :summaries="sumcolom"
+      :avg="avgcolom"
+      :focusedRowKey="focusedRowKey"
+      :wordwrap="false"
+      :useBuiltInPager="true"
+      :showGroupPanel="true"
+      :allowGrouping="true"
+      :height="gridHeight"
+      @optionChanged="onDataGridOptionChanged"
+      @focusedRowChanged="onFocusedRowChanged"
+      @group-changed="onGroupChanged"
+      @print-click="handlePrint"
+    />
+
+   
   </div>
 </template>
 
 <script>
-import DataGrid from "@/components/widgets/DataGrid.vue";
+import ReusableDataGrid from "@/components/widgets/DataGrid.vue";
+import { mapGetters } from "vuex";
+import api from "@/api";
 
 export default {
-  name: "MasterBarang",
-  components: {
-    DataGrid,
+  name: "barangBase",
+  components: { ReusableDataGrid },
+  props: {
+    title: { type: String, required: true },
+    type: { type: String, required: true },
+    storeModule: { type: String, default:"masterbarang" },
+    apiEndpoint: { type: String, default: "report" },
   },
   data() {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, "0");
+    const lastDay = new Date(y, today.getMonth() + 1, 0).getDate();
+
     return {
-      products: [
-        {
-          id: 1,
-          nama: "Baut M8 x 25mm",
-          kategori: "Komponen Mesin",
-          hargaJual: 2500,
-          stok: 120,
-          satuan: "pcs",
-          lokasi: "Gudang A - Rak 3",
-        },
-        {
-          id: 2,
-          nama: "Oli Mesin SAE 10W-40",
-          kategori: "Pelumas",
-          hargaJual: 45000,
-          stok: 18,
-          satuan: "liter",
-          lokasi: "Gudang B - Rak 1",
-        },
-        {
-          id: 3,
-          nama: "Kabel Listrik NYA 2.5mm²",
-          kategori: "Elektrikal",
-          hargaJual: 35000,
-          stok: 0,
-          satuan: "meter",
-          lokasi: "Gudang C - Rak 5",
-        },
-        {
-          id: 4,
-          nama: "Mur M10",
-          kategori: "Komponen Mesin",
-          hargaJual: 3000,
-          stok: 75,
-          satuan: "pcs",
-          lokasi: "Gudang A - Rak 4",
-        },
-        {
-          id: 5,
-          nama: "Filter Udara",
-          kategori: "Suku Cadang",
-          hargaJual: 125000,
-          stok: 8,
-          satuan: "pcs",
-          lokasi: "Gudang B - Rak 2",
-        },
-        {
-          id: 6,
-          nama: "Roda Gigi Baja",
-          kategori: "Komponen Mesin",
-          hargaJual: 75000,
-          stok: 3,
-          satuan: "pcs",
-          lokasi: "Gudang A - Rak 1",
-        },
-        {
-          id: 7,
-          nama: "Pompa Air 1 HP",
-          kategori: "Peralatan",
-          hargaJual: 850000,
-          stok: 2,
-          satuan: "unit",
-          lokasi: "Gudang C - Rak 2",
-        },
-        {
-          id: 8,
-          nama: "Bearing 6205ZZ",
-          kategori: "Komponen Mesin",
-          hargaJual: 22000,
-          stok: 45,
-          satuan: "pcs",
-          lokasi: "Gudang A - Rak 2",
-        },
-      ],
-      columns: [
-        {
-          dataField: "nama",
-          caption: "Nama Barang",
-          dataType: "string",
-          minWidth: 120,
-        },
-        {
-          dataField: "kategori",
-          caption: "Kategori",
-          dataType: "string",
-          minWidth: 100,
-        },
-        {
-          dataField: "hargaJual",
-          caption: "Harga Jual",
-          dataType: "number",
-          format: { type: "currency", currency: "IDR" },
-          alignment: "right",
-          minWidth: 100,
-        },
-        {
-          dataField: "stok",
-          caption: "Stok",
-          dataType: "number",
-          alignment: "right",
-          minWidth: 100,
-          cellTemplate: (container, options) => {
-            const stok = options.value;
-            let status = "aman";
-            let label = "Aman";
-            if (stok === 0) {
-              status = "habis";
-              label = "Habis";
-            } else if (stok <= 5) {
-              status = "menipis";
-              label = "Menipis";
-            }
-            container.innerHTML = `
-                            <div class="stock-cell">
-                                <span class="stock-number">${stok}</span>
-                                <span class="stock-badge badge-${status}">${label}</span>
-                            </div>
-                        `;
-          },
-        },
-        {
-          dataField: "satuan",
-          caption: "Satuan",
-          dataType: "string",
-          minWidth: 70,
-        },
-        {
-          dataField: "lokasi",
-          caption: "Lokasi",
-          dataType: "string",
-          minWidth: 120,
-        },
-      ],
+      startDate: `${y}-${m}-01`,
+      endDate: `${y}-${m}-${String(lastDay).padStart(2, "0")}`,
+      selectedGudang: "",
+      selectedStatus: "gabungan",
+      searchText: "",
+      currentPage: 1,
+      pageSize: 0,
+      focusedRowKey: null,
+      hasGroupedColumns: false,
+      isMobile: false,
     };
   },
+  created() {
+    this._myRoutePath = this.$route.path;
+    
+  },
+  unmounted() {
+    const activeTabs = this.$store.getters["tabs/getTabs"] || [];
+    const isTabStillOpen = activeTabs.some(path => path.toLowerCase() === this._myRoutePath.toLowerCase());
+    
+    // Hanya hapus memori kunjungan jika tab-nya BENAR-BENAR ditutup (di-silang),
+    // bukan sekadar di-unmount oleh keep-alive Vue Router.
+    if (!isTabStillOpen && window.__barangVisited && window.__barangVisited[this.storeModule]) {
+      delete window.__barangVisited[this.storeModule];
+    }
+  },
   computed: {
-    stokAman() {
-      return this.products.filter((p) => p.stok > 5).length;
+    ...mapGetters({}),
+    barangList() {
+      return this.$store.getters[`${this.storeModule}/barangList`] || [];
     },
-    stokMenipis() {
-      return this.products.filter((p) => p.stok > 0 && p.stok <= 5).length;
+    sumcolom() {
+      return this.$store.getters[`${this.storeModule}/sumcolom`] || [];
     },
-    stokHabis() {
-      return this.products.filter((p) => p.stok === 0).length;
+    avgcolom() {
+      return this.$store.getters[`${this.storeModule}/avgcolom`] || [];
+    },
+    keyfield() {
+      return this.$store.getters[`${this.storeModule}/keyfield`] || "id";
+    },
+    isLoading() {
+      return this.$store.getters[`${this.storeModule}/isLoading`] || false;
+    },
+    filteredData() {
+      const list = Array.isArray(this.barangList) ? this.barangList : [];
+
+      if (!this.searchText) {
+        return list;
+      }
+
+      const lower = this.searchText.toLowerCase();
+      return list.filter((item) =>
+        Object.values(item).some(
+          (val) => val && val.toString().toLowerCase().includes(lower),
+        ),
+      );
+    },
+    customToolbarItems() {
+      return [
+        {
+          location: "after",
+          widget: "dxButton",
+          locateInMenu: "never",
+          options: {
+            icon: "refresh",
+            hint: "Refresh Data",
+            elementAttr: { class: "custom-refresh-button" },
+            onClick: () => this.handleRefresh(),
+          },
+        },
+        // {
+        //   location: "after",
+        //   widget: "dxButton",
+        //   locateInMenu: "never",
+        //   options: {
+        //     icon: "filter",
+        //     hint: "Filter Data",
+        //     elementAttr: { class: "filter-button" },
+        //     onClick: () => {
+        //     },
+        //   },
+        // },
+      ];
+    },
+    gridHeight() {
+      return this.isMobile ? "calc(100vh - 180px)" : "calc(100vh - 131px)";
     },
   },
   methods: {
-    tambahBarang() {
-      const nama = prompt("Nama Barang:");
-      if (!nama) return;
-      const kategori = prompt("Kategori:") || "";
-      const hargaJual = parseFloat(prompt("Harga Jual:")) || 0;
-      const stok = parseInt(prompt("Stok:"), 10) || 0;
-      const satuan = prompt("Satuan:") || "";
-      const lokasi = prompt("Lokasi Gudang:") || "";
-
-      const newId =
-        this.products.reduce((max, p) => Math.max(max, p.id), 0) + 1;
-      this.products.push({
-        id: newId,
-        nama,
-        kategori,
-        hargaJual,
-        stok,
-        satuan,
-        lokasi,
+    formatDateLocal(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    },
+    formatDateForSp(date, isEnd = false) {
+      if (!date) return null;
+      const d = new Date(date);
+      const time = isEnd ? "23:59:59" : "00:00:00";
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${time}`;
+    },
+    loadData() {
+      const payload = {
+        mulaitgl: this.formatDateForSp(this.startDate, false),
+        sampaitgl: this.formatDateForSp(this.endDate, true),
+        kodegdg: this.selectedGudang || "",
+        status: this.selectedStatus,
+      };
+      const actionName = `${this.storeModule}/getbarang`;
+      if (!this.$store._actions[actionName]) {
+        console.warn(`Action ${actionName} not found, skipping loadData`);
+        return Promise.resolve();
+      }
+      return this.$store.dispatch(actionName, payload).catch((err) => {
+        console.error("Error loading data:", err);
       });
-      this.$refs.dataGrid.refreshGrid();
     },
-    refreshData() {
-      this.$refs.dataGrid.refreshGrid();
+    handleApplyFilter({ startDate, endDate, gudang, status }) {
+      this.showFilter = false;
+      this.startDate = startDate;
+      this.endDate = endDate;
+      this.selectedGudang = gudang;
+      if (status !== undefined) this.selectedStatus = status;
+      this.loadData();
     },
+    handleClosePopup() {
+      this.showFilter = false;
+    },
+    handleRefresh() {
+      this.loadData();
+    },
+    async handlePrint() {
+      try {
+        const res = await api.getbydata(this.apiEndpoint, {
+          from: this.type,
+          startDate: this.startDate,
+          endDate: this.endDate,
+          kodegdg: this.selectedGudang,
+        });
+        const url = res.data.url;
+        window.open(url, "_blank");
+      } catch (err) {
+        console.error("Print error:", err);
+      }
+    },
+    onGroupChanged(groupInfo) {
+      this.hasGroupedColumns = groupInfo.hasGroups;
+    },
+    onDataGridOptionChanged(e) {
+      if (e.name === "pageIndex") this.currentPage = e.value + 1;
+      else if (e.name === "pageSize") this.pageSize = e.value;
+      else if (e.name === "searchPanel" && e.fullName === "searchPanel.text")
+        this.searchText = e.value || "";
+    },
+    onFocusedRowChanged(e) {
+      this.focusedRowKey = e.row ? e.row.key : null;
+    },
+    checkMobile() {
+      this.isMobile = window.innerWidth < 768;
+    },
+  },
+  mounted() {
+    this.checkMobile();
+    window.addEventListener("resize", this.checkMobile);
+
+    this.$nextTick(() => {
+      if (!this.barangList || this.barangList.length === 0) {
+        this.loadData();
+      }
+    });
+  },
+  beforeDestroy() {
+    window.removeEventListener("resize", this.checkMobile);
   },
 };
 </script>
 
 <style scoped>
-/* ===== Menggunakan variabel dari welcome.css ===== */
-.master-barang-page {
-  --primary: #2a7de1;
-  --primary-dark: #1a5fb4;
-  --primary-light: #e8f0fe;
-  --success: var(--color-good-green);
-  --success-bg: #e6f7ed;
-  --warning: #e8a830;
-  --warning-bg: #fef7e6;
-  --danger: var(--color-red);
-  --danger-bg: #fdeaea;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --transition: 0.25s ease;
-
-  padding: 24px;
-  background: var(--layout-content-bg);
-  min-height: 100vh;
-  font-family: var(--font-sans);
-  color: var(--color-main-text);
+/* BASE STYLES – semua warna tetap seperti semula (light mode) */
+:deep(.dx-checkbox .dx-checkbox-icon) {
+  border: 1px solid #9ca3af !important;
+  background-color: transparent !important;
+}
+:deep(.dx-checkbox-checked .dx-checkbox-icon) {
+  background-color: #002e72 !important;
+  border-color: #002e72 !important;
+}
+:deep(.dx-checkbox-checked .dx-checkbox-icon::before) {
+  color: #ffffff !important;
 }
 
-/* ===== HEADER CARD ===== */
-.page-header-card {
-  background: var(--color-white);
-  border-radius: var(--radius);
-  padding: 24px 28px;
-  margin-bottom: 24px;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.06),
-    0 1px 2px rgba(0, 0, 0, 0.04);
-  border: 1px solid var(--layout-content-border);
-  transition: box-shadow var(--transition);
+:deep(.custom-refresh-button),
+:deep(.filter-button) {
+  background-color: #002f6c !important;
+  border-color: #002f6c !important;
+  color: white !important;
+  transition: all 0.2s ease !important;
+  width: 33px !important;
+  height: 33px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+:deep(.custom-refresh-button:hover),
+:deep(.filter-button:hover) {
+  background-color: #003d8c !important;
+  border-color: #003d8c !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 47, 108, 0.3) !important;
+}
+:deep(.custom-refresh-button:active),
+:deep(.filter-button:active) {
+  transform: scale(0.95) !important;
+  background-color: #002557 !important;
+}
+:deep(.custom-refresh-button .dx-icon),
+:deep(.filter-button .dx-icon) {
+  color: #ffffff !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
 }
 
-.page-header-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.header-title-group {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.title-icon {
-  font-size: 2rem;
-  line-height: 1;
-  background: var(--primary-light);
-  width: 52px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-}
-
-.page-title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--color-main-text);
-  margin: 0;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-
-.page-subtitle {
-  font-size: 0.9rem;
-  color: var(--color-sub-text);
-  margin: 2px 0 0 0;
-  font-weight: 400;
-}
-
-.header-actions {
-  flex-shrink: 0;
-}
-
-.btn-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 10px 22px;
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background var(--transition),
-    transform var(--transition),
-    box-shadow var(--transition);
-  box-shadow: 0 2px 8px rgba(42, 125, 225, 0.3);
-  font-family: inherit;
-}
-
-.btn-add:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(42, 125, 225, 0.35);
-}
-
-.btn-add:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(42, 125, 225, 0.25);
-}
-
-.btn-icon {
-  font-size: 1.1rem;
-  font-weight: 300;
-  line-height: 1;
-}
-
-/* ===== STATS ROW ===== */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  border-top: 1px solid var(--layout-content-border);
-  padding-top: 20px;
-}
-
-.stat-item {
-  background: var(--color-light-base);
-  border-radius: var(--radius-sm);
-  padding: 12px 16px;
-  text-align: center;
-  border: 1px solid var(--layout-content-border);
-  transition:
-    border-color var(--transition),
-    background var(--transition);
-}
-
-.stat-item:hover {
-  border-color: var(--color-outline);
-  background: var(--color-white);
-}
-
-.stat-value {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-main-text);
-  line-height: 1.2;
-}
-
-.stat-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-sub-text);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-top: 2px;
-}
-
-.stat-aman .stat-value {
-  color: var(--color-good-green);
-}
-.stat-menipis .stat-value {
-  color: var(--warning);
-}
-.stat-habis .stat-value {
-  color: var(--color-red);
-}
-
-/* ===== GRID WRAPPER - FULL WIDTH ===== */
-.grid-wrapper {
-  width: 100%;
-  background: var(--color-white);
-  border-radius: var(--radius);
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.06),
-    0 1px 2px rgba(0, 0, 0, 0.04);
-  border: 1px solid var(--layout-content-border);
-  overflow: hidden;
-  transition: box-shadow var(--transition);
-}
-
-.grid-wrapper:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-
-/* ===== STOCK CELL ===== */
-.stock-cell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: flex-end;
-  padding: 2px 0;
-}
-
-.stock-number {
-  font-weight: 600;
-  color: var(--color-main-text);
-  font-size: 0.95rem;
-  min-width: 28px;
-  text-align: right;
-}
-
-.stock-badge {
-  display: inline-block;
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 2px 10px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  line-height: 1.6;
-  white-space: nowrap;
-}
-
-.badge-aman {
-  background: var(--success-bg);
-  color: var(--color-good-green);
-}
-
-.badge-menipis {
-  background: var(--warning-bg);
-  color: var(--warning);
-}
-
-.badge-habis {
-  background: var(--danger-bg);
-  color: var(--color-red);
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 992px) {
-  .master-barang-page {
-    padding: 16px;
-  }
-
-  .page-header-card {
-    padding: 20px;
-  }
-
-  .stats-row {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-  }
-
-  .stat-item {
-    padding: 10px 12px;
-  }
-
-  .stat-value {
-    font-size: 1.3rem;
-  }
-}
-
+/* MOBILE ADJUSTMENTS – hanya ubah ukuran, warna tetap */
 @media (max-width: 768px) {
-  .master-barang-page {
-    padding: 12px;
+  :deep(.custom-refresh-button),
+  :deep(.filter-button) {
+    width: 28px !important;
+    height: 28px !important;
   }
-
-  .page-header-card {
-    padding: 16px 18px;
-    border-radius: var(--radius-sm);
+  :deep(.custom-refresh-button .dx-icon),
+  :deep(.filter-button .dx-icon) {
+    font-size: 12px !important;
   }
-
-  .header-top {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    margin-bottom: 16px;
+  :deep(.dx-toolbar .dx-searchbox) {
+    width: 120px !important;
   }
-
-  .header-title-group {
-    gap: 12px;
-  }
-
-  .title-icon {
-    width: 44px;
-    height: 44px;
-    font-size: 1.5rem;
-  }
-
-  .page-title {
-    font-size: 1.3rem;
-  }
-
-  .page-subtitle {
-    font-size: 0.8rem;
-  }
-
-  .header-actions {
-    width: 100%;
-  }
-
-  .btn-add {
-    width: 100%;
-    justify-content: center;
-    padding: 10px 16px;
-    font-size: 0.85rem;
-  }
-
-  .stats-row {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    padding-top: 14px;
-  }
-
-  .stat-item {
-    padding: 8px 6px;
-    border-radius: 6px;
-  }
-
-  .stat-value {
-    font-size: 1.1rem;
-  }
-
-  .stat-label {
-    font-size: 0.6rem;
-  }
-
-  .grid-wrapper {
-    border-radius: var(--radius-sm);
-  }
-
-  .stock-cell {
-    gap: 6px;
-  }
-
-  .stock-number {
-    font-size: 0.85rem;
-    min-width: 20px;
-  }
-
-  .stock-badge {
-    font-size: 0.55rem !important;
-    padding: 1px 8px !important;
+  :deep(.dx-toolbar) {
+    padding: 4px 8px !important;
   }
 }
-
 @media (max-width: 480px) {
-  .master-barang-page {
-    padding: 8px;
+  :deep(.dx-toolbar .dx-searchbox) {
+    width: 90px !important;
   }
-
-  .page-header-card {
-    padding: 12px 14px;
+  :deep(.custom-refresh-button),
+  :deep(.filter-button) {
+    width: 24px !important;
+    height: 24px !important;
   }
-
-  .header-title-group {
-    gap: 10px;
-  }
-
-  .title-icon {
-    width: 38px;
-    height: 38px;
-    font-size: 1.2rem;
-  }
-
-  .page-title {
-    font-size: 1.1rem;
-  }
-
-  .page-subtitle {
-    font-size: 0.7rem;
-  }
-
-  .btn-add {
-    font-size: 0.8rem;
-    padding: 8px 12px;
-  }
-
-  .stats-row {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-    padding-top: 12px;
-  }
-
-  .stat-item {
-    padding: 6px 4px;
-  }
-
-  .stat-value {
-    font-size: 0.95rem;
-  }
-
-  .stat-label {
-    font-size: 0.5rem;
-    letter-spacing: 0.02em;
-  }
-
-  .master-barang-page :deep(.dx-datagrid-headers .dx-header-row td) {
-    font-size: 0.6rem !important;
-    padding: 4px 6px !important;
-  }
-
-  .master-barang-page :deep(.dx-datagrid-rowsview .dx-row td) {
-    padding: 6px 6px !important;
-    font-size: 0.7rem !important;
-  }
-
-  .stock-number {
-    font-size: 0.75rem;
-    min-width: 16px;
-  }
-
-  .stock-badge {
-    font-size: 0.45rem !important;
-    padding: 1px 6px !important;
-    letter-spacing: 0.02em;
-  }
-
-  .master-barang-page :deep(.dx-datagrid-toolbar) {
-    padding: 4px 6px !important;
-  }
-
-  .master-barang-page :deep(.dx-toolbar .dx-button) {
-    font-size: 0.6rem !important;
-    padding: 2px 6px !important;
-    min-height: 24px !important;
-    min-width: 24px !important;
-  }
-
-  .master-barang-page :deep(.dx-toolbar .dx-button .dx-icon) {
-    font-size: 0.8rem !important;
-  }
-
-  .master-barang-page :deep(.dx-toolbar-item) {
-    margin-right: 2px !important;
-  }
-
-  .master-barang-page :deep(.dx-datagrid-pager) {
-    padding: 4px 6px !important;
-  }
-
-  .master-barang-page :deep(.dx-page) {
-    font-size: 0.65rem !important;
-    padding: 0 6px !important;
-    min-width: 22px !important;
-    height: 22px !important;
-  }
-
-  .master-barang-page :deep(.dx-datagrid-rowsview),
-  .master-barang-page :deep(.dx-datagrid-content),
-  .master-barang-page :deep(.dx-scrollable-container) {
-    touch-action: pan-x pan-y !important;
-    -webkit-overflow-scrolling: touch !important;
+  :deep(.custom-refresh-button .dx-icon),
+  :deep(.filter-button .dx-icon) {
+    font-size: 11px !important;
   }
 }
 </style>

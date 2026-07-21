@@ -151,15 +151,15 @@ export default {
 
     cekdatamaster() {
       if (!this.allContactsassoc || this.allContactsassoc.length === 0) {
-        this.getcontactsassoc();
+        // this.getcontactsassoc();
       }
 
       if (!this.allDealsassoc || this.allDealsassoc.length === 0) {
-        this.getdealsassoc();
+        // this.getdealsassoc();
       }
 
       if (!this.allCompanysassoc || this.allCompanysassoc.length === 0) {
-        this.getcompanysassoc();
+        // this.getcompanysassoc();
       }
     },
 
