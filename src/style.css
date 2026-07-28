@@ -5,3 +5,123 @@ body,
   max-width: 100%;
   overflow-x: hidden;
 }
+
+@media print {
+  /* Hide sidebar, header, and tab navigation */
+  aside,
+  header,
+  nav,
+  .Sidebar,
+  .Kepala,
+  .sidebar,
+  .kepala,
+  /* Hide the left sidebar container in maindashboard.vue */
+  .flex.h-screen > div:first-child,
+  /* Hide Kepala header wrapper */
+  .flex.min-w-0.flex-1.flex-col > div:first-of-type,
+  /* Hide tab header */
+  div.flex.items-center.gap-2.bg-gray-100,
+  /* Hide action buttons (Export PDF, Print, Filter) inside the report */
+  .action-buttons {
+    display: none !important;
+  }
+
+  /* Reset shell layouts to allow full content printing */
+  html, body, #app, .flex.h-screen, div.flex.min-w-0.flex-1.flex-col {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    background: #fff !important;
+    color: #000 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  main.flex-1.overflow-y-auto {
+    overflow: visible !important;
+    height: auto !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Report styling on print page */
+  .pl-report-container {
+    padding: 0 !important;
+    background-color: #fff !important;
+    min-height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: 13px !important;
+  }
+
+  .report-title {
+    font-size: 20px !important;
+  }
+
+  .report-subtitle {
+    font-size: 13px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .card-box {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Ensure DevExtreme TreeList/Grid expands fully on print and doesn't scroll internally */
+  .dx-treelist,
+  .dx-datagrid,
+  .dx-treelist-rowsview,
+  .dx-datagrid-rowsview,
+  .dx-treelist-container,
+  .dx-datagrid-container,
+  .dx-treelist-headers,
+  .dx-treelist-content {
+    height: auto !important;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Use auto layout to distribute space proportionally and eliminate empty space in the middle */
+  .dx-treelist-headers table,
+  .dx-treelist-rowsview table {
+    width: 100% !important;
+    table-layout: auto !important;
+  }
+
+  /* Reset column widths so the browser can size them based on contents */
+  .dx-treelist-headers table colgroup col,
+  .dx-treelist-rowsview table colgroup col {
+    width: auto !important;
+  }
+
+  /* Enforce specific print widths for amount columns to keep them consistent and well-spaced */
+  .dx-treelist-headers table colgroup col:nth-child(2),
+  .dx-treelist-headers table colgroup col:nth-child(3),
+  .dx-treelist-headers table colgroup col:nth-child(4),
+  .dx-treelist-rowsview table colgroup col:nth-child(2),
+  .dx-treelist-rowsview table colgroup col:nth-child(3),
+  .dx-treelist-rowsview table colgroup col:nth-child(4) {
+    width: 120px !important;
+  }
+
+  /* Tighter paddings and readable font sizes on cells for clean print layout */
+  .dx-treelist-rowsview .dx-data-row td,
+  .dx-treelist-headers .dx-header-row td {
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+  }
+
+  .dx-treelist-text-content {
+    font-size: 13px !important;
+  }
+
+  .row-header {
+    font-size: 13px !important;
+  }
+}
