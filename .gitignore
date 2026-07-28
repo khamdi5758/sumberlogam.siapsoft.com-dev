@@ -30,4 +30,9 @@ build_merge_verify_new.txt
 .env.example
 .env.development
 .env.production
-.env.test   
+.env.test
+
+# Agent Skills
+.agents/skills/
+.claude/skills/
+skills-lock.json

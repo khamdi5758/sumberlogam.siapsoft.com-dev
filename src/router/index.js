@@ -354,6 +354,64 @@ const routes = [
         ],
       },
       {
+        path: "accounting",
+        component: RouterView,
+        children: [
+          {
+            path: "generalledger",
+            component: RouterView,
+            children: [
+              {
+                path: "jurnal",
+                name: "AccountingJurnal",
+                component: () => import("@/components/pages/accounting/general-ledger/Jurnal.vue"),
+              },
+              {
+                path: "bukubesar",
+                name: "AccountingBukuBesar",
+                component: () => import("@/components/pages/accounting/general-ledger/BukuBesar.vue"),
+              },
+              {
+                path: "mutasi",
+                name: "AccountingMutasi",
+                component: () => import("@/components/pages/accounting/general-ledger/Mutasi.vue"),
+              },
+              {
+                path: "biaya",
+                name: "AccountingBiaya",
+                component: () => import("@/components/pages/accounting/general-ledger/Biaya.vue"),
+              },
+              {
+                path: "aktivatetap",
+                name: "AccountingAktivaTetap",
+                component: () => import("@/components/pages/accounting/general-ledger/AktivaTetap.vue"),
+              },
+            ],
+          },
+          {
+            path: "labarugineraca",
+            component: RouterView,
+            children: [
+              {
+                path: "labarugi",
+                name: "AccountingLabaRugi",
+                component: () => import("@/components/pages/accounting/laba-rugi-dan-neraca/LabaRugi.vue"),
+              },
+              {
+                path: "neracalajur",
+                name: "AccountingNeracaLajur",
+                component: () => import("@/components/pages/accounting/laba-rugi-dan-neraca/NeracaLajur.vue"),
+              },
+              {
+                path: "neraca",
+                name: "AccountingNeraca",
+                component: () => import("@/components/pages/accounting/laba-rugi-dan-neraca/Neraca.vue"),
+              },
+            ],
+          },
+        ],
+      },
+      {
         path: "users",
         component: User,
         children: [
