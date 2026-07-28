@@ -354,6 +354,36 @@ const routes = [
         ],
       },
       {
+        path: "finance",
+        children: [
+          {
+          path: "kasbank",
+          children: [
+{
+            path: "kasharian",
+            name: "kasharian",
+            component: () => import("@/components/pages/Finance/KasBank/KasHarian.vue"),
+          },
+          {
+            path: "rekapkasdanbankharian",
+            name: "rekapkasdanbankharian",
+            component: () => import("@/components/pages/Finance/KasBank/RekapKasBank.vue"),
+          },
+          {
+            path: "bankharian",
+            name: "bankharian",
+            component: () => import("@/components/pages/Finance/KasBank/KasBankHarian.vue"),
+          },
+          {
+            path: "aruskas",
+            name: "aruskas",
+            component: () => import("@/components/pages/Finance/KasBank/ArusKas.vue"),
+          },
+          ],
+        }
+        ],
+      },
+      {
         path: "accounting",
         component: RouterView,
         children: [
