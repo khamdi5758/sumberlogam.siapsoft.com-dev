@@ -354,6 +354,15 @@ const routes = [
         ],
       },
       {
+        path:"finance",
+        children: [
+          {
+            path: "kasbank",
+            
+          },
+        ],
+      },
+      {
         path: "users",
         component: User,
         children: [
