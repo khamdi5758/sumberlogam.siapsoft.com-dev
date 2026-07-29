@@ -36,3 +36,10 @@ build_merge_verify_new.txt
 .agents/skills/
 .claude/skills/
 skills-lock.json
+
+# Superpowers specs and plans
+docs/superpowers/specs/
+docs/superpowers/plans/
+docs/superpowers/sdd/
+docs/superpowers/
+
