@@ -3,11 +3,13 @@ import api from "@/api";
 const state = {
   neracaList: [],
   isLoading: false,
+  ketsp: "",
 };
 
 const getters = {
   neracaList: (state) => state.neracaList,
   isLoading: (state) => state.isLoading,
+  ketsp: (state) => state.ketsp,
 };
 
 const mutations = {
@@ -17,8 +19,12 @@ const mutations = {
   setLoading(state, isLoading) {
     state.isLoading = isLoading;
   },
+  setKetsp(state, ketsp) {
+    state.ketsp = ketsp || "";
+  },
   clearNeraca(state) {
     state.neracaList = [];
+    state.ketsp = "";
   },
 };
 
@@ -35,6 +41,7 @@ const actions = {
       const resultData = response.data?.data || response.data || [];
       
       commit("setNeracaList", resultData);
+      commit("setKetsp", response.data?.sqlquery || response.data?.ketsp || "");
     } catch (error) {
       console.error("Error getNeraca:", error);
     } finally {

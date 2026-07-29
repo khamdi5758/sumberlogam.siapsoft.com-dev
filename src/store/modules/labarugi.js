@@ -3,11 +3,13 @@ import api from "@/api";
 const state = {
   labarugiList: [],
   isLoading: false,
+  ketsp: "",
 };
 
 const getters = {
   labarugiList: (state) => state.labarugiList,
   isLoading: (state) => state.isLoading,
+  ketsp: (state) => state.ketsp,
 };
 
 const mutations = {
@@ -17,8 +19,12 @@ const mutations = {
   setLoading(state, isLoading) {
     state.isLoading = isLoading;
   },
+  setKetsp(state, ketsp) {
+    state.ketsp = ketsp || "";
+  },
   clearLabarugi(state) {
     state.labarugiList = [];
+    state.ketsp = "";
   },
 };
 
@@ -35,6 +41,7 @@ const actions = {
       const resultData = response.data?.data || response.data || [];
       
       commit("setLabarugiList", resultData);
+      commit("setKetsp", response.data?.sqlquery || response.data?.ketsp || "");
     } catch (error) {
       console.error("Error getLabarugi:", error);
     } finally {
