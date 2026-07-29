@@ -39,6 +39,10 @@ import masterbarang from "./modules/masterbarang";
 import labarugi from "./modules/labarugi";
 import neraca from "./modules/neraca";
 import neracalajur from "./modules/neracalajur";
+import jurnal from "./modules/jurnal";
+import mutasi from "./modules/mutasi";
+import biaya from "./modules/biaya";
+import aktivatetap from "./modules/aktivatetap";
 
 export default createStore({
   modules: {
@@ -83,5 +87,9 @@ export default createStore({
     labarugi: labarugi,
     neraca: neraca,
     neracalajur: neracalajur,
+    jurnal: jurnal,
+    mutasi: mutasi,
+    biaya: biaya,
+    aktivatetap: aktivatetap,
   },
 });
