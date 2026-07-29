@@ -12,6 +12,7 @@ const state = {
   trenSaldo: null,
   transaksiTerbaru: null,
   ringkasanBulanan: null,
+  ketsp: "",
 };
 
 const getters = {
@@ -22,6 +23,7 @@ const getters = {
   getTrenSaldo: (state) => state.trenSaldo,
   getTransaksiTerbaru: (state) => state.transaksiTerbaru,
   getRingkasanBulanan: (state) => state.ringkasanBulanan,
+  ketsp: (state) => state.ketsp,
 };
 
 const mutations = {
@@ -46,6 +48,9 @@ const mutations = {
   setRingkasanBulanan(state, data) {
     state.ringkasanBulanan = data;
   },
+  setKetsp(state, ketsp) {
+    state.ketsp = ketsp || "";
+  },
 };
 
 const actions = {
@@ -67,6 +72,7 @@ const actions = {
     promise
       .then((data) => {
         context.commit("setKpi", data);
+        context.commit("setKetsp", data?.sqlquery || data?.ketsp || "");
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -92,6 +98,7 @@ const actions = {
     promise
       .then((data) => {
         context.commit("setGrafikBulanan", data);
+        context.commit("setKetsp", data?.sqlquery || data?.ketsp || "");
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -117,6 +124,7 @@ const actions = {
     promise
       .then((data) => {
         context.commit("setDistribusiBiaya", data);
+        context.commit("setKetsp", data?.sqlquery || data?.ketsp || "");
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -142,6 +150,7 @@ const actions = {
     promise
       .then((data) => {
         context.commit("setArusKas", data);
+        context.commit("setKetsp", data?.sqlquery || data?.ketsp || "");
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -167,6 +176,7 @@ const actions = {
     promise
       .then((data) => {
         context.commit("setTrenSaldo", data);
+        context.commit("setKetsp", data?.sqlquery || data?.ketsp || "");
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -192,6 +202,7 @@ const actions = {
     promise
       .then((data) => {
         context.commit("setTransaksiTerbaru", data);
+        context.commit("setKetsp", data?.sqlquery || data?.ketsp || "");
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -217,6 +228,7 @@ const actions = {
     promise
       .then((data) => {
         context.commit("setRingkasanBulanan", data);
+        context.commit("setKetsp", data?.sqlquery || data?.ketsp || "");
       })
       .catch((error) => {
         console.error("Error:", error);

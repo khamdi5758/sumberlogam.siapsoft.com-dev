@@ -124,14 +124,19 @@
             </div>
           </template>
 
-          <!-- Khusus Kas Harian – hanya satu perkiraan -->
-          <template v-if="type === 'kasharian'">
-            <PerkiraanFields
-              mode="single"
-              v-model:tunggal="perkiraanTunggal"
-              label-tunggal="Perkiraan"
-              :show-range="false"
-            />
+          <!-- Khusus Kas Harian / Bank Harian – browse perkiraan -->
+          <template v-if="['kasharian', 'bankharian'].includes(type)">
+            <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+              <label class="text-[14px] text-slate-700">Perkiraan</label>
+              <DxTextBox
+                v-model:value="perkiraanTunggal"
+                styling-mode="outlined"
+                :read-only="true"
+                placeholder="Klik untuk browse"
+                :buttons="browseButtons"
+                @focus-in="handleBrowsePerkiraan"
+              />
+            </div>
           </template>
 
           <!-- Khusus Mutasi, Aktiva Tetap, Laba Rugi, Neraca Lajur, Arus Kas -->
@@ -231,6 +236,9 @@ import { ref, computed } from "vue";
 import { X } from "lucide-vue-next";
 import { DxDateBox } from "devextreme-vue/date-box";
 import { DxSelectBox } from "devextreme-vue/select-box";
+import { DxTextBox } from "devextreme-vue/text-box";
+import api from "@/api/index.js";
+import FormBrowseDialog from "@/components/widgets/FormBrowseDialog.vue";
 
 // Komponen bantu PerkiraanFields (tidak berubah)
 const PerkiraanFields = {
@@ -364,7 +372,12 @@ const applyFilter = () => {
       valas: valas.value,
       formatOption: formatOption.value,
     };
-  } else if (props.type === "kasharian") {
+  } else if (props.type === "rekapkasbank") {
+    payload = {
+      startDate: startDate.value,
+      endDate: endDate.value,
+    };
+  } else if (["kasharian", "bankharian"].includes(props.type)) {
     payload = {
       startDate: startDate.value,
       endDate: endDate.value,
@@ -413,6 +426,45 @@ const open = () => {
 const close = () => {
   visible.value = false;
 };
+
+const browseButtons = computed(() => [
+  {
+    name: "browse",
+    location: "after",
+    options: {
+      text: "...",
+      onClick: handleBrowsePerkiraan,
+      stylingMode: "outlined",
+    },
+  },
+]);
+
+async function handleBrowsePerkiraan() {
+  const endpoint =
+    props.type === "bankharian"
+      ? "kasbank/getperkiraanforbank"
+      : "kasbank/getperkiraanforkasbank";
+  try {
+    const response = await api.getbydata(endpoint);
+    const data = response.data?.datafrbrowse || [];
+    const selected = await FormBrowseDialog.show({
+      title: "Pilih Perkiraan",
+      dataSource: data,
+      keyField: "id",
+      disablecol: response.data?.disablecol || ["id", "ket"],
+    });
+    if (selected) {
+      perkiraanTunggal.value =
+        selected.id ||
+        selected.kode ||
+        selected.Kode ||
+        selected.kodeperkiraan ||
+        "";
+    }
+  } catch (error) {
+    console.error("Browse perkiraan error:", error);
+  }
+}
 
 defineExpose({ open, close });
 </script>

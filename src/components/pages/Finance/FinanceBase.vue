@@ -117,6 +117,10 @@
       :perkiraan-mode="perkiraanMode"
       @on-filter-apply="handleFilterApply"
     />
+
+    <div class="sp-footer-hidden">
+      {{ spFooterText }}
+    </div>
   </div>
 </template>
 
@@ -162,6 +166,23 @@ const endDate = ref(new Date());
 
 const expandedKeys = ref([...props.defaultExpandedKeys]);
 const hasBeenFiltered = ref(props.showContentInitially || isVisited);
+
+const moduleNameMap = {
+  kasharian: "kasharian",
+  bankharian: "bankharian",
+  rekapkasbank: "rekapkasbank",
+  aruskas: "kasbankaruskas",
+};
+
+const spFooterText = computed(() => {
+  if (!props.type) return "";
+  const moduleName = moduleNameMap[props.type] || props.type;
+  try {
+    return store.getters[`${moduleName}/ketsp`] || "";
+  } catch (e) {
+    return "";
+  }
+});
 
 const formatDateRange = computed(() => {
   const options = { day: "numeric", month: "short", year: "numeric" };
@@ -323,5 +344,33 @@ onUnmounted(() => {
   display: inline-block;
   width: 100%;
   border-bottom: 4px double #0f5132;
+}
+
+/* SP Debug Overlay - Hidden until selected */
+.sp-footer-hidden {
+  flex-shrink: 0;
+  width: 100%;
+  height: 10px;
+  line-height: 10px;
+  padding: 0 8px;
+  font-size: 11px;
+  color: transparent;
+  background: transparent;
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+  text-align: right;
+  box-sizing: border-box;
+  margin-top: 12px;
+}
+
+.sp-footer-hidden::selection {
+  color: #111827;
+  background: #ffe58f;
+}
+
+.sp-footer-hidden::-moz-selection {
+  color: #111827;
+  background: #ffe58f;
 }
 </style>

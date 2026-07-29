@@ -13,17 +13,17 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed } from "vue";
+import { useStore } from "vuex";
 import FinanceBase from "@/components/pages/Finance/FinanceBase.vue";
 
 defineOptions({ name: "ArusKas" });
 
-const arusKasData = ref([
-  // data contoh sesuai struktur yang dibutuhkan
-]);
+const store = useStore();
+
+const arusKasData = computed(() => store.getters["kasbankaruskas/aruskasList"] || []);
 
 const handleFilterChange = (filterData) => {
-  console.log("Arus Kas Filter:", filterData);
-  // Panggil API dengan filterData (startDate, endDate, month, year)
+  store.dispatch("kasbankaruskas/getAruskas", filterData);
 };
 </script>
