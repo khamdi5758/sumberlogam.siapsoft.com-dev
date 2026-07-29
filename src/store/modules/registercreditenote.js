@@ -7,6 +7,7 @@ const state = {
   avgcolom: [],
   keyfield: "",
   gudangList: [],
+  ketsp:""
 };
 
 const getters = {
@@ -16,6 +17,7 @@ const getters = {
   avgcolom: (state) => state.avgcolom,
   keyfield: (state) => state.keyfield,
   gudangList: (state) => state.gudangList,
+  ketsp: (state) => state.ketsp,
 };
 
 const mutations = {
@@ -37,10 +39,14 @@ const mutations = {
   setGudangList(state, data) {
     state.gudangList = data;
   },
+  setKetsp(state, ketsp) {
+    state.ketsp = ketsp;
+  },
   clearRegister(state) {
     state.registerList = [];
     state.sumcolom = [];
     state.avgcolom = [];
+    state.ketsp = "";
   },
 };
 
@@ -67,6 +73,9 @@ const actions = {
       }
       if (response.data?.keyfield) {
         commit("setKeyfield", response.data.keyfield);
+      }
+       if (response.data?.sqlquery) {
+        commit("setKetsp", response.data.sqlquery);
       }
     } catch (error) {
       console.error("Error getRegister Credit Note:", error);

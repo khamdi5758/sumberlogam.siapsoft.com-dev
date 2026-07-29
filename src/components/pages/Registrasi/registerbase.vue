@@ -43,6 +43,7 @@
       :showGroupPanel="true"
       :allowGrouping="true"
       :height="gridHeight"
+      :spFooterText="ketsp"
       @optionChanged="onDataGridOptionChanged"
       @focusedRowChanged="onFocusedRowChanged"
       @group-changed="onGroupChanged"
@@ -50,21 +51,36 @@
     />
 
     <!-- Filter Popup -->
-    <RegisterFilterPopup
-      v-if="showFilter"
+    <!--
+      Default slot content = popup lama (RegisterFilterPopup).
+      Register yang formnya beda tinggal override slot ini,
+      base tidak perlu tau bentuk form/field apa pun di dalamnya.
+      Base hanya expose: visible, apply, close, isMobile, filterData (nilai terakhir).
+    -->
+    <slot
+      name="filterPopup"
       :visible="showFilter"
-      :title="title"
-      :type="type"
-      :initialStartDate="startDate"
-      :initialEndDate="endDate"
-      :initialGudang="selectedGudang"
-      :initialStatus="selectedStatus"
-      :storeModule="storeModule"
-      :fullScreen="isMobile"
-      :width="isMobile ? '100%' : '600px'"
-      @apply="handleApplyFilter"
-      @close="handleClosePopup"
-    />
+      :apply="handleApplyFilter"
+      :close="handleClosePopup"
+      :isMobile="isMobile"
+      :filterData="filterData"
+    >
+      <RegisterFilterPopup
+        v-if="showFilter"
+        :visible="showFilter"
+        :title="title"
+        :type="type"
+        :initialStartDate="filterData.startDate"
+        :initialEndDate="filterData.endDate"
+        :initialGudang="filterData.gudang"
+        :initialStatus="filterData.status"
+        :storeModule="storeModule"
+        :fullScreen="isMobile"
+        :width="isMobile ? '100%' : '600px'"
+        @apply="handleApplyFilter"
+        @close="handleClosePopup"
+      />
+    </slot>
   </div>
 </template>
 
@@ -82,6 +98,19 @@ export default {
     type: { type: String, required: true },
     storeModule: { type: String, required: true },
     apiEndpoint: { type: String, default: "report" },
+
+    // Nama Vuex action untuk load data. Default "getRegister" (perilaku lama).
+    loadAction: { type: String, default: "getRegister" },
+
+    // (formData) => payload buat dispatch ke store.
+    // Kalau tidak diisi, base pakai defaultBuildPayload (perilaku lama:
+    // mulaitgl/sampaitgl/kodegdg/status).
+    buildPayload: { type: Function, default: null },
+
+    // (formData) => object payload buat request print/export via api.getbydata.
+    // Kalau tidak diisi, base pakai defaultBuildPrintPayload (perilaku lama:
+    // from/startDate/endDate/kodegdg).
+    buildPrintPayload: { type: Function, default: null },
   },
   data() {
     const today = new Date();
@@ -91,10 +120,18 @@ export default {
 
     return {
       showFilter: false,
-      startDate: `${y}-${m}-01`,
-      endDate: `${y}-${m}-${String(lastDay).padStart(2, "0")}`,
-      selectedGudang: "",
-      selectedStatus: "gabungan",
+
+      // Menyimpan formData APA ADANYA dari filter form (form apapun bentuknya).
+      // Base tidak assume struktur field di dalamnya, kecuali default awal
+      // startDate/endDate/status di bawah ini, yang dipakai popup default
+      // (RegisterFilterPopup) supaya perilaku lama tetap jalan tanpa breaking change.
+      filterData: {
+        startDate: `${y}-${m}-01`,
+        endDate: `${y}-${m}-${String(lastDay).padStart(2, "0")}`,
+        gudang: "",
+        status: "gabungan",
+      },
+
       searchText: "",
       currentPage: 1,
       pageSize: 0,
@@ -114,7 +151,7 @@ export default {
   unmounted() {
     const activeTabs = this.$store.getters["tabs/getTabs"] || [];
     const isTabStillOpen = activeTabs.some(path => path.toLowerCase() === this._myRoutePath.toLowerCase());
-    
+
     // Hanya hapus memori kunjungan jika tab-nya BENAR-BENAR ditutup (di-silang),
     // bukan sekadar di-unmount oleh keep-alive Vue Router.
     if (!isTabStillOpen && window.__registerVisited && window.__registerVisited[this.storeModule]) {
@@ -137,6 +174,9 @@ export default {
     },
     isLoading() {
       return this.$store.getters[`${this.storeModule}/isLoading`] || false;
+    },
+    ketsp() {
+      return this.$store.getters[`${this.storeModule}/ketsp`] || "";
     },
     filteredData() {
       const list = Array.isArray(this.registerList) ? this.registerList : [];
@@ -197,14 +237,33 @@ export default {
       const time = isEnd ? "23:59:59" : "00:00:00";
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${time}`;
     },
-    loadData() {
-      const payload = {
-        mulaitgl: this.formatDateForSp(this.startDate, false),
-        sampaitgl: this.formatDateForSp(this.endDate, true),
-        kodegdg: this.selectedGudang || "",
-        status: this.selectedStatus,
+
+    // Payload default (perilaku lama) - dipakai kalau prop buildPayload tidak diisi.
+    defaultBuildPayload(data) {
+      return {
+        mulaitgl: this.formatDateForSp(data.startDate, false),
+        sampaitgl: this.formatDateForSp(data.endDate, true),
+        kodegdg: data.gudang || "",
+        status: data.status,
       };
-      const actionName = `${this.storeModule}/getRegister`;
+    },
+
+    // Payload print default (perilaku lama) - dipakai kalau prop buildPrintPayload kosong.
+    defaultBuildPrintPayload(data) {
+      return {
+        from: this.type,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        kodegdg: data.gudang,
+      };
+    },
+
+    loadData() {
+      const payload = this.buildPayload
+        ? this.buildPayload(this.filterData)
+        : this.defaultBuildPayload(this.filterData);
+
+      const actionName = `${this.storeModule}/${this.loadAction}`;
       if (!this.$store._actions[actionName]) {
         console.warn(`Action ${actionName} not found, skipping loadData`);
         return Promise.resolve();
@@ -213,34 +272,37 @@ export default {
         console.error("Error loading data:", err);
       });
     },
-    handleApplyFilter({ startDate, endDate, gudang, status }) {
+
+    // Dipertahankan untuk backward compatibility, kalau ada pemanggil lama
+    // yang masih mengirim { startDate, endDate, gudang, status } langsung.
+    handleApplyFilter(formData) {
       this.showFilter = false;
-      this.startDate = startDate;
-      this.endDate = endDate;
-      this.selectedGudang = gudang;
-      if (status !== undefined) this.selectedStatus = status;
+      this.filterData = formData || {};
       this.loadData();
     },
+
     handleClosePopup() {
       this.showFilter = false;
     },
+
     handleRefresh() {
       this.loadData();
     },
+
     async handlePrint() {
       try {
-        const res = await api.getbydata(this.apiEndpoint, {
-          from: this.type,
-          startDate: this.startDate,
-          endDate: this.endDate,
-          kodegdg: this.selectedGudang,
-        });
+        const printPayload = this.buildPrintPayload
+          ? this.buildPrintPayload(this.filterData)
+          : this.defaultBuildPrintPayload(this.filterData);
+
+        const res = await api.getbydata(this.apiEndpoint, printPayload);
         const url = res.data.url;
         window.open(url, "_blank");
       } catch (err) {
         console.error("Print error:", err);
       }
     },
+
     onGroupChanged(groupInfo) {
       this.hasGroupedColumns = groupInfo.hasGroups;
     },
@@ -270,6 +332,11 @@ export default {
   beforeDestroy() {
     window.removeEventListener("resize", this.checkMobile);
   },
+  watch:{
+    ketsp(a){
+      console.log("ketsp changed:", a);
+    }
+  }
 };
 </script>
 

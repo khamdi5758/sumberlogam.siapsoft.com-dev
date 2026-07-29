@@ -6,6 +6,7 @@ const state = {
   sumcolom: [],
   avgcolom: [],
   keyfield: "",
+  ketsp:""
 };
 
 const getters = {
@@ -14,6 +15,7 @@ const getters = {
   sumcolom: (state) => state.sumcolom,
   avgcolom: (state) => state.avgcolom,
   keyfield: (state) => state.keyfield,
+  ketsp: (state) => state.ketsp,
 };
 
 const mutations = {
@@ -32,10 +34,14 @@ const mutations = {
   setKeyfield(state, field) {
     state.keyfield = field;
   },
+  setKetsp(state, ketsp) {
+    state.ketsp = ketsp;
+  },
   clearbarang(state) {
     state.barangList = [];
     state.sumcolom = [];
     state.avgcolom = [];
+    state.ketsp = "";
   },
 };
 
@@ -62,6 +68,9 @@ const actions = {
       }
       if (response.data?.keyfield) {
          commit("setKeyfield", response.data.keyfield);
+      }
+      if (response.data?.sqlquery) {
+         commit("setKetsp", response.data.sqlquery);
       }
     } catch (error) {
       console.error("Error getbarang PO:", error);
