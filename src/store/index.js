@@ -38,6 +38,7 @@ import registeroutstandingtransferModule from "./modules/registeroutstandingtran
 import masterbarang from "./modules/masterbarang";
 import labarugi from "./modules/labarugi";
 import neraca from "./modules/neraca";
+import neracalajur from "./modules/neracalajur";
 
 export default createStore({
   modules: {
@@ -81,5 +82,6 @@ export default createStore({
     masterbarang: masterbarang,
     labarugi: labarugi,
     neraca: neraca,
+    neracalajur: neracalajur,
   },
 });
