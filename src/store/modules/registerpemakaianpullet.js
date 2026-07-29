@@ -7,7 +7,7 @@ const state = {
   avgcolom: [],
   keyfield: "",
   gudangList: [],
-  ketsp: ""
+  ketsp: "",
 };
 
 const getters = {
@@ -54,13 +54,10 @@ const actions = {
   async getRegister({ commit }, requestPayload) {
     commit("setLoading", true);
     try {
-      const payloadApi = {
-        mulaitgl: requestPayload.mulaitgl,
-        sampaitgl: requestPayload.sampaitgl,
-        gudang: requestPayload.kodegdg || "",
-      };
-
-      const response = await api.post("register/registerkoreksi", payloadApi);
+      const response = await api.post(
+        "register/registerpemakaianpullet",
+        requestPayload,
+      );
       const resultData = response.data?.data || response.data || [];
 
       commit("setRegisterList", resultData);
@@ -74,11 +71,11 @@ const actions = {
       if (response.data?.keyfield) {
         commit("setKeyfield", response.data.keyfield);
       }
-       if (response.data?.sqlquery) {
+      if (response.data?.sqlquery) {
         commit("setKetsp", response.data.sqlquery);
       }
     } catch (error) {
-      console.error("Error getRegister Koreksi:", error);
+      console.error("Error getRegister Jual:", error);
     } finally {
       commit("setLoading", false);
     }
@@ -96,7 +93,7 @@ const actions = {
 
   clearRegister({ commit }) {
     commit("clearRegister");
-  }
+  },
 };
 
 export default {

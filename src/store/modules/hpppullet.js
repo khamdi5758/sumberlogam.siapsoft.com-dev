@@ -7,7 +7,7 @@ const state = {
   avgcolom: [],
   keyfield: "",
   gudangList: [],
-  ketsp: ""
+   ketsp:""
 };
 
 const getters = {
@@ -39,7 +39,7 @@ const mutations = {
   setGudangList(state, data) {
     state.gudangList = data;
   },
-  setKetsp(state, ketsp) {
+   setKetsp(state, ketsp) {
     state.ketsp = ketsp;
   },
   clearRegister(state) {
@@ -54,13 +54,8 @@ const actions = {
   async getRegister({ commit }, requestPayload) {
     commit("setLoading", true);
     try {
-      const payloadApi = {
-        mulaitgl: requestPayload.mulaitgl,
-        sampaitgl: requestPayload.sampaitgl,
-        gudang: requestPayload.kodegdg || "",
-      };
 
-      const response = await api.post("register/registerkoreksi", payloadApi);
+      const response = await api.post("labarugineraca/hpppullet", requestPayload);
       const resultData = response.data?.data || response.data || [];
 
       commit("setRegisterList", resultData);
@@ -74,11 +69,11 @@ const actions = {
       if (response.data?.keyfield) {
         commit("setKeyfield", response.data.keyfield);
       }
-       if (response.data?.sqlquery) {
+      if (response.data?.sqlquery) {
         commit("setKetsp", response.data.sqlquery);
       }
     } catch (error) {
-      console.error("Error getRegister Koreksi:", error);
+      console.error("Error getRegister HPP Pullet:", error);
     } finally {
       commit("setLoading", false);
     }

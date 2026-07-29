@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-4 flex-1 min-h-1 relative">
+  <div class="mt-4 flex-1 min-h-1 relative flex flex-col">
     <div
       class="h-full overflow-auto"
       :class="isMobile ? '' : 'overflow-x-auto'"
@@ -64,7 +64,13 @@
             :key="'sum-' + index"
             :column="typeof summary === 'object' ? summary.column : summary"
             summaryType="sum"
-            :customizeText="formatSummary"
+            :customizeText="
+              (e) =>
+                formatSummary(
+                  e,
+                  typeof summary === 'object' ? summary.column : summary,
+                )
+            "
             :alignment="'right'"
           />
           <DxTotalItem
@@ -72,7 +78,13 @@
             :key="'avg-' + index"
             :column="typeof summary === 'object' ? summary.column : summary"
             summaryType="avg"
-            :customizeText="formatSummary"
+            :customizeText="
+              (e) =>
+                formatSummary(
+                  e,
+                  typeof summary === 'object' ? summary.column : summary,
+                )
+            "
             :alignment="'right'"
           />
 
@@ -83,7 +95,10 @@
             summary-type="sum"
             :alignByColumn="true"
             :showInGroupFooter="true"
-            :customizeText="formatSummary"
+            :customizeText="
+              (e) =>
+                formatSummary(e, typeof col === 'object' ? col.column : col)
+            "
             :alignment="'right'"
           />
 
@@ -94,7 +109,10 @@
             summary-type="avg"
             :alignByColumn="true"
             :showInGroupFooter="true"
-            :customizeText="formatSummary"
+            :customizeText="
+              (e) =>
+                formatSummary(e, typeof col === 'object' ? col.column : col)
+            "
             :alignment="'right'"
           />
         </DxSummary>
@@ -201,11 +219,11 @@
           :options="filterButtonOptions"
         /> -->
           <DxItem name="columnChooserButton" location="after" />
-          <!-- <DxItem
-          location="after"
-          widget="dxButton"
-          :options="filterListButtonOptions"
-        /> -->
+          <DxItem
+            location="after"
+            widget="dxButton"
+            :options="filterListButtonOptions"
+          />
 
           <DxItem
             v-for="(item, index) in customToolbarItems"
@@ -370,6 +388,9 @@
         </template>
       </DxPopup>
     </div>
+    <div class="sp-footer-hidden">
+      {{ spFooterText }}
+    </div>
   </div>
 </template>
 
@@ -455,6 +476,10 @@ export default {
   },
 
   props: {
+    spFooterText: {
+      type: String,
+      default: "",
+    },
     useBuiltInPager: {
       type: Boolean,
       default: false,
@@ -609,10 +634,10 @@ export default {
       type: Boolean,
       default: true,
     },
-    // showFilterRow: {
-    //   type: Boolean,
-    //   default: false,
-    // },
+    showFilterRow: {
+      type: Boolean,
+      default: false,
+    },
     showFilterButton: {
       type: Boolean,
       default: true,
@@ -877,19 +902,30 @@ export default {
       };
     },
 
+    // 🔥 Kolom-kolom hasil olahan: deteksi prefix "dec" (desimal), "sum"/"avg" (dibulatkan)
     computedColumns() {
       let cols = [];
 
       if (this.columns && this.columns.length > 0) {
         cols = this.columns.map((col) => {
-          const normalizedKey = (col.dataField || "")
+          const dataField = col.dataField || "";
+          const normalizedKey = dataField
             .toString()
             .toLowerCase()
             .replace(/[\s_]/g, "");
           const colAlignment = this.getColumnAlignment(col);
 
+          // 🔥 Deteksi prefix berlapis ("sum"+"dec", "avg"+"dec", dll)
+          const meta = this.parseFieldMeta(dataField);
+          const decimals =
+            col.decimals !== undefined ? col.decimals : meta.decimals;
+          const caption =
+            col.caption !== undefined ? col.caption : meta.caption;
+
           return {
             ...col,
+            caption,
+            decimals,
             alignment: colAlignment,
             visible:
               col.visible !== undefined
@@ -909,10 +945,10 @@ export default {
         });
 
         cols = Array.from(allKeysSet).map((key) => {
-          let caption = key;
-          if (caption.startsWith("sum") || caption.startsWith("avg")) {
-            caption = caption.substring(3);
-          }
+          // 🔥 Deteksi prefix berlapis ("sum"+"dec", "avg"+"dec", dll)
+          const meta = this.parseFieldMeta(key);
+          const caption = meta.caption;
+          const decimals = meta.decimals;
 
           const normalizedKey = (key || "")
             .toString()
@@ -923,6 +959,7 @@ export default {
           return {
             dataField: key,
             caption: caption,
+            decimals,
             alignment: colAlignment,
             visible:
               ![...this.disablecol].includes(key) &&
@@ -969,6 +1006,17 @@ export default {
 
       return cols;
     },
+
+    // 🔥 Lookup cepat dataField -> jumlah desimal, dipakai di onCellPrepared & formatSummary
+    columnDecimalsMap() {
+      const map = {};
+      this.computedColumns.forEach((col) => {
+        if (col.dataField) {
+          map[col.dataField] = col.decimals ?? 0;
+        }
+      });
+      return map;
+    },
   },
 
   watch: {
@@ -1008,6 +1056,28 @@ export default {
   ],
 
   methods: {
+    // 🔥 Strip prefix berlapis dari nama field: "sum", "avg", "dec" bisa muncul
+    // dalam kombinasi & urutan apa pun (mis. "sumdecPersen_QEkor", "decavgFoo").
+    // Kalau prefix "dec" pernah ketemu di salah satu lapisan, kolom dianggap desimal.
+    parseFieldMeta(key) {
+      let caption = (key || "").toString();
+      let hasDec = false;
+      let stripped = true;
+
+      while (stripped) {
+        stripped = false;
+        if (caption.startsWith("dec")) {
+          hasDec = true;
+          caption = caption.substring(3);
+          stripped = true;
+        } else if (caption.startsWith("sum") || caption.startsWith("avg")) {
+          caption = caption.substring(3);
+          stripped = true;
+        }
+      }
+
+      return { caption, decimals: hasDec ? 2 : 0 };
+    },
     focusGrid() {
       const grid = this.getGridInstance();
       if (!grid) return;
@@ -1058,13 +1128,17 @@ export default {
 
       return this.isNumericLike(sample) ? "right" : "left";
     },
-    formatSummary(e) {
+
+    // 🔥 columnName di-pass eksplisit dari template supaya tau desimal kolom mana yang dipakai
+    formatSummary(e, columnName) {
       if (e.value === null || e.value === undefined) return "";
       const val = Number(e.value);
       if (isNaN(val)) return e.value;
+
+      const decimals = this.columnDecimalsMap[columnName] ?? 0;
       return new Intl.NumberFormat("id-ID", {
-        maximumFractionDigits: 0,
-        minimumFractionDigits: 0,
+        maximumFractionDigits: decimals,
+        minimumFractionDigits: decimals,
       }).format(val);
     },
 
@@ -1317,15 +1391,17 @@ export default {
       await this.exportToExcel();
     },
 
+    // 🔥 Format angka per-cell sesuai jumlah desimal kolomnya (dari columnDecimalsMap)
     onCellPrepared(e) {
       if (e.rowType === "data" && e.column) {
         const alignment = e.column.alignment || "left";
         e.cellElement.style.textAlign = alignment;
 
         if (typeof e.value === "number") {
+          const decimals = this.columnDecimalsMap[e.column.dataField] ?? 0;
           e.cellElement.innerText = new Intl.NumberFormat("id-ID", {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
           }).format(e.value);
         }
       }
@@ -1671,5 +1747,31 @@ export default {
   :deep(.dx-toolbar-item) {
     margin-right: 2px !important;
   }
+}
+
+.sp-footer-hidden {
+  flex-shrink: 0;
+  width: 100%;
+  height: 10px;
+  line-height: 10px;
+  padding: 0 8px;
+  font-size: 11px;
+  color: transparent;
+  background: transparent;
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+  text-align: right;
+  box-sizing: border-box;
+}
+
+.sp-footer-hidden::selection {
+  color: #111827;
+  background: #ffe58f;
+}
+
+.sp-footer-hidden::-moz-selection {
+  color: #111827;
+  background: #ffe58f;
 }
 </style>

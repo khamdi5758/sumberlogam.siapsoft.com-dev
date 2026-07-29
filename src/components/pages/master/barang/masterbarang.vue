@@ -43,13 +43,12 @@
       :showGroupPanel="true"
       :allowGrouping="true"
       :height="gridHeight"
+      :spFooterText="ketsp"
       @optionChanged="onDataGridOptionChanged"
       @focusedRowChanged="onFocusedRowChanged"
       @group-changed="onGroupChanged"
       @print-click="handlePrint"
     />
-
-   
   </div>
 </template>
 
@@ -64,7 +63,7 @@ export default {
   props: {
     title: { type: String, required: true },
     type: { type: String, required: true },
-    storeModule: { type: String, default:"masterbarang" },
+    storeModule: { type: String, default: "masterbarang" },
     apiEndpoint: { type: String, default: "report" },
   },
   data() {
@@ -88,15 +87,20 @@ export default {
   },
   created() {
     this._myRoutePath = this.$route.path;
-    
   },
   unmounted() {
     const activeTabs = this.$store.getters["tabs/getTabs"] || [];
-    const isTabStillOpen = activeTabs.some(path => path.toLowerCase() === this._myRoutePath.toLowerCase());
-    
+    const isTabStillOpen = activeTabs.some(
+      (path) => path.toLowerCase() === this._myRoutePath.toLowerCase(),
+    );
+
     // Hanya hapus memori kunjungan jika tab-nya BENAR-BENAR ditutup (di-silang),
     // bukan sekadar di-unmount oleh keep-alive Vue Router.
-    if (!isTabStillOpen && window.__barangVisited && window.__barangVisited[this.storeModule]) {
+    if (
+      !isTabStillOpen &&
+      window.__barangVisited &&
+      window.__barangVisited[this.storeModule]
+    ) {
       delete window.__barangVisited[this.storeModule];
     }
   },
@@ -116,6 +120,9 @@ export default {
     },
     isLoading() {
       return this.$store.getters[`${this.storeModule}/isLoading`] || false;
+    },
+    ketsp() {
+      return this.$store.getters[`${this.storeModule}/ketsp`] || "";
     },
     filteredData() {
       const list = Array.isArray(this.barangList) ? this.barangList : [];

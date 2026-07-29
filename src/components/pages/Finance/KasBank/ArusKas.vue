@@ -14,7 +14,7 @@
 
 <script setup>
 import { ref } from "vue";
-import FinanceBase from "@/components/pages/finance/FinanceBase.vue";
+import FinanceBase from "@/components/pages/Finance/FinanceBase.vue";
 
 defineOptions({ name: "ArusKas" });
 

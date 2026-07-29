@@ -149,6 +149,8 @@
                 placeholder="Pilih gudang (ketik untuk mencari)"
                 class="min-w-0 flex-1 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none placeholder:text-slate-400"
                 @keyup.enter="openWarehousePicker"
+                @keydown="handleGudangKeydown"
+                @input="gudangBackspaceCount = 0"
               />
               <button
                 type="button"
@@ -192,7 +194,7 @@ import { DxDateBox } from "devextreme-vue/date-box";
 
 export default {
   name: "RegisterFilterPopup",
-  components: { CalendarDays, X ,DxDateBox},
+  components: { CalendarDays, X, DxDateBox },
   props: {
     visible: { type: Boolean, default: false },
     title: { type: String, default: "Filter" },
@@ -212,6 +214,7 @@ export default {
       gudangList: [],
       gudangLabel: "",
       isDialogOpen: false,
+      gudangBackspaceCount: 0,
     };
   },
   computed: {
@@ -242,6 +245,24 @@ export default {
     },
   },
   methods: {
+    handleGudangKeydown(e) {
+      if (e.key !== "Backspace" && e.key !== "Delete") return;
+
+      // Kalau teks masih ada isinya, biarkan hapus normal & reset counter
+      if (this.gudangLabel && this.gudangLabel.length > 0) {
+        this.gudangBackspaceCount = 0;
+        return;
+      }
+
+      // Teks sudah kosong -> hitung penekanan backspace/delete berturut-turut
+      this.gudangBackspaceCount++;
+
+      if (this.gudangBackspaceCount >= 2) {
+        this.localGudang = "";
+        this.gudangLabel = "";
+        this.gudangBackspaceCount = 0;
+      }
+    },
     updateGudangLabel() {
       const found = this.gudangList.find(
         (item) => item.id === this.localGudang,
