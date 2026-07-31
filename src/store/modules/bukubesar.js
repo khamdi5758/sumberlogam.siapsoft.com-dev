@@ -41,13 +41,13 @@ const actions = {
 
       // Determine endpoint based on formatOption
       const isRekap = requestPayload.formatOption === "Rekap";
-      const endpoint = isRekap 
-        ? "labarugineraca/bukubesarrekap" 
-        : "labarugineraca/bukubesardetail";
+      const endpoint = isRekap
+        ? "labarugineraca/bukubesarrekap"
+        : "labarugineraca/reportbukubesardetail";
 
       const response = await api.post(endpoint, payload);
       const resultData = response.data?.data || response.data || [];
-      
+
       commit("setBukuBesarList", resultData);
       commit("setKetsp", response.data?.sqlquery || response.data?.ketsp || "");
     } catch (error) {

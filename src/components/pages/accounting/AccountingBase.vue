@@ -103,11 +103,10 @@
         </DxDataGrid>
       </template>
 
-      <!-- Default: Hierarchical TreeList -->
       <DxTreeList
         v-else
         id="profit-loss-tree"
-        :data-source="dataSource"
+        :data-source="processedDataSource"
         key-expr="id"
         parent-id-expr="parentId"
         :show-row-lines="true"
@@ -286,6 +285,84 @@ const jurnalDataSource = computed(() => {
     ...item,
     id: item.id !== undefined ? item.id : index,
   }));
+});
+
+const transformToTree = (flatData) => {
+  if (!Array.isArray(flatData) || flatData.length === 0) return [];
+  
+  if (flatData[0] && flatData[0].id !== undefined && flatData[0].parentId !== undefined) {
+    return flatData;
+  }
+  
+  const tree = [];
+  const registeredGroups = new Map();
+  let nextId = 1;
+
+  flatData.forEach((item) => {
+    const grp1Key = item.nmgroup1 || "Lain-lain";
+    let grp1Id;
+    if (!registeredGroups.has(grp1Key)) {
+      grp1Id = nextId++;
+      registeredGroups.set(grp1Key, grp1Id);
+      tree.push({
+        id: grp1Id,
+        parentId: 0,
+        accountName: grp1Key,
+        amount: 0,
+        amountBulanLalu: 0,
+        type: "header"
+      });
+    } else {
+      grp1Id = registeredGroups.get(grp1Key);
+    }
+
+    const grp2Key = `${grp1Key}_${item.NamaGrpAcc || item.KodeGrpAcc}`;
+    let grp2Id;
+    if (!registeredGroups.has(grp2Key)) {
+      grp2Id = nextId++;
+      registeredGroups.set(grp2Key, grp2Id);
+      tree.push({
+        id: grp2Id,
+        parentId: grp1Id,
+        accountName: item.NamaGrpAcc || String(item.KodeGrpAcc || ""),
+        amount: 0,
+        amountBulanLalu: 0,
+        type: "header"
+      });
+    } else {
+      grp2Id = registeredGroups.get(grp2Key);
+    }
+
+    const amountVal = Number(item.Jumlah || item.Perhitungan || 0);
+    const amountBulanLaluVal = Number(item.JumlahBulanLalu || item.PerhitunganBulanLalu || 0);
+    
+    tree.push({
+      id: nextId++,
+      parentId: grp2Id,
+      accountName: `${item.perkiraan ? item.perkiraan + ' - ' : ''}${item.Keterangan || ''}`,
+      amount: amountVal,
+      amountBulanLalu: amountBulanLaluVal,
+      type: "detail"
+    });
+
+    const parent1 = tree.find(node => node.id === grp1Id);
+    if (parent1) {
+      parent1.amount += amountVal;
+      parent1.amountBulanLalu += amountBulanLaluVal;
+    }
+    const parent2 = tree.find(node => node.id === grp2Id);
+    if (parent2) {
+      parent2.amount += amountVal;
+      parent2.amountBulanLalu += amountBulanLaluVal;
+    }
+  });
+
+  return tree;
+};
+
+const processedDataSource = computed(() => {
+  if (props.type === "jurnal") return [];
+  return transformToTree(props.dataSource);
 });
 
 const customizeSummaryText = (e) => {
