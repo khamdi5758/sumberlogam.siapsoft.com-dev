@@ -33,8 +33,79 @@
 
     <!-- UI/UX: Card putih bersih untuk memberikan fokus pada angka -->
     <div v-if="hasBeenFiltered" class="card-box">
-      <!-- Programmer: Menggunakan TreeList untuk hierarki akun Akuntansi -->
+      <!-- Kondisi Jurnal: Render Flat DataGrid -->
+      <template v-if="type === 'jurnal'">
+        <DxDataGrid
+          id="jurnal-grid"
+          :data-source="jurnalDataSource"
+          key-expr="id"
+          :show-row-lines="true"
+          :show-borders="false"
+          :column-auto-width="true"
+        >
+          <DxGridColumn
+            data-field="tanggal"
+            caption="Tanggal"
+            data-type="date"
+            format="dd-MM-yyyy"
+            width="110"
+          />
+          <DxGridColumn
+            data-field="Nobukti"
+            caption="No. Bukti"
+            width="150"
+          />
+          <DxGridColumn
+            data-field="perkiraan"
+            caption="Perkiraan"
+            width="100"
+          />
+          <DxGridColumn
+            data-field="NamaAkun"
+            caption="Nama Akun"
+            width="220"
+          />
+          <DxGridColumn
+            data-field="keterangan"
+            caption="Keterangan"
+          />
+          <DxGridColumn
+            data-field="Debet"
+            caption="Debet"
+            alignment="right"
+            width="130"
+            cell-template="currencyTemplate"
+          />
+          <DxGridColumn
+            data-field="kredit"
+            caption="Kredit"
+            alignment="right"
+            width="130"
+            cell-template="currencyTemplate"
+          />
+
+          <template #currencyTemplate="{ data }">
+            <span>{{ formatCurrency(data.value) }}</span>
+          </template>
+
+          <DxSummary>
+            <DxTotalItem
+              column="Debet"
+              summary-type="sum"
+              :customize-text="customizeSummaryText"
+            />
+            <DxTotalItem
+              column="kredit"
+              summary-type="sum"
+              :customize-text="customizeSummaryText"
+            />
+          </DxSummary>
+        </DxDataGrid>
+      </template>
+
+      <!-- Default: Hierarchical TreeList -->
       <DxTreeList
+        v-else
         id="profit-loss-tree"
         :data-source="dataSource"
         key-expr="id"
@@ -46,14 +117,13 @@
         @row-expanded="onRowExpanded"
         @row-collapsed="onRowCollapsed"
       >
-        <!-- Buka otomatis node utama -->
-        <DxColumn
+        <DxTreeColumn
           data-field="accountName"
           caption="Keterangan"
           cell-template="nameTemplate"
         />
 
-        <DxColumn
+        <DxTreeColumn
           data-field="amount"
           caption="Bulan Ini"
           alignment="right"
@@ -61,7 +131,7 @@
           cell-template="amountBulanIniTemplate"
         />
 
-        <DxColumn
+        <DxTreeColumn
           data-field="amountBulanLalu"
           caption="Bulan Lalu"
           alignment="right"
@@ -69,7 +139,7 @@
           cell-template="amountBulanLaluTemplate"
         />
 
-        <DxColumn
+        <DxTreeColumn
           caption="S/d Bulan Ini"
           alignment="right"
           width="150"
@@ -135,7 +205,13 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
-import { DxTreeList, DxColumn } from "devextreme-vue/tree-list";
+import { DxTreeList, DxColumn as DxTreeColumn } from "devextreme-vue/tree-list";
+import {
+  DxDataGrid,
+  DxColumn as DxGridColumn,
+  DxSummary,
+  DxTotalItem,
+} from "devextreme-vue/data-grid";
 import DxButton from "devextreme-vue/button";
 import AccountingPopup from "./AccountingPopup.vue";
 
@@ -203,6 +279,18 @@ const formatDateRange = computed(() => {
   const options = { day: "numeric", month: "short", year: "numeric" };
   return `${startDate.value.toLocaleDateString("id-ID", options)} - ${endDate.value.toLocaleDateString("id-ID", options)}`;
 });
+
+const jurnalDataSource = computed(() => {
+  if (props.type !== "jurnal") return [];
+  return props.dataSource.map((item, index) => ({
+    ...item,
+    id: item.id !== undefined ? item.id : index,
+  }));
+});
+
+const customizeSummaryText = (e) => {
+  return formatCurrency(e.value);
+};
 
 // Update state saat row di-expand
 const onRowExpanded = (e) => {
