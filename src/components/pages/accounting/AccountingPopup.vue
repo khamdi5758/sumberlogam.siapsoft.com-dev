@@ -31,8 +31,8 @@
       <!-- Form -->
       <div class="pt-4">
         <div class="space-y-4">
-          <!-- Mulai Tanggal / Dari Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, atau Neraca Lajur) -->
-          <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+          <!-- Mulai Tanggal / Dari Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, Neraca Lajur, atau Neraca) -->
+          <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur' && type !== 'neraca'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
             <label class="text-[14px] text-slate-700">
               {{ type === 'neraca' ? 'Dari Tanggal' : 'Mulai Tanggal' }}
             </label>
@@ -45,8 +45,8 @@
             />
           </div>
 
-          <!-- Sampai Tanggal / S/d Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, atau Neraca Lajur) -->
-          <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+          <!-- Sampai Tanggal / S/d Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, Neraca Lajur, atau Neraca) -->
+          <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur' && type !== 'neraca'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
             <label class="text-[14px] text-slate-700">
               {{ type === 'neraca' ? 'S/d Tanggal' : 'Sampai Tanggal' }}
             </label>
@@ -133,8 +133,8 @@
             </div>
           </template>
 
-          <!-- Kondisi Type: Mutasi, Aktiva Tetap, Laba Rugi, atau Neraca Lajur -->
-          <template v-else-if="type === 'mutasi' || type === 'aktivatetap' || type === 'labarugi' || type === 'neracalajur'">
+          <!-- Kondisi Type: Mutasi, Aktiva Tetap, Laba Rugi, Neraca Lajur, atau Neraca -->
+          <template v-else-if="type === 'mutasi' || type === 'aktivatetap' || type === 'labarugi' || type === 'neracalajur' || type === 'neraca'">
             <!-- Periode -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">Periode :</label>
@@ -293,11 +293,6 @@ const applyFilter = () => {
       endDate: endDate.value,
       type: selectedType.value,
     };
-  } else if (props.type === "neraca") {
-    payload = {
-      startDate: startDate.value,
-      endDate: endDate.value,
-    };
   } else if (props.type === "bukubesar") {
     payload = {
       startDate: startDate.value,
@@ -308,7 +303,7 @@ const applyFilter = () => {
       valas: valas.value,
       formatOption: formatOption.value,
     };
-  } else if (props.type === "mutasi" || props.type === "aktivatetap" || props.type === "labarugi" || props.type === "neracalajur") {
+  } else if (props.type === "mutasi" || props.type === "aktivatetap" || props.type === "labarugi" || props.type === "neracalajur" || props.type === "neraca") {
     const start = new Date(selectedYear.value, selectedMonth.value - 1, 1);
     const end = new Date(selectedYear.value, selectedMonth.value, 0);
 
