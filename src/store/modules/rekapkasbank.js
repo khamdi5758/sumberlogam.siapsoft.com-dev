@@ -39,9 +39,10 @@ const actions = {
         ? requestPayload.endDate.toISOString().split("T")[0]
         : requestPayload.endDate;
 
-      const response = await api.post("kasbank/rekapkasbankharian", {
-        startDate,
-        endDate,
+      const response = await api.post("kasbank/bukukasbank", {
+        mulaitgl: startDate,
+        sampaitgl: endDate,
+        perkiraan: requestPayload.perkiraan || "",
       });
       const resultData = response.data?.data || response.data || [];
 

@@ -442,11 +442,13 @@ const browseButtons = computed(() => [
 async function handleBrowsePerkiraan() {
   const endpoint =
     props.type === "bankharian"
-      ? "kasbank/getperkiraanforbank"
-      : "kasbank/getperkiraanforkasbank";
+      ? "kasbank/getperkiraanbank"
+      : "kasbank/getperkiraan";
   try {
     const response = await api.getbydata(endpoint);
-    const data = response.data?.datafrbrowse || [];
+    const data =
+      response.data?.datafrbrowse ||
+      (Array.isArray(response.data) ? response.data : []);
     const selected = await FormBrowseDialog.show({
       title: "Pilih Perkiraan",
       dataSource: data,

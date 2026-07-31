@@ -40,8 +40,8 @@ const actions = {
         : requestPayload.endDate;
 
       const response = await api.post("kasbank/bankharian", {
-        startDate,
-        endDate,
+        mulaitgl: startDate,
+        sampaitgl: endDate,
         perkiraan: requestPayload.perkiraan || "",
       });
       const resultData = response.data?.data || response.data || [];
