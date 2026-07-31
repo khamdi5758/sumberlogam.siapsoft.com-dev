@@ -14,11 +14,14 @@
 
 <script setup>
 import { ref } from "vue";
+import { useStore } from "vuex";
 import AccountingBase from "../AccountingBase.vue";
 
 defineOptions({
   name: "RegisterBukuBesar",
 });
+
+const store = useStore();
 
 const plData = ref([
   { id: 1, parentId: 0, accountName: "KAS & BANK", amount: 155000000, amountBulanLalu: 140000000, type: "header" },
@@ -29,6 +32,6 @@ const plData = ref([
 
 const handleFilterChange = (filterData) => {
   console.log("Buku Besar Filter Change:", filterData);
-  // Logika fetch data Buku Besar
+  store.dispatch("bukubesar/getBukuBesar", filterData);
 };
 </script>
