@@ -293,6 +293,7 @@ const props = defineProps({
   title: { type: String, default: "Filter Laporan" },
   submitButtonText: { type: String, default: "Terapkan Filter" },
   type: { type: String, default: "jurnal" },
+  perkiraanBrowseCode: { type: String, default: "" },
   perkiraanMode: {
     type: String,
     default: "range",
@@ -440,20 +441,26 @@ const browseButtons = computed(() => [
 ]);
 
 async function handleBrowsePerkiraan() {
-  const endpoint =
-    props.type === "bankharian"
-      ? "kasbank/getperkiraanbank"
-      : "kasbank/getperkiraan";
   try {
-    const response = await api.getbydata(endpoint);
-    const data =
+    const response = await api.getbydata(
+      "formbrowse",
+      props.perkiraanBrowseCode ? { kode: props.perkiraanBrowseCode } : {},
+    );
+    const responseData =
       response.data?.datafrbrowse ||
       (Array.isArray(response.data) ? response.data : []);
+    const data = responseData.map((item, index) => ({
+      ...item,
+      __browseKey: index,
+    }));
     const selected = await FormBrowseDialog.show({
       title: "Pilih Perkiraan",
       dataSource: data,
-      keyField: "id",
-      disablecol: response.data?.disablecol || ["id", "ket"],
+      keyField: "__browseKey",
+      disablecol: [
+        ...(response.data?.disablecol || ["id", "ket"]),
+        "__browseKey",
+      ],
     });
     if (selected) {
       perkiraanTunggal.value =
@@ -461,10 +468,13 @@ async function handleBrowsePerkiraan() {
         selected.kode ||
         selected.Kode ||
         selected.kodeperkiraan ||
+        selected.KodePerkiraan ||
         "";
     }
   } catch (error) {
-    console.error("Browse perkiraan error:", error);
+    if (error !== "cancelled") {
+      console.error("Browse perkiraan error:", error);
+    }
   }
 }
 

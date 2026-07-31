@@ -7,6 +7,7 @@
     :defaultExpandedKeys="[1]"
     :autoOpenFilter="true"
     :showContentInitially="false"
+    perkiraanBrowseCode="02"
     submitButtonText="Cetak"
     @filter-change="handleFilterChange"
   />

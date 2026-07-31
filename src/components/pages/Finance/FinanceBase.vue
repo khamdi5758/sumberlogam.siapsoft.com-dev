@@ -33,7 +33,28 @@
 
     <!-- Tabel -->
     <div v-if="hasBeenFiltered" class="card-box">
+      <DxDataGrid
+        v-if="isFlatCashReport"
+        :data-source="flatDataSource"
+        key-expr="__rowKey"
+        :show-row-lines="true"
+        :show-borders="true"
+        :column-auto-width="true"
+        :allow-column-resizing="true"
+        column-resizing-mode="widget"
+      >
+        <DxGridColumn
+          v-for="column in flatColumns"
+          :key="column.dataField"
+          :data-field="column.dataField"
+          :caption="column.caption"
+          :data-type="column.dataType"
+          :format="column.format"
+        />
+        <DxScrolling mode="standard" show-scrollbar="always" />
+      </DxDataGrid>
       <DxTreeList
+        v-else
         id="profit-loss-tree"
         :data-source="dataSource"
         key-expr="id"
@@ -115,6 +136,7 @@
       :type="type"
       :submit-button-text="submitButtonText"
       :perkiraan-mode="perkiraanMode"
+      :perkiraan-browse-code="perkiraanBrowseCode"
       @on-filter-apply="handleFilterApply"
     />
 
@@ -129,6 +151,11 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { DxTreeList, DxColumn } from "devextreme-vue/tree-list";
+import {
+  DxDataGrid,
+  DxColumn as DxGridColumn,
+  DxScrolling,
+} from "devextreme-vue/data-grid";
 import DxButton from "devextreme-vue/button";
 import FinancePopup from "./FinancePopup.vue";
 
@@ -141,6 +168,7 @@ const props = defineProps({
   autoOpenFilter: { type: Boolean, default: false },
   showContentInitially: { type: Boolean, default: true },
   submitButtonText: { type: String, default: "Terapkan Filter" },
+  perkiraanBrowseCode: { type: String, default: "" },
   // Prop mode perkiraan
   perkiraanMode: {
     type: String,
@@ -166,6 +194,26 @@ const endDate = ref(new Date());
 
 const expandedKeys = ref([...props.defaultExpandedKeys]);
 const hasBeenFiltered = ref(props.showContentInitially || isVisited);
+const isFlatCashReport = computed(() =>
+  ["kasharian", "bankharian", "rekapkasbank", "aruskas"].includes(props.type),
+);
+const flatDataSource = computed(() =>
+  props.dataSource.map((row, index) => ({ ...row, __rowKey: index })),
+);
+const flatColumns = computed(() => {
+  const sample = props.dataSource[0];
+  if (!sample) return [];
+
+  return Object.keys(sample).map((dataField) => {
+    const isNumber = typeof sample[dataField] === "number";
+    return {
+      dataField,
+      caption: dataField,
+      dataType: isNumber ? "number" : undefined,
+      format: isNumber ? "#,##0.##" : undefined,
+    };
+  });
+});
 
 const moduleNameMap = {
   kasharian: "kasharian",
