@@ -67,6 +67,8 @@
               <DxSelectBox
                 v-model:value="selectedType"
                 :data-source="transactionTypes"
+                display-expr="name"
+                value-expr="id"
                 placeholder="Pilih Transaksi..."
                 :show-clear-button="true"
                 :search-enabled="true"
@@ -252,13 +254,13 @@ const endDate = ref(new Date());
 // For 'jurnal'
 const selectedType = ref(null);
 const transactionTypes = [
-  "Penerimaan Kas",
-  "Pengeluaran Kas",
-  "Penerimaan Bank",
-  "Pengeluaran Bank",
-  "Memorial",
-  "Koreksi",
-  "Penutup",
+  { id: 0, name: "Penerimaan Kas" },
+  { id: 1, name: "Pengeluaran Kas" },
+  { id: 2, name: "Penerimaan Bank" },
+  { id: 3, name: "Pengeluaran Bank" },
+  { id: 4, name: "Memorial" },
+  { id: 5, name: "Koreksi" },
+  { id: 6, name: "Penutup" },
 ];
 
 // For 'bukubesar' & 'biaya'
