@@ -299,7 +299,19 @@ const transformToTree = (flatData) => {
   let nextId = 1;
 
   flatData.forEach((item) => {
-    const grp1Key = item.nmgroup1 || "Lain-lain";
+    // Key-agnostic resolution
+    const perkiraanVal = item.perkiraan !== undefined ? item.perkiraan : item.Perkiraan;
+    const keteranganVal = item.Keterangan !== undefined ? item.Keterangan : (item.keterangan !== undefined ? item.keterangan : item.accountName);
+    
+    // Group 1 resolution (e.g. nmgroup1 or NamaHeader)
+    let grp1Key = item.nmgroup1 || item.NamaHeader;
+    if (!grp1Key && item.Header) {
+      grp1Key = item.Header;
+    }
+    if (!grp1Key) {
+      grp1Key = "Lain-lain";
+    }
+
     let grp1Id;
     if (!registeredGroups.has(grp1Key)) {
       grp1Id = nextId++;
@@ -316,7 +328,13 @@ const transformToTree = (flatData) => {
       grp1Id = registeredGroups.get(grp1Key);
     }
 
-    const grp2Key = `${grp1Key}_${item.NamaGrpAcc || item.KodeGrpAcc}`;
+    // Group 2 resolution (e.g. NamaGrpAcc or Header)
+    let grp2KeyName = item.NamaGrpAcc || item.Header || String(item.KodeGrpAcc || "");
+    if (!grp2KeyName) {
+      grp2KeyName = "Detail";
+    }
+    const grp2Key = `${grp1Key}_${grp2KeyName}`;
+    
     let grp2Id;
     if (!registeredGroups.has(grp2Key)) {
       grp2Id = nextId++;
@@ -324,7 +342,7 @@ const transformToTree = (flatData) => {
       tree.push({
         id: grp2Id,
         parentId: grp1Id,
-        accountName: item.NamaGrpAcc || String(item.KodeGrpAcc || ""),
+        accountName: grp2KeyName,
         amount: 0,
         amountBulanLalu: 0,
         type: "header"
@@ -333,13 +351,23 @@ const transformToTree = (flatData) => {
       grp2Id = registeredGroups.get(grp2Key);
     }
 
-    const amountVal = Number(item.Jumlah || item.Perhitungan || 0);
-    const amountBulanLaluVal = Number(item.JumlahBulanLalu || item.PerhitunganBulanLalu || 0);
-    
+    // Amount resolution:
+    let amountVal = 0;
+    if (item.Jumlah !== undefined) amountVal = Number(item.Jumlah);
+    else if (item.Perhitungan !== undefined) amountVal = Number(item.Perhitungan);
+    else if (item.SaldoAkhirD !== undefined) amountVal = Number(item.SaldoAkhirD);
+    else if (item.NeracaSaldoAkD !== undefined) amountVal = Number(item.NeracaSaldoAkD);
+
+    let amountBulanLaluVal = 0;
+    if (item.JumlahBulanLalu !== undefined) amountBulanLaluVal = Number(item.JumlahBulanLalu);
+    else if (item.PerhitunganBulanLalu !== undefined) amountBulanLaluVal = Number(item.PerhitunganBulanLalu);
+    else if (item.SaldoAkhirK !== undefined) amountBulanLaluVal = Number(item.SaldoAkhirK);
+    else if (item.NeracaSaldoAkK !== undefined) amountBulanLaluVal = Number(item.NeracaSaldoAkK);
+
     tree.push({
       id: nextId++,
       parentId: grp2Id,
-      accountName: `${item.perkiraan ? item.perkiraan + ' - ' : ''}${item.Keterangan || ''}`,
+      accountName: `${perkiraanVal ? perkiraanVal + ' - ' : ''}${keteranganVal || ''}`,
       amount: amountVal,
       amountBulanLalu: amountBulanLaluVal,
       type: "detail"
