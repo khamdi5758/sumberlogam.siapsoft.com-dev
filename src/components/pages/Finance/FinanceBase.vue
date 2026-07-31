@@ -33,32 +33,12 @@
 
     <!-- Tabel -->
     <div v-if="hasBeenFiltered" class="card-box">
-      <DxDataGrid
-        v-if="isFlatCashReport"
-        :data-source="flatDataSource"
-        key-expr="__rowKey"
-        :show-row-lines="true"
-        :show-borders="true"
-        :column-auto-width="true"
-        :allow-column-resizing="true"
-        column-resizing-mode="widget"
-      >
-        <DxGridColumn
-          v-for="column in flatColumns"
-          :key="column.dataField"
-          :data-field="column.dataField"
-          :caption="column.caption"
-          :data-type="column.dataType"
-          :format="column.format"
-        />
-        <DxScrolling mode="standard" show-scrollbar="always" />
-      </DxDataGrid>
       <DxTreeList
-        v-else
         id="profit-loss-tree"
-        :data-source="dataSource"
+        :data-source="treeDataSource"
         key-expr="id"
         parent-id-expr="parentId"
+        root-value="__root__"
         :show-row-lines="true"
         :show-borders="false"
         :column-auto-width="true"
@@ -126,6 +106,7 @@
             }}
           </span>
         </template>
+        <DxScrolling mode="standard" />
       </DxTreeList>
     </div>
 
@@ -150,12 +131,11 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
-import { DxTreeList, DxColumn } from "devextreme-vue/tree-list";
 import {
-  DxDataGrid,
-  DxColumn as DxGridColumn,
+  DxTreeList,
+  DxColumn,
   DxScrolling,
-} from "devextreme-vue/data-grid";
+} from "devextreme-vue/tree-list";
 import DxButton from "devextreme-vue/button";
 import FinancePopup from "./FinancePopup.vue";
 
@@ -194,26 +174,29 @@ const endDate = ref(new Date());
 
 const expandedKeys = ref([...props.defaultExpandedKeys]);
 const hasBeenFiltered = ref(props.showContentInitially || isVisited);
-const isFlatCashReport = computed(() =>
-  ["kasharian", "bankharian", "rekapkasbank", "aruskas"].includes(props.type),
-);
-const flatDataSource = computed(() =>
-  props.dataSource.map((row, index) => ({ ...row, __rowKey: index })),
-);
-const flatColumns = computed(() => {
-  const sample = props.dataSource[0];
-  if (!sample) return [];
+const treeDataSource = computed(() =>
+  props.dataSource.map((row, index) => {
+    const accountName = [
+      row.accountName,
+      row.NamaPerkiraan,
+      row.Keterangan,
+      row.keterangan2,
+      row.Perkiraan,
+      row.NoBukti,
+      row.Periode,
+    ].find((value) => value !== null && value !== undefined && value !== "");
 
-  return Object.keys(sample).map((dataField) => {
-    const isNumber = typeof sample[dataField] === "number";
     return {
-      dataField,
-      caption: dataField,
-      dataType: isNumber ? "number" : undefined,
-      format: isNumber ? "#,##0.##" : undefined,
+      ...row,
+      id: row.id ?? row.keyindex ?? `finance-row-${index}`,
+      parentId: row.parentId ?? "__root__",
+      accountName: accountName ?? `Baris ${index + 1}`,
+      amount: row.amount ?? row.saldo ?? row.SaldoAwal ?? 0,
+      amountBulanLalu: row.amountBulanLalu ?? 0,
+      type: row.type ?? "detail",
     };
-  });
-});
+  }),
+);
 
 const moduleNameMap = {
   kasharian: "kasharian",
