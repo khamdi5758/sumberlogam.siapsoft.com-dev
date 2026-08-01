@@ -371,7 +371,9 @@ const applyFilter = () => {
 
 async function handleBrowsePerkiraan(target) {
   try {
-    const response = await api.get("labarugineraca/getperkiraan");
+    const response = await api.get("labarugineraca/getperkiraan", {
+      params: { kode: "02" }
+    });
     const responseData = response.data?.datafrbrowse || (Array.isArray(response.data) ? response.data : []);
     
     // Add a unique key field for devxtreme grid
