@@ -371,7 +371,8 @@ const applyFilter = () => {
 
 async function handleBrowsePerkiraan(target) {
   try {
-    const response = await api.get("labarugineraca/getperkiraan", {
+    visible.value = false;
+    const response = await api.get("formbrowse", {
       params: { kode: "02" }
     });
     const responseData = response.data?.datafrbrowse || (Array.isArray(response.data) ? response.data : []);
@@ -406,6 +407,8 @@ async function handleBrowsePerkiraan(target) {
     if (error !== "cancelled") {
       console.error("Browse perkiraan error:", error);
     }
+  } finally {
+    visible.value = true;
   }
 }
 
