@@ -32,7 +32,7 @@
     </div>
 
     <!-- UI/UX: Card putih bersih untuk memberikan fokus pada angka -->
-    <div v-if="hasBeenFiltered" :class="type === 'jurnal' ? 'jurnal-preview-outer' : 'card-box'">
+    <div v-if="hasBeenFiltered" :class="['jurnal', 'bukubesar'].includes(type) ? 'jurnal-preview-outer' : 'card-box'">
       <!-- Kondisi Jurnal: Render PDF-style A4 Preview -->
       <template v-if="type === 'jurnal'">
         <div v-if="dataSource.length === 0" class="no-data-jurnal">
@@ -113,6 +113,93 @@
               <div class="flex justify-between">
                 <span>Dicetak: {{ currentPrintTime }}</span>
                 <span>Halaman {{ pageIdx + 1 }} dari {{ jurnalPages.length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Kondisi Buku Besar: Render PDF-style A4 Preview -->
+      <template v-else-if="type === 'bukubesar'">
+        <div v-if="dataSource.length === 0" class="no-data-jurnal">
+          Tidak ada data buku besar untuk periode ini.
+        </div>
+        <div v-else class="jurnal-preview-container">
+          <div
+            v-for="(pageGroups, pageIdx) in bukubesarPages"
+            :key="pageIdx"
+            class="jurnal-page-sheet"
+          >
+            <!-- Header -->
+            <div class="jurnal-print-header">
+              <h3 class="jurnal-report-title">LAPORAN BUKU BESAR</h3>
+              <p class="jurnal-report-subtitle">Periode : {{ reportPeriod }}</p>
+              <p class="jurnal-report-subtitle" style="font-weight: normal; font-size: 13px; margin-top: 4px;">
+                {{ filterParams.jurnalPenutup || 'Tanpa Jurnal Penutup' }}
+              </p>
+            </div>
+
+            <!-- Table Container -->
+            <div class="jurnal-table-wrapper">
+              <div v-for="group in pageGroups" :key="group.code" style="margin-bottom: 24px;">
+                <!-- Group Header Box (only if it starts on this page) -->
+                <div v-if="group.isStart" class="bukubesar-group-header">
+                  {{ group.code }} {{ group.name }}
+                </div>
+                <div v-else class="bukubesar-group-header-continued">
+                  {{ group.code }} {{ group.name }} (Sambungan)
+                </div>
+
+                <table class="jurnal-table">
+                  <thead>
+                    <tr class="bukubesar-table-header-row">
+                      <th style="width: 10%" class="text-left">Tanggal</th>
+                      <th style="width: 20%" class="text-left">No Bukti</th>
+                      <th style="width: 25%" class="text-left">Keterangan</th>
+                      <th style="width: 15%" class="text-left">Lawan</th>
+                      <th style="width: 10%" class="text-right">Debet</th>
+                      <th style="width: 10%" class="text-right">Kredit</th>
+                      <th style="width: 10%" class="text-right">Saldo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(row, rowIdx) in group.rows" :key="rowIdx">
+                      <td class="text-left">{{ formatShortDate(row.tanggal) }}</td>
+                      <td class="text-left" style="font-weight: bold;">{{ row.nobukti }}</td>
+                      <td class="text-left">{{ row.keterangan }}</td>
+                      <td class="text-left">{{ row.lawan }}</td>
+                      <td class="text-right">{{ formatCurrencyID(row.debet) }}</td>
+                      <td class="text-right">{{ formatCurrencyID(row.kredit) }}</td>
+                      <td class="text-right">{{ formatCurrencyID(row.saldo) }}</td>
+                    </tr>
+
+                    <!-- Group Footer/Totals (only if it ends on this page) -->
+                    <template v-if="group.isEnd">
+                      <!-- Separation line -->
+                      <tr class="bukubesar-subtotal-row">
+                        <td colspan="4"></td>
+                        <td class="text-right border-y-black">{{ formatCurrencyID(group.totalDebet) }}</td>
+                        <td class="text-right border-y-black">{{ formatCurrencyID(group.totalKredit) }}</td>
+                        <td></td>
+                      </tr>
+                      <!-- Total Label row -->
+                      <tr class="bukubesar-total-label-row">
+                        <td colspan="4" class="text-center font-bold" style="padding-top: 8px;">Total</td>
+                        <td class="text-right font-bold" style="padding-top: 8px;">{{ formatCurrencyID(group.totalDebet) }}</td>
+                        <td class="text-right font-bold" style="padding-top: 8px;">{{ formatCurrencyID(group.totalKredit) }}</td>
+                        <td></td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="jurnal-print-footer">
+              <div class="flex justify-between">
+                <span>Dicetak: {{ currentPrintTime }}</span>
+                <span>Halaman {{ pageIdx + 1 }} dari {{ bukubesarPages.length }}</span>
               </div>
             </div>
           </div>
@@ -280,6 +367,7 @@ const endDate = ref(new Date());
 
 const expandedKeys = ref([...props.defaultExpandedKeys]);
 const hasBeenFiltered = ref(props.showContentInitially || isVisited);
+const filterParams = ref({});
 
 const spFooterText = computed(() => {
   if (!props.type) return "";
@@ -293,6 +381,156 @@ const spFooterText = computed(() => {
 const formatDateRange = computed(() => {
   const options = { day: "numeric", month: "short", year: "numeric" };
   return `${startDate.value.toLocaleDateString("id-ID", options)} - ${endDate.value.toLocaleDateString("id-ID", options)}`;
+});
+
+const groupedBukuBesar = computed(() => {
+  if (props.type !== "bukubesar") return [];
+  
+  const groups = {};
+  props.dataSource.forEach((item) => {
+    // Account Code field
+    const perkiraanCode = item.Perkiraan !== undefined ? item.Perkiraan : (item.perkiraan !== undefined ? item.perkiraan : (item.KodePerk !== undefined ? item.KodePerk : (item.Kode !== undefined ? item.Kode : "")));
+    
+    // Account Name field
+    const perkiraanName = item.NamaPerkiraan || item.namaperkiraan || item.Nama || item.nama || item.NamaAkun || item.namaakun || item.Keterangan || item.keterangan || "";
+    
+    const key = String(perkiraanCode).trim();
+    if (!key) return;
+
+    if (!groups[key]) {
+      groups[key] = {
+        code: key,
+        name: perkiraanName,
+        rows: []
+      };
+    }
+    
+    const tgl = item.tanggal || item.Tanggal || item.tgl || item.Tgl || "";
+    const nobukti = item.Nobukti || item.nobukti || item.NoBukti || item.Voucher || "";
+    const ket = item.keterangan || item.Keterangan || "";
+    const lawan = item.Lawan || item.lawan || item.LwnPerk || "";
+    const debet = Number(item.Debet !== undefined ? item.Debet : (item.debet !== undefined ? item.debet : (item.MD !== undefined ? item.MD : 0)));
+    const kredit = Number(item.Kredit !== undefined ? item.Kredit : (item.kredit !== undefined ? item.kredit : (item.MK !== undefined ? item.MK : 0)));
+    const saldo = Number(item.Saldo !== undefined ? item.Saldo : (item.saldo !== undefined ? item.saldo : 0));
+    
+    groups[key].rows.push({
+      tanggal: tgl,
+      nobukti: nobukti,
+      keterangan: ket,
+      lawan: lawan,
+      debet: debet,
+      kredit: kredit,
+      saldo: saldo
+    });
+  });
+
+  const result = Object.values(groups).map((group) => {
+    // Sort: putting initial balance rows first
+    const sortedRows = [...group.rows].sort((a, b) => {
+      const isAInitial = String(a.nobukti).toLowerCase().includes("awal") || String(a.keterangan).toLowerCase().includes("awal");
+      const isBInitial = String(b.nobukti).toLowerCase().includes("awal") || String(b.keterangan).toLowerCase().includes("awal");
+      if (isAInitial && !isBInitial) return -1;
+      if (!isAInitial && isBInitial) return 1;
+      
+      const dateA = new Date(a.tanggal);
+      const dateB = new Date(b.tanggal);
+      if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+        return dateA - dateB;
+      }
+      return 0;
+    });
+
+    let totalDebet = 0;
+    let totalKredit = 0;
+    sortedRows.forEach((r) => {
+      totalDebet += r.debet;
+      totalKredit += r.kredit;
+    });
+
+    return {
+      code: group.code,
+      name: group.name,
+      rows: sortedRows,
+      totalDebet,
+      totalKredit
+    };
+  });
+
+  return result.sort((a, b) => String(a.code).localeCompare(String(b.code)));
+});
+
+const bukubesarPages = computed(() => {
+  if (props.type !== "bukubesar") return [];
+  
+  const groups = groupedBukuBesar.value;
+  const pages = [];
+  let currentPageGroups = [];
+  let currentLines = 0;
+  const maxLinesPerPage = 18; // same as Jurnal
+
+  groups.forEach((group) => {
+    const rows = group.rows;
+    let rowIdx = 0;
+    
+    while (rowIdx < rows.length) {
+      if (currentPageGroups.length === 0) {
+        currentLines = 0;
+      }
+      
+      const isGroupStart = !currentPageGroups.some(g => g.code === group.code);
+      let headerLines = isGroupStart ? 3 : 0;
+      let availableLines = maxLinesPerPage - currentLines - headerLines;
+      
+      if (isGroupStart && availableLines < 4 && currentPageGroups.length > 0) {
+        pages.push(currentPageGroups);
+        currentPageGroups = [];
+        continue;
+      }
+      
+      let rowsToTake = Math.min(rows.length - rowIdx, Math.max(1, availableLines));
+      const isGroupEnd = (rowIdx + rowsToTake === rows.length);
+      
+      if (isGroupEnd) {
+        const spaceNeeded = headerLines + rowsToTake + 2;
+        if (currentLines + spaceNeeded > maxLinesPerPage && currentPageGroups.length > 0) {
+          pages.push(currentPageGroups);
+          currentPageGroups = [];
+          continue;
+        }
+      }
+      
+      let pageGroup = currentPageGroups.find(g => g.code === group.code);
+      if (!pageGroup) {
+        pageGroup = {
+          code: group.code,
+          name: group.name,
+          isStart: isGroupStart,
+          isEnd: false,
+          rows: [],
+          totalDebet: group.totalDebet,
+          totalKredit: group.totalKredit
+        };
+        currentPageGroups.push(pageGroup);
+      }
+      
+      const slice = rows.slice(rowIdx, rowIdx + rowsToTake);
+      pageGroup.rows.push(...slice);
+      
+      currentLines += headerLines + rowsToTake;
+      rowIdx += rowsToTake;
+      
+      if (isGroupEnd) {
+        pageGroup.isEnd = true;
+        currentLines += 2;
+      }
+    }
+  });
+  
+  if (currentPageGroups.length > 0) {
+    pages.push(currentPageGroups);
+  }
+  
+  return pages;
 });
 
 const jurnalDataSource = computed(() => {
@@ -617,6 +855,7 @@ const openFilter = () => {
 const handleFilterApply = (filterData) => {
   startDate.value = filterData.startDate;
   endDate.value = filterData.endDate;
+  filterParams.value = filterData;
   hasBeenFiltered.value = true;
   emit("filter-change", filterData);
 };
@@ -821,6 +1060,7 @@ onUnmounted(() => {
 
 .jurnal-print-header {
   margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .jurnal-report-title {
@@ -882,6 +1122,50 @@ onUnmounted(() => {
   font-size: 11px;
   color: #64748b;
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Buku Besar Styles */
+.bukubesar-group-header {
+  border: 1px solid #000000;
+  padding: 6px 12px;
+  font-weight: bold;
+  font-size: 13px;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.bukubesar-group-header-continued {
+  font-weight: bold;
+  font-size: 11px;
+  color: #555555;
+  margin-bottom: 4px;
+  text-align: left;
+  font-style: italic;
+}
+
+.bukubesar-table-header-row {
+  border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  font-weight: bold;
+}
+
+.bukubesar-table-header-row th {
+  padding: 6px 4px;
+}
+
+.border-y-black {
+  border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  font-weight: bold;
+  padding: 6px 4px;
+}
+
+.bukubesar-subtotal-row td {
+  padding: 4px 4px;
+}
+
+.bukubesar-total-label-row td {
+  padding: 8px 4px 4px 4px;
 }
 
 @media print {
