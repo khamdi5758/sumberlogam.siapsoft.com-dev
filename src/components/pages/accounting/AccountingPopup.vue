@@ -31,8 +31,8 @@
       <!-- Form -->
       <div class="pt-4">
         <div class="space-y-4">
-          <!-- Mulai Tanggal / Dari Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, atau Neraca Lajur) -->
-          <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+          <!-- Mulai Tanggal / Dari Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, Neraca Lajur, atau Neraca) -->
+          <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur' && type !== 'neraca'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
             <label class="text-[14px] text-slate-700">
               {{ type === 'neraca' ? 'Dari Tanggal' : 'Mulai Tanggal' }}
             </label>
@@ -45,8 +45,8 @@
             />
           </div>
 
-          <!-- Sampai Tanggal / S/d Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, atau Neraca Lajur) -->
-          <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+          <!-- Sampai Tanggal / S/d Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, Neraca Lajur, atau Neraca) -->
+          <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur' && type !== 'neraca'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
             <label class="text-[14px] text-slate-700">
               {{ type === 'neraca' ? 'S/d Tanggal' : 'Sampai Tanggal' }}
             </label>
@@ -67,6 +67,8 @@
               <DxSelectBox
                 v-model:value="selectedType"
                 :data-source="transactionTypes"
+                display-expr="name"
+                value-expr="id"
                 placeholder="Pilih Transaksi..."
                 :show-clear-button="true"
                 :search-enabled="true"
@@ -80,20 +82,26 @@
             <!-- Dari Perkiraan -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">Dari Perkiraan</label>
-              <input
-                v-model="dariPerkiraan"
-                type="text"
-                class="w-full px-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
+              <DxTextBox
+                v-model:value="dariPerkiraan"
+                styling-mode="outlined"
+                :read-only="true"
+                placeholder="Klik untuk browse"
+                :buttons="browseButtonsDari"
+                @focus-in="handleBrowsePerkiraan('dari')"
               />
             </div>
 
             <!-- S/d Perkiraan -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">S/d Perkiraan</label>
-              <input
-                v-model="sdPerkiraan"
-                type="text"
-                class="w-full px-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
+              <DxTextBox
+                v-model:value="sdPerkiraan"
+                styling-mode="outlined"
+                :read-only="true"
+                placeholder="Klik untuk browse"
+                :buttons="browseButtonsSd"
+                @focus-in="handleBrowsePerkiraan('sd')"
               />
             </div>
 
@@ -131,8 +139,8 @@
             </div>
           </template>
 
-          <!-- Kondisi Type: Mutasi, Aktiva Tetap, Laba Rugi, atau Neraca Lajur -->
-          <template v-else-if="type === 'mutasi' || type === 'aktivatetap' || type === 'labarugi' || type === 'neracalajur'">
+          <!-- Kondisi Type: Mutasi, Aktiva Tetap, Laba Rugi, Neraca Lajur, atau Neraca -->
+          <template v-else-if="type === 'mutasi' || type === 'aktivatetap' || type === 'labarugi' || type === 'neracalajur' || type === 'neraca'">
             <!-- Periode -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">Periode :</label>
@@ -181,20 +189,26 @@
             <!-- Dari Perkiraan -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">Dari Perkiraan</label>
-              <input
-                v-model="dariPerkiraan"
-                type="text"
-                class="w-full px-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
+              <DxTextBox
+                v-model:value="dariPerkiraan"
+                styling-mode="outlined"
+                :read-only="true"
+                placeholder="Klik untuk browse"
+                :buttons="browseButtonsDari"
+                @focus-in="handleBrowsePerkiraan('dari')"
               />
             </div>
 
             <!-- S/d Perkiraan -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">S/d Perkiraan</label>
-              <input
-                v-model="sdPerkiraan"
-                type="text"
-                class="w-full px-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
+              <DxTextBox
+                v-model:value="sdPerkiraan"
+                styling-mode="outlined"
+                :read-only="true"
+                placeholder="Klik untuk browse"
+                :buttons="browseButtonsSd"
+                @focus-in="handleBrowsePerkiraan('sd')"
               />
             </div>
           </template>
@@ -223,10 +237,13 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { X } from "lucide-vue-next";
+import { ref, computed } from "vue";
+import { X, MoreHorizontal } from "lucide-vue-next";
 import { DxDateBox } from "devextreme-vue/date-box";
 import { DxSelectBox } from "devextreme-vue/select-box";
+import { DxTextBox } from "devextreme-vue/text-box";
+import api from "@/api";
+import FormBrowseDialog from "@/components/widgets/FormBrowseDialog.vue";
 
 const props = defineProps({
   title: {
@@ -252,13 +269,13 @@ const endDate = ref(new Date());
 // For 'jurnal'
 const selectedType = ref(null);
 const transactionTypes = [
-  "Penerimaan Kas",
-  "Pengeluaran Kas",
-  "Penerimaan Bank",
-  "Pengeluaran Bank",
-  "Memorial",
-  "Koreksi",
-  "Penutup",
+  { id: 0, name: "Penerimaan Kas" },
+  { id: 1, name: "Pengeluaran Kas" },
+  { id: 2, name: "Penerimaan Bank" },
+  { id: 3, name: "Pengeluaran Bank" },
+  { id: 4, name: "Memorial" },
+  { id: 5, name: "Koreksi" },
+  { id: 6, name: "Penutup" },
 ];
 
 // For 'bukubesar' & 'biaya'
@@ -267,6 +284,30 @@ const sdPerkiraan = ref("");
 const jurnalPenutup = ref("Tanpa Jurnal Penutup");
 const valas = ref(false);
 const formatOption = ref("Detail");
+
+const browseButtonsDari = computed(() => [
+  {
+    name: "browse",
+    location: "after",
+    options: {
+      text: "...",
+      onClick: () => handleBrowsePerkiraan('dari'),
+      stylingMode: "outlined",
+    },
+  },
+]);
+
+const browseButtonsSd = computed(() => [
+  {
+    name: "browse",
+    location: "after",
+    options: {
+      text: "...",
+      onClick: () => handleBrowsePerkiraan('sd'),
+      stylingMode: "outlined",
+    },
+  },
+]);
 
 const jurnalPenutupOptions = [
   "Tanpa Jurnal Penutup",
@@ -291,11 +332,6 @@ const applyFilter = () => {
       endDate: endDate.value,
       type: selectedType.value,
     };
-  } else if (props.type === "neraca") {
-    payload = {
-      startDate: startDate.value,
-      endDate: endDate.value,
-    };
   } else if (props.type === "bukubesar") {
     payload = {
       startDate: startDate.value,
@@ -306,7 +342,7 @@ const applyFilter = () => {
       valas: valas.value,
       formatOption: formatOption.value,
     };
-  } else if (props.type === "mutasi" || props.type === "aktivatetap" || props.type === "labarugi" || props.type === "neracalajur") {
+  } else if (props.type === "mutasi" || props.type === "aktivatetap" || props.type === "labarugi" || props.type === "neracalajur" || props.type === "neraca") {
     const start = new Date(selectedYear.value, selectedMonth.value - 1, 1);
     const end = new Date(selectedYear.value, selectedMonth.value, 0);
 
@@ -333,6 +369,52 @@ const applyFilter = () => {
   emit("on-filter-apply", payload);
   visible.value = false;
 };
+
+async function handleBrowsePerkiraan(target) {
+  try {
+    visible.value = false;
+    const response = await api.getbydata("formbrowse", { kode: "02" });
+    const responseData = response.data?.datafrbrowse || (Array.isArray(response.data) ? response.data : []);
+    
+    // Add a unique key field for devxtreme grid
+    const data = responseData.map((item, index) => ({
+      ...item,
+      __browseKey: index,
+    }));
+    
+    const selected = await FormBrowseDialog.show({
+      title: "Pilih Perkiraan",
+      dataSource: data,
+      keyField: "__browseKey",
+      disablecol: [
+        ...(response.data?.disablecol || ["id", "ket"]),
+        "__browseKey",
+      ],
+    });
+    
+    if (selected) {
+      const codeVal =
+        selected.id ||
+        selected.kode ||
+        selected.Kode ||
+        selected.kodeperkiraan ||
+        selected.KodePerkiraan ||
+        "";
+      
+      if (target === "dari") {
+        dariPerkiraan.value = codeVal;
+      } else if (target === "sd") {
+        sdPerkiraan.value = codeVal;
+      }
+    }
+  } catch (error) {
+    if (error !== "cancelled") {
+      console.error("Browse perkiraan error:", error);
+    }
+  } finally {
+    visible.value = true;
+  }
+}
 
 const open = () => {
   visible.value = true;

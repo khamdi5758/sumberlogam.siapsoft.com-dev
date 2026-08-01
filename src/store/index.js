@@ -43,6 +43,7 @@ import jurnal from "./modules/jurnal";
 import mutasi from "./modules/mutasi";
 import biaya from "./modules/biaya";
 import aktivatetap from "./modules/aktivatetap";
+import bukubesar from "./modules/bukubesar";
 import kasharian from "./modules/kasharian";
 import bankharian from "./modules/bankharian";
 import rekapkasbank from "./modules/rekapkasbank";
@@ -95,6 +96,7 @@ export default createStore({
     mutasi: mutasi,
     biaya: biaya,
     aktivatetap: aktivatetap,
+    bukubesar: bukubesar,
     kasharian: kasharian,
     bankharian: bankharian,
     rekapkasbank: rekapkasbank,

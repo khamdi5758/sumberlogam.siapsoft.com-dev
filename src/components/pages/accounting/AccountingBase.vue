@@ -32,11 +32,512 @@
     </div>
 
     <!-- UI/UX: Card putih bersih untuk memberikan fokus pada angka -->
-    <div v-if="hasBeenFiltered" class="card-box">
-      <!-- Programmer: Menggunakan TreeList untuk hierarki akun Akuntansi -->
+    <div v-if="hasBeenFiltered" :class="['jurnal', 'bukubesar', 'mutasi', 'biaya', 'aktivatetap'].includes(type) ? 'jurnal-preview-outer' : 'card-box'">
+      <!-- Kondisi Jurnal: Render PDF-style A4 Preview -->
+      <template v-if="type === 'jurnal'">
+        <div v-if="dataSource.length === 0" class="no-data-jurnal">
+          Tidak ada data jurnal untuk periode ini.
+        </div>
+        <div v-else class="jurnal-preview-container">
+          <div
+            v-for="(pageTransactions, pageIdx) in jurnalPages"
+            :key="pageIdx"
+            class="jurnal-page-sheet"
+          >
+            <!-- Header -->
+            <div class="jurnal-print-header">
+              <h3 class="jurnal-report-title">{{ reportTitle }}</h3>
+              <p class="jurnal-report-subtitle">Periode : {{ reportPeriod }}</p>
+            </div>
+
+            <!-- Table Container -->
+            <div class="jurnal-table-wrapper">
+              <table class="jurnal-table">
+                <thead>
+                  <tr>
+                    <th style="width: 5%">No</th>
+                    <th style="width: 10%">Tanggal</th>
+                    <th style="width: 30%">No Bukti/Keterangan</th>
+                    <th style="width: 35%">Perkiraan</th>
+                    <th style="width: 10%" class="text-right">Debet</th>
+                    <th style="width: 10%" class="text-right">Kredit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template v-for="(tx, txIdx) in pageTransactions" :key="tx.Nobukti">
+                    <tr
+                      v-for="(detail, detIdx) in tx.details"
+                      :key="detail.id || detIdx"
+                      :class="{ 'transaction-divider': detIdx === tx.details.length - 1 }"
+                    >
+                      <td>
+                        <span v-if="detIdx === 0">{{ getGlobalIndex(pageIdx, txIdx) }}.</span>
+                      </td>
+                      <td>
+                        <span v-if="detIdx === 0">{{ formatShortDate(tx.tanggal) }}</span>
+                      </td>
+                      <td class="text-left">
+                        <span v-if="detIdx === 0" class="font-bold">{{ tx.Nobukti }}</span>
+                        <span v-else class="pl-4 text-slate-600 block italic text-xs">{{ detail.keterangan }}</span>
+                      </td>
+                      <td class="text-left font-sans">
+                        <span>{{ detail.perkiraan }} - {{ detail.NamaAkun }}</span>
+                      </td>
+                      <td class="text-right font-sans">
+                        <span>{{ formatCurrencyID(detail.Debet) }}</span>
+                      </td>
+                      <td class="text-right font-sans">
+                        <span>{{ formatCurrencyID(detail.kredit) }}</span>
+                      </td>
+                    </tr>
+                  </template>
+
+                  <!-- Grand Total (Only on the last page) -->
+                  <tr v-if="pageIdx === jurnalPages.length - 1" class="grand-total-row">
+                    <td colspan="4" class="text-right font-bold py-2">
+                      GRAND TOTAL :
+                    </td>
+                    <td class="text-right font-bold py-2">
+                      {{ formatCurrencyID(grandTotalDebet) }}
+                    </td>
+                    <td class="text-right font-bold py-2">
+                      {{ formatCurrencyID(grandTotalKredit) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="jurnal-print-footer">
+              <div class="flex justify-between">
+                <span>Dicetak: {{ currentPrintTime }}</span>
+                <span>Halaman {{ pageIdx + 1 }} dari {{ jurnalPages.length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Kondisi Buku Besar: Render PDF-style A4 Preview -->
+      <template v-else-if="type === 'bukubesar'">
+        <div v-if="dataSource.length === 0" class="no-data-jurnal">
+          Tidak ada data buku besar untuk periode ini.
+        </div>
+        <div v-else class="jurnal-preview-container">
+          <div
+            v-for="(pageGroups, pageIdx) in bukubesarPages"
+            :key="pageIdx"
+            class="jurnal-page-sheet"
+          >
+            <!-- Header -->
+            <div class="jurnal-print-header">
+              <h3 class="jurnal-report-title">LAPORAN BUKU BESAR</h3>
+              <p class="jurnal-report-subtitle">Periode : {{ reportPeriod }}</p>
+              <p class="jurnal-report-subtitle" style="font-weight: normal; font-size: 13px; margin-top: 4px;">
+                {{ filterParams.jurnalPenutup || 'Tanpa Jurnal Penutup' }}
+              </p>
+            </div>
+
+            <!-- Table Container -->
+            <div class="jurnal-table-wrapper">
+              <div v-for="group in pageGroups" :key="group.code" style="margin-bottom: 24px;">
+                <!-- Group Header Box (only if it starts on this page) -->
+                <div v-if="group.isStart" class="bukubesar-group-header">
+                  {{ group.code }} {{ group.name }}
+                </div>
+                <div v-else class="bukubesar-group-header-continued">
+                  {{ group.code }} {{ group.name }} (Sambungan)
+                </div>
+
+                <table class="jurnal-table">
+                  <thead>
+                    <tr class="bukubesar-table-header-row">
+                      <th style="width: 10%" class="text-left">Tanggal</th>
+                      <th style="width: 20%" class="text-left">No Bukti</th>
+                      <th style="width: 25%" class="text-left">Keterangan</th>
+                      <th style="width: 15%" class="text-left">Lawan</th>
+                      <th style="width: 10%" class="text-right">Debet</th>
+                      <th style="width: 10%" class="text-right">Kredit</th>
+                      <th style="width: 10%" class="text-right">Saldo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(row, rowIdx) in group.rows" :key="rowIdx">
+                      <td class="text-left">{{ formatShortDate(row.tanggal) }}</td>
+                      <td class="text-left" style="font-weight: bold;">{{ row.nobukti }}</td>
+                      <td class="text-left">{{ row.keterangan }}</td>
+                      <td class="text-left">{{ row.lawan }}</td>
+                      <td class="text-right">{{ formatCurrencyID(row.debet) }}</td>
+                      <td class="text-right">{{ formatCurrencyID(row.kredit) }}</td>
+                      <td class="text-right">{{ formatCurrencyID(row.saldo) }}</td>
+                    </tr>
+
+                    <!-- Group Footer/Totals (only if it ends on this page) -->
+                    <template v-if="group.isEnd">
+                      <!-- Separation line -->
+                      <tr class="bukubesar-subtotal-row">
+                        <td colspan="4"></td>
+                        <td class="text-right border-y-black">{{ formatCurrencyID(group.totalDebet) }}</td>
+                        <td class="text-right border-y-black">{{ formatCurrencyID(group.totalKredit) }}</td>
+                        <td></td>
+                      </tr>
+                      <!-- Total Label row -->
+                      <tr class="bukubesar-total-label-row">
+                        <td colspan="4" class="text-center font-bold" style="padding-top: 8px;">Total</td>
+                        <td class="text-right font-bold" style="padding-top: 8px;">{{ formatCurrencyID(group.totalDebet) }}</td>
+                        <td class="text-right font-bold" style="padding-top: 8px;">{{ formatCurrencyID(group.totalKredit) }}</td>
+                        <td></td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="jurnal-print-footer">
+              <div class="flex justify-between">
+                <span>Dicetak: {{ currentPrintTime }}</span>
+                <span>Halaman {{ pageIdx + 1 }} dari {{ bukubesarPages.length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Kondisi Mutasi: Render PDF-style A4 Preview -->
+      <template v-else-if="type === 'mutasi'">
+        <div class="jurnal-preview-container">
+          <div
+            v-for="(pageRows, pageIdx) in mutasiPages"
+            :key="pageIdx"
+            class="jurnal-page-sheet"
+          >
+            <!-- Header -->
+            <div class="jurnal-print-header" style="text-align: left; margin-bottom: 20px;">
+              <h3 class="jurnal-report-title" style="font-size: 16px; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 2px;">
+                LAPORAN MUTASI
+              </h3>
+              <p class="jurnal-report-subtitle" style="font-size: 13px;">
+                Periode : {{ reportPeriod }}
+              </p>
+            </div>
+
+            <!-- Table Container -->
+            <div class="jurnal-table-wrapper">
+              <table class="mutasi-table">
+                <thead>
+                  <tr class="mutasi-header-top">
+                    <th rowspan="2" style="width: 15%; text-align: left; border: 1px solid #000; padding: 6px 8px;">Perkiraan</th>
+                    <th rowspan="2" style="width: 35%; text-align: left; border: 1px solid #000; padding: 6px 8px;">Keterangan</th>
+                    <th colspan="2" style="width: 25%; text-align: center; border: 1px solid #000; padding: 6px 8px;">
+                      {{ formatMutasiDate(endDate) }}
+                    </th>
+                    <th colspan="2" style="width: 25%; text-align: center; border: 1px solid #000; padding: 6px 8px;">
+                      S/d {{ formatMutasiDate(endDate) }}
+                    </th>
+                  </tr>
+                  <tr class="mutasi-header-bottom">
+                    <th style="width: 12.5%; text-align: right; border: 1px solid #000; padding: 6px 8px;">Debet</th>
+                    <th style="width: 12.5%; text-align: right; border: 1px solid #000; padding: 6px 8px;">Kredit</th>
+                    <th style="width: 12.5%; text-align: right; border: 1px solid #000; padding: 6px 8px;">Debet</th>
+                    <th style="width: 12.5%; text-align: right; border: 1px solid #000; padding: 6px 8px;">Kredit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, rowIdx) in pageRows" :key="rowIdx" class="mutasi-data-row">
+                    <td class="text-left" style="border: 1px solid #000; padding: 5px 8px; font-weight: bold;">
+                      {{ row.perkiraan }}
+                    </td>
+                    <td class="text-left" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ row.keterangan }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ formatCurrencyID(row.debet) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ formatCurrencyID(row.kredit) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ formatCurrencyID(row.sdDebet) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ formatCurrencyID(row.sdKredit) }}
+                    </td>
+                  </tr>
+
+
+
+                  <!-- Totals Row (Only on the last page) -->
+                  <tr v-if="pageIdx === mutasiPages.length - 1" class="mutasi-total-row">
+                    <td colspan="2" class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold; text-align: right;">
+                      Total
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold;">
+                      {{ formatCurrencyID(mutasiTotals.debet) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold;">
+                      {{ formatCurrencyID(mutasiTotals.kredit) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold;">
+                      {{ formatCurrencyID(mutasiTotals.sdDebet) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold;">
+                      {{ formatCurrencyID(mutasiTotals.sdKredit) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="jurnal-print-footer">
+              <div class="flex justify-between">
+                <span>Dicetak: {{ currentPrintTime }}</span>
+                <span>Halaman {{ pageIdx + 1 }} dari {{ mutasiPages.length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Kondisi Biaya: Render PDF-style A4 Preview -->
+      <template v-else-if="type === 'biaya'">
+        <div class="jurnal-preview-container">
+          <div
+            v-for="(pageRows, pageIdx) in biayaPages"
+            :key="pageIdx"
+            class="jurnal-page-sheet"
+          >
+            <!-- Header -->
+            <div class="jurnal-print-header" style="text-align: left; margin-bottom: 20px;">
+              <h3 class="jurnal-report-title" style="font-size: 16px; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 2px;">
+                LAPORAN BIAYA
+              </h3>
+              <p class="jurnal-report-subtitle" style="font-size: 13px;">
+                Periode : {{ reportPeriod }}
+              </p>
+            </div>
+
+            <!-- Table Container -->
+            <div class="jurnal-table-wrapper">
+              <table class="mutasi-table">
+                <thead>
+                  <tr class="mutasi-header-top">
+                    <th style="width: 5%; text-align: left; border: 1px solid #000; padding: 6px 8px;">No</th>
+                    <th style="width: 15%; text-align: left; border: 1px solid #000; padding: 6px 8px;">Perkiraan</th>
+                    <th style="width: 40%; text-align: left; border: 1px solid #000; padding: 6px 8px;">Keterangan</th>
+                    <th style="width: 20%; text-align: right; border: 1px solid #000; padding: 6px 8px;">
+                      {{ formatMutasiDate(endDate) }}
+                    </th>
+                    <th style="width: 20%; text-align: right; border: 1px solid #000; padding: 6px 8px;">
+                      S/d {{ formatMutasiDate(endDate) }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, rowIdx) in pageRows" :key="rowIdx" class="mutasi-data-row">
+                    <td class="text-left" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ pageIdx * 18 + rowIdx + 1 }}
+                    </td>
+                    <td class="text-left" style="border: 1px solid #000; padding: 5px 8px; font-weight: bold;">
+                      {{ row.perkiraan }}
+                    </td>
+                    <td class="text-left" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ row.keterangan }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ formatCurrencyID(row.bulanIni) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ formatCurrencyID(row.sdBulanIni) }}
+                    </td>
+                  </tr>
+
+                  <!-- Totals Row (Only on the last page) -->
+                  <tr v-if="pageIdx === biayaPages.length - 1" class="mutasi-total-row">
+                    <td colspan="3" class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold; text-align: right;">
+                      Total
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold;">
+                      {{ formatCurrencyID(biayaTotals.bulanIni) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold;">
+                      {{ formatCurrencyID(biayaTotals.sdBulanIni) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="jurnal-print-footer">
+              <div class="flex justify-between">
+                <span>Dicetak: {{ currentPrintTime }}</span>
+                <span>Halaman {{ pageIdx + 1 }} dari {{ biayaPages.length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Kondisi Aktiva Tetap: Render PDF-style A4 Landscape Preview -->
+      <template v-else-if="type === 'aktivatetap'">
+        <div class="jurnal-preview-container">
+          <div
+            v-for="(pageRows, pageIdx) in aktivaPages"
+            :key="pageIdx"
+            class="jurnal-page-sheet landscape-page"
+          >
+            <!-- Header -->
+            <div class="jurnal-print-header" style="text-align: left; margin-bottom: 15px;">
+              <h3 class="jurnal-report-title" style="font-size: 16px; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 2px;">
+                LAPORAN AKTIVA TETAP
+              </h3>
+              <p class="jurnal-report-subtitle" style="font-size: 13px;">
+                Periode : {{ formatAktivaPeriod }}
+              </p>
+            </div>
+
+            <!-- Table Container -->
+            <div class="jurnal-table-wrapper" style="overflow-x: auto;">
+              <table class="mutasi-table" style="font-size: 9px; width: 100%;">
+                <thead>
+                  <tr class="mutasi-header-top">
+                    <th rowspan="2" style="border: 1px solid #000; padding: 4px; text-align: left; width: 6%;">No Aktiva Tetap</th>
+                    <th rowspan="2" style="border: 1px solid #000; padding: 4px; text-align: left; width: 14%;">Keterangan</th>
+                    <th rowspan="2" style="border: 1px solid #000; padding: 4px; text-align: center; width: 6%;">Tgl Beli</th>
+                    <th rowspan="2" style="border: 1px solid #000; padding: 4px; text-align: right; width: 3%;">Jml</th>
+                    <th rowspan="2" style="border: 1px solid #000; padding: 4px; text-align: right; width: 3%;">%</th>
+                    <th colspan="4" style="border: 1px solid #000; padding: 4px; text-align: center;">Nilai Perolehan Aktiva Tetap</th>
+                    <th colspan="3" style="border: 1px solid #000; padding: 4px; text-align: center;">Penyusutan Aktiva Tetap Tahun Berjalan</th>
+                    <th colspan="2" style="border: 1px solid #000; padding: 4px; text-align: center;">Akm Penyusutan Aktiva Tetap</th>
+                    <th rowspan="2" style="border: 1px solid #000; padding: 4px; text-align: right; width: 8%;">Nilai Buku</th>
+                  </tr>
+                  <tr class="mutasi-header-bottom">
+                    <!-- Nilai Perolehan -->
+                    <th style="border: 1px solid #000; padding: 4px; text-align: right; width: 7%;">s/d Bulan Lalu</th>
+                    <th style="border: 1px solid #000; padding: 4px; text-align: right; width: 7%;">Penambahan Bulan ini</th>
+                    <th style="border: 1px solid #000; padding: 4px; text-align: right; width: 7%;">Pengurangan Bulan ini</th>
+                    <th style="border: 1px solid #000; padding: 4px; text-align: right; width: 7%;">s/d Bulan ini</th>
+                    <!-- Penyusutan -->
+                    <th style="border: 1px solid #000; padding: 4px; text-align: right; width: 7%;">Penambahan Bulan ini</th>
+                    <th style="border: 1px solid #000; padding: 4px; text-align: right; width: 7%;">Pengurangan Bulan ini</th>
+                    <th style="border: 1px solid #000; padding: 4px; text-align: right; width: 7%;">s/d Bulan ini</th>
+                    <!-- Akm Penyusutan -->
+                    <th style="border: 1px solid #000; padding: 4px; text-align: right; width: 7%;">s/d tahun Lalu</th>
+                    <th style="border: 1px solid #000; padding: 4px; text-align: right; width: 7%;">s/d Bulan ini</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, rowIdx) in pageRows" :key="rowIdx" class="mutasi-data-row">
+                    <td class="text-left" style="border: 1px solid #000; padding: 4px; font-weight: bold; white-space: nowrap;">
+                      {{ row.noAktiva }}
+                    </td>
+                    <td class="text-left" style="border: 1px solid #000; padding: 4px;">
+                      {{ row.keterangan }}
+                    </td>
+                    <td class="text-center" style="border: 1px solid #000; padding: 4px; white-space: nowrap;">
+                      {{ formatShortDate(row.tglBeli) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                      {{ row.qty }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                      {{ row.persen }}
+                    </td>
+                    <!-- Nilai Perolehan -->
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                      {{ formatCurrencyID(row.hpLalu) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                      {{ formatCurrencyID(row.hpTambah) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                      {{ formatCurrencyID(row.hpKurang) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                      {{ formatCurrencyID(row.hpKini) }}
+                    </td>
+                    <!-- Penyusutan -->
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                      {{ formatCurrencyID(row.susutTambah) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                      {{ formatCurrencyID(row.susutKurang) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                      {{ formatCurrencyID(row.susutKini) }}
+                    </td>
+                    <!-- Akm Penyusutan -->
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                      {{ formatCurrencyID(row.akmLalu) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                      {{ formatCurrencyID(row.akmKini) }}
+                    </td>
+                    <!-- Nilai Buku -->
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                      {{ formatCurrencyID(row.nilaiBuku) }}
+                    </td>
+                  </tr>
+
+                  <!-- Totals Row (Only on the last page) -->
+                  <tr v-if="pageIdx === aktivaPages.length - 1" class="mutasi-total-row">
+                    <td colspan="5" class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold; text-align: right;">
+                      TOTAL
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                      {{ formatCurrencyID(aktivaTotals.hpLalu) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                      {{ formatCurrencyID(aktivaTotals.hpTambah) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                      {{ formatCurrencyID(aktivaTotals.hpKurang) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                      {{ formatCurrencyID(aktivaTotals.hpKini) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                      {{ formatCurrencyID(aktivaTotals.susutTambah) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                      {{ formatCurrencyID(aktivaTotals.susutKurang) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                      {{ formatCurrencyID(aktivaTotals.susutKini) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                      {{ formatCurrencyID(aktivaTotals.akmLalu) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                      {{ formatCurrencyID(aktivaTotals.akmKini) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                      {{ formatCurrencyID(aktivaTotals.nilaiBuku) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="jurnal-print-footer">
+              <div class="flex justify-between">
+                <span>Dicetak: {{ currentPrintTime }}</span>
+                <span>Halaman {{ pageIdx + 1 }} dari {{ aktivaPages.length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <DxTreeList
+        v-else
         id="profit-loss-tree"
-        :data-source="dataSource"
+        :data-source="processedDataSource"
         key-expr="id"
         parent-id-expr="parentId"
         :show-row-lines="true"
@@ -46,14 +547,13 @@
         @row-expanded="onRowExpanded"
         @row-collapsed="onRowCollapsed"
       >
-        <!-- Buka otomatis node utama -->
-        <DxColumn
+        <DxTreeColumn
           data-field="accountName"
           caption="Keterangan"
           cell-template="nameTemplate"
         />
 
-        <DxColumn
+        <DxTreeColumn
           data-field="amount"
           caption="Bulan Ini"
           alignment="right"
@@ -61,7 +561,7 @@
           cell-template="amountBulanIniTemplate"
         />
 
-        <DxColumn
+        <DxTreeColumn
           data-field="amountBulanLalu"
           caption="Bulan Lalu"
           alignment="right"
@@ -69,7 +569,7 @@
           cell-template="amountBulanLaluTemplate"
         />
 
-        <DxColumn
+        <DxTreeColumn
           caption="S/d Bulan Ini"
           alignment="right"
           width="150"
@@ -135,7 +635,13 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
-import { DxTreeList, DxColumn } from "devextreme-vue/tree-list";
+import { DxTreeList, DxColumn as DxTreeColumn } from "devextreme-vue/tree-list";
+import {
+  DxDataGrid,
+  DxColumn as DxGridColumn,
+  DxSummary,
+  DxTotalItem,
+} from "devextreme-vue/data-grid";
 import DxButton from "devextreme-vue/button";
 import AccountingPopup from "./AccountingPopup.vue";
 
@@ -189,6 +695,7 @@ const endDate = ref(new Date());
 
 const expandedKeys = ref([...props.defaultExpandedKeys]);
 const hasBeenFiltered = ref(props.showContentInitially || isVisited);
+const filterParams = ref({});
 
 const spFooterText = computed(() => {
   if (!props.type) return "";
@@ -203,6 +710,665 @@ const formatDateRange = computed(() => {
   const options = { day: "numeric", month: "short", year: "numeric" };
   return `${startDate.value.toLocaleDateString("id-ID", options)} - ${endDate.value.toLocaleDateString("id-ID", options)}`;
 });
+
+const formatMutasiDate = (date) => {
+  if (!date) return "30 Dec 1899";
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "30 Dec 1899";
+  const day = d.getDate();
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = months[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day} ${month} ${year}`;
+};
+
+const mutasiList = computed(() => {
+  if (props.type !== "mutasi") return [];
+  
+  return props.dataSource.map((item) => {
+    const perkiraan = item.Perkiraan !== undefined ? item.Perkiraan : (item.perkiraan !== undefined ? item.perkiraan : "");
+    const keterangan = item.Keterangan !== undefined ? item.Keterangan : (item.keterangan !== undefined ? item.keterangan : "");
+    
+    const debet = Number(item.MutasiDebet !== undefined ? item.MutasiDebet : (item.mutasidebet !== undefined ? item.mutasidebet : (item.MD !== undefined ? item.MD : (item.Debet !== undefined ? item.Debet : (item.debet !== undefined ? item.debet : 0)))));
+    
+    const kredit = Number(item.MutasiKredit !== undefined ? item.MutasiKredit : (item.mutasikredit !== undefined ? item.mutasikredit : (item.MK !== undefined ? item.MK : (item.Kredit !== undefined ? item.Kredit : (item.kredit !== undefined ? item.kredit : 0)))));
+    
+    const sdDebet = Number(item.SdMutasiDebet !== undefined ? item.SdMutasiDebet : (item.sdmutasidebet !== undefined ? item.sdmutasidebet : (item.SdDebet !== undefined ? item.SdDebet : (item.sddebet !== undefined ? item.sddebet : (item.NeracaSaldoAkD !== undefined ? item.NeracaSaldoAkD : (item.SaldoAkhirD !== undefined ? item.SaldoAkhirD : 0))))));
+    
+    const sdKredit = Number(item.SdMutasiKredit !== undefined ? item.SdMutasiKredit : (item.sdmutasikredit !== undefined ? item.sdmutasikredit : (item.SdKredit !== undefined ? item.SdKredit : (item.sdkredit !== undefined ? item.sdkredit : (item.NeracaSaldoAkK !== undefined ? item.NeracaSaldoAkK : (item.SaldoAkhirK !== undefined ? item.SaldoAkhirK : 0))))));
+
+    return {
+      perkiraan,
+      keterangan,
+      debet,
+      kredit,
+      sdDebet,
+      sdKredit
+    };
+  });
+});
+
+const mutasiTotals = computed(() => {
+  let totalDebet = 0;
+  let totalKredit = 0;
+  let totalSdDebet = 0;
+  let totalSdKredit = 0;
+
+  mutasiList.value.forEach((row) => {
+    totalDebet += row.debet;
+    totalKredit += row.kredit;
+    totalSdDebet += row.sdDebet;
+    totalSdKredit += row.sdKredit;
+  });
+
+  return {
+    debet: totalDebet,
+    kredit: totalKredit,
+    sdDebet: totalSdDebet,
+    sdKredit: totalSdKredit
+  };
+});
+
+const mutasiPages = computed(() => {
+  if (props.type !== "mutasi") return [];
+  
+  const list = mutasiList.value;
+  const pages = [];
+  const maxLinesPerPage = 18;
+  
+  for (let i = 0; i < list.length; i += maxLinesPerPage) {
+    pages.push(list.slice(i, i + maxLinesPerPage));
+  }
+  
+  if (pages.length === 0) {
+    pages.push([]);
+  }
+  
+  return pages;
+});
+
+const biayaList = computed(() => {
+  if (props.type !== "biaya") return [];
+  
+  return props.dataSource.map((item) => {
+    const perkiraan = item.Perkiraan !== undefined ? item.Perkiraan : (item.perkiraan !== undefined ? item.perkiraan : "");
+    const keterangan = item.Keterangan !== undefined ? item.Keterangan : (item.keterangan !== undefined ? item.keterangan : (item.NamaPerkiraan || item.namaperkiraan || item.Nama || item.nama || item.NamaAkun || item.namaakun || ""));
+    
+    const bulanIni = Number(item.BulanIni !== undefined ? item.BulanIni : (item.bulanini !== undefined ? item.bulanini : (item.Amount !== undefined ? item.Amount : (item.amount !== undefined ? item.amount : (item.Jumlah !== undefined ? item.Jumlah : (item.jumlah !== undefined ? item.jumlah : (item.Debet !== undefined ? item.Debet : (item.debet !== undefined ? item.debet : 0))))))));
+    
+    const sdBulanIni = Number(item.SdBulanIni !== undefined ? item.SdBulanIni : (item.sdbulanini !== undefined ? item.sdbulanini : (item.AmountSd !== undefined ? item.AmountSd : (item.amountSd !== undefined ? item.amountSd : (item.JumlahSd !== undefined ? item.JumlahSd : (item.jumlahSd !== undefined ? item.jumlahSd : (item.SdDebet !== undefined ? item.SdDebet : (item.sddebet !== undefined ? item.sddebet : 0))))))));
+
+    return {
+      perkiraan,
+      keterangan,
+      bulanIni,
+      sdBulanIni
+    };
+  });
+});
+
+const biayaTotals = computed(() => {
+  let totalBulanIni = 0;
+  let totalSdBulanIni = 0;
+
+  biayaList.value.forEach((row) => {
+    totalBulanIni += row.bulanIni;
+    totalSdBulanIni += row.sdBulanIni;
+  });
+
+  return {
+    bulanIni: totalBulanIni,
+    sdBulanIni: totalSdBulanIni
+  };
+});
+
+const biayaPages = computed(() => {
+  if (props.type !== "biaya") return [];
+  
+  const list = biayaList.value;
+  const pages = [];
+  const maxLinesPerPage = 18;
+  
+  for (let i = 0; i < list.length; i += maxLinesPerPage) {
+    pages.push(list.slice(i, i + maxLinesPerPage));
+  }
+  
+  if (pages.length === 0) {
+    pages.push([]);
+  }
+  
+  return pages;
+});
+
+const aktivaList = computed(() => {
+  if (props.type !== "aktivatetap") return [];
+  
+  return props.dataSource.map((item) => {
+    const noAktiva = item.NoAktiva !== undefined ? item.NoAktiva : (item.no_aktiva !== undefined ? item.no_aktiva : (item.NoAktivaTetap !== undefined ? item.NoAktivaTetap : (item.Kode !== undefined ? item.Kode : (item.no !== undefined ? item.no : ""))));
+    
+    const keterangan = item.Keterangan !== undefined ? item.Keterangan : (item.keterangan !== undefined ? item.keterangan : (item.Nama !== undefined ? item.Nama : (item.nama !== undefined ? item.nama : "")));
+    
+    const tglBeli = item.TglBeli !== undefined ? item.TglBeli : (item.tglbeli !== undefined ? item.tglbeli : (item.Tanggal !== undefined ? item.Tanggal : (item.tanggal !== undefined ? item.tanggal : "")));
+    
+    const qty = Number(item.Jml !== undefined ? item.Jml : (item.jml !== undefined ? item.jml : (item.Qty !== undefined ? item.Qty : (item.qty !== undefined ? item.qty : 0))));
+    
+    const persen = Number(item.Persen !== undefined ? item.Persen : (item.persen !== undefined ? item.persen : (item.Tarif !== undefined ? item.Tarif : (item.tarif !== undefined ? item.tarif : 0))));
+
+    // Nilai Perolehan
+    const hpLalu = Number(item.HpLalu !== undefined ? item.HpLalu : (item.hplalu !== undefined ? item.hplalu : (item.NilaiBulanLalu !== undefined ? item.NilaiBulanLalu : (item.nilaibulanlalu !== undefined ? item.nilaibulanlalu : (item.PerolehanLalu !== undefined ? item.PerolehanLalu : 0)))));
+    
+    const hpTambah = Number(item.HpTambah !== undefined ? item.HpTambah : (item.hptambah !== undefined ? item.hptambah : (item.PenambahanBulanIni !== undefined ? item.PenambahanBulanIni : (item.penambahanbulanini !== undefined ? item.penambahanbulanini : (item.Tambah !== undefined ? item.Tambah : 0)))));
+    
+    const hpKurang = Number(item.HpKurang !== undefined ? item.HpKurang : (item.hpkurang !== undefined ? item.hpkurang : (item.PenguranganBulanIni !== undefined ? item.PenguranganBulanIni : (item.penguranganbulanini !== undefined ? item.penguranganbulanini : (item.Kurang !== undefined ? item.Kurang : 0)))));
+    
+    const hpKini = Number(item.HpKini !== undefined ? item.HpKini : (item.hpkini !== undefined ? item.hpkini : (item.NilaiBulanIni !== undefined ? item.NilaiBulanIni : (item.nilaibulanini !== undefined ? item.nilaibulanini : (item.PerolehanKini !== undefined ? item.PerolehanKini : 0)))));
+
+    // Penyusutan Tahun Berjalan
+    const susutTambah = Number(item.SusutTambah !== undefined ? item.SusutTambah : (item.susuttambah !== undefined ? item.susuttambah : (item.PenyusutanBulanIni !== undefined ? item.PenyusutanBulanIni : (item.penyusutanbulanini !== undefined ? item.penyusutanbulanini : 0))));
+    
+    const susutKurang = Number(item.SusutKurang !== undefined ? item.SusutKurang : (item.susutkurang !== undefined ? item.susutkurang : (item.PenyusutanPengurangan !== undefined ? item.PenyusutanPengurangan : (item.penyusutanpengurangan !== undefined ? item.penyusutanpengurangan : 0))));
+    
+    const susutKini = Number(item.SusutKini !== undefined ? item.SusutKini : (item.susutkini !== undefined ? item.susutkini : (item.PenyusutanKini !== undefined ? item.PenyusutanKini : (item.penyusutankini !== undefined ? item.penyusutankini : 0))));
+
+    // Akumulasi Penyusutan
+    const akmLalu = Number(item.AkmLalu !== undefined ? item.AkmLalu : (item.akmlalu !== undefined ? item.akmlalu : (item.AkmTahunLalu !== undefined ? item.AkmTahunLalu : (item.akmtahunlalu !== undefined ? item.akmtahunlalu : 0))));
+    
+    const akmKini = Number(item.AkmKini !== undefined ? item.AkmKini : (item.akmkini !== undefined ? item.akmkini : (item.AkmBulanIni !== undefined ? item.AkmBulanIni : (item.akmbulanini !== undefined ? item.akmbulanini : 0))));
+
+    // Nilai Buku
+    const nilaiBuku = Number(item.NilaiBuku !== undefined ? item.NilaiBuku : (item.nilaibuku !== undefined ? item.nilaibuku : (item.BookValue !== undefined ? item.BookValue : (item.bookvalue !== undefined ? item.bookvalue : 0))));
+
+    return {
+      noAktiva,
+      keterangan,
+      tglBeli,
+      qty,
+      persen,
+      hpLalu,
+      hpTambah,
+      hpKurang,
+      hpKini,
+      susutTambah,
+      susutKurang,
+      susutKini,
+      akmLalu,
+      akmKini,
+      nilaiBuku
+    };
+  });
+});
+
+const aktivaTotals = computed(() => {
+  let totalHpLalu = 0;
+  let totalHpTambah = 0;
+  let totalHpKurang = 0;
+  let totalHpKini = 0;
+  let totalSusutTambah = 0;
+  let totalSusutKurang = 0;
+  let totalSusutKini = 0;
+  let totalAkmLalu = 0;
+  let totalAkmKini = 0;
+  let totalNilaiBuku = 0;
+
+  aktivaList.value.forEach((row) => {
+    totalHpLalu += row.hpLalu;
+    totalHpTambah += row.hpTambah;
+    totalHpKurang += row.hpKurang;
+    totalHpKini += row.hpKini;
+    totalSusutTambah += row.susutTambah;
+    totalSusutKurang += row.susutKurang;
+    totalSusutKini += row.susutKini;
+    totalAkmLalu += row.akmLalu;
+    totalAkmKini += row.akmKini;
+    totalNilaiBuku += row.nilaiBuku;
+  });
+
+  return {
+    hpLalu: totalHpLalu,
+    hpTambah: totalHpTambah,
+    hpKurang: totalHpKurang,
+    hpKini: totalHpKini,
+    susutTambah: totalSusutTambah,
+    susutKurang: totalSusutKurang,
+    susutKini: totalSusutKini,
+    akmLalu: totalAkmLalu,
+    akmKini: totalAkmKini,
+    nilaiBuku: totalNilaiBuku
+  };
+});
+
+const aktivaPages = computed(() => {
+  if (props.type !== "aktivatetap") return [];
+  
+  const list = aktivaList.value;
+  const pages = [];
+  const maxLinesPerPage = 14;
+  
+  for (let i = 0; i < list.length; i += maxLinesPerPage) {
+    pages.push(list.slice(i, i + maxLinesPerPage));
+  }
+  
+  if (pages.length === 0) {
+    pages.push([]);
+  }
+  
+  return pages;
+});
+
+const formatAktivaPeriod = computed(() => {
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const m = endDate.value.getMonth();
+  const y = endDate.value.getFullYear();
+  return `${months[m]} ${y}`;
+});
+
+const groupedBukuBesar = computed(() => {
+  if (props.type !== "bukubesar") return [];
+  
+  const groups = {};
+  props.dataSource.forEach((item) => {
+    // Account Code field
+    const perkiraanCode = item.Perkiraan !== undefined ? item.Perkiraan : (item.perkiraan !== undefined ? item.perkiraan : (item.KodePerk !== undefined ? item.KodePerk : (item.Kode !== undefined ? item.Kode : "")));
+    
+    // Account Name field
+    const perkiraanName = item.NamaPerkiraan || item.namaperkiraan || item.Nama || item.nama || item.NamaAkun || item.namaakun || item.Keterangan || item.keterangan || "";
+    
+    const key = String(perkiraanCode).trim();
+    if (!key) return;
+
+    if (!groups[key]) {
+      groups[key] = {
+        code: key,
+        name: perkiraanName,
+        rows: []
+      };
+    }
+    
+    const tgl = item.tanggal || item.Tanggal || item.tgl || item.Tgl || "";
+    const nobukti = item.Nobukti || item.nobukti || item.NoBukti || item.Voucher || "";
+    const ket = item.keterangan || item.Keterangan || "";
+    const lawan = item.Lawan || item.lawan || item.LwnPerk || "";
+    const debet = Number(item.Debet !== undefined ? item.Debet : (item.debet !== undefined ? item.debet : (item.MD !== undefined ? item.MD : 0)));
+    const kredit = Number(item.Kredit !== undefined ? item.Kredit : (item.kredit !== undefined ? item.kredit : (item.MK !== undefined ? item.MK : 0)));
+    const saldo = Number(item.Saldo !== undefined ? item.Saldo : (item.saldo !== undefined ? item.saldo : 0));
+    
+    groups[key].rows.push({
+      tanggal: tgl,
+      nobukti: nobukti,
+      keterangan: ket,
+      lawan: lawan,
+      debet: debet,
+      kredit: kredit,
+      saldo: saldo
+    });
+  });
+
+  const result = Object.values(groups).map((group) => {
+    // Sort: putting initial balance rows first
+    const sortedRows = [...group.rows].sort((a, b) => {
+      const isAInitial = String(a.nobukti).toLowerCase().includes("awal") || String(a.keterangan).toLowerCase().includes("awal");
+      const isBInitial = String(b.nobukti).toLowerCase().includes("awal") || String(b.keterangan).toLowerCase().includes("awal");
+      if (isAInitial && !isBInitial) return -1;
+      if (!isAInitial && isBInitial) return 1;
+      
+      const dateA = new Date(a.tanggal);
+      const dateB = new Date(b.tanggal);
+      if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+        return dateA - dateB;
+      }
+      return 0;
+    });
+
+    let totalDebet = 0;
+    let totalKredit = 0;
+    sortedRows.forEach((r) => {
+      totalDebet += r.debet;
+      totalKredit += r.kredit;
+    });
+
+    return {
+      code: group.code,
+      name: group.name,
+      rows: sortedRows,
+      totalDebet,
+      totalKredit
+    };
+  });
+
+  return result.sort((a, b) => String(a.code).localeCompare(String(b.code)));
+});
+
+const bukubesarPages = computed(() => {
+  if (props.type !== "bukubesar") return [];
+  
+  const groups = groupedBukuBesar.value;
+  const pages = [];
+  let currentPageGroups = [];
+  let currentLines = 0;
+  const maxLinesPerPage = 18; // same as Jurnal
+
+  groups.forEach((group) => {
+    const rows = group.rows;
+    let rowIdx = 0;
+    
+    while (rowIdx < rows.length) {
+      if (currentPageGroups.length === 0) {
+        currentLines = 0;
+      }
+      
+      const isGroupStart = !currentPageGroups.some(g => g.code === group.code);
+      let headerLines = isGroupStart ? 3 : 0;
+      let availableLines = maxLinesPerPage - currentLines - headerLines;
+      
+      if (isGroupStart && availableLines < 4 && currentPageGroups.length > 0) {
+        pages.push(currentPageGroups);
+        currentPageGroups = [];
+        continue;
+      }
+      
+      let rowsToTake = Math.min(rows.length - rowIdx, Math.max(1, availableLines));
+      const isGroupEnd = (rowIdx + rowsToTake === rows.length);
+      
+      if (isGroupEnd) {
+        const spaceNeeded = headerLines + rowsToTake + 2;
+        if (currentLines + spaceNeeded > maxLinesPerPage && currentPageGroups.length > 0) {
+          pages.push(currentPageGroups);
+          currentPageGroups = [];
+          continue;
+        }
+      }
+      
+      let pageGroup = currentPageGroups.find(g => g.code === group.code);
+      if (!pageGroup) {
+        pageGroup = {
+          code: group.code,
+          name: group.name,
+          isStart: isGroupStart,
+          isEnd: false,
+          rows: [],
+          totalDebet: group.totalDebet,
+          totalKredit: group.totalKredit
+        };
+        currentPageGroups.push(pageGroup);
+      }
+      
+      const slice = rows.slice(rowIdx, rowIdx + rowsToTake);
+      pageGroup.rows.push(...slice);
+      
+      currentLines += headerLines + rowsToTake;
+      rowIdx += rowsToTake;
+      
+      if (isGroupEnd) {
+        pageGroup.isEnd = true;
+        currentLines += 2;
+      }
+    }
+  });
+  
+  if (currentPageGroups.length > 0) {
+    pages.push(currentPageGroups);
+  }
+  
+  return pages;
+});
+
+const jurnalDataSource = computed(() => {
+  if (props.type !== "jurnal") return [];
+  return props.dataSource.map((item, index) => ({
+    ...item,
+    id: item.id !== undefined ? item.id : index,
+  }));
+});
+
+const transformToTree = (flatData) => {
+  if (!Array.isArray(flatData) || flatData.length === 0) return [];
+  
+  if (flatData[0] && flatData[0].id !== undefined && flatData[0].parentId !== undefined) {
+    return flatData;
+  }
+  
+  const tree = [];
+  const registeredGroups = new Map();
+  let nextId = 1;
+
+  flatData.forEach((item) => {
+    // Key-agnostic resolution
+    const perkiraanVal = item.perkiraan !== undefined ? item.perkiraan : item.Perkiraan;
+    const keteranganVal = item.Keterangan !== undefined ? item.Keterangan : (item.keterangan !== undefined ? item.keterangan : item.accountName);
+    
+    // Group 1 resolution (e.g. nmgroup1 or NamaHeader)
+    let grp1Key = item.nmgroup1 || item.NamaHeader;
+    if (!grp1Key && item.Header) {
+      grp1Key = item.Header;
+    }
+    if (!grp1Key) {
+      grp1Key = "Lain-lain";
+    }
+
+    let grp1Id;
+    if (!registeredGroups.has(grp1Key)) {
+      grp1Id = nextId++;
+      registeredGroups.set(grp1Key, grp1Id);
+      tree.push({
+        id: grp1Id,
+        parentId: 0,
+        accountName: grp1Key,
+        amount: 0,
+        amountBulanLalu: 0,
+        type: "header"
+      });
+    } else {
+      grp1Id = registeredGroups.get(grp1Key);
+    }
+
+    // Group 2 resolution (e.g. NamaGrpAcc or Header)
+    let grp2KeyName = item.NamaGrpAcc || item.Header || String(item.KodeGrpAcc || "");
+    if (!grp2KeyName) {
+      grp2KeyName = "Detail";
+    }
+    const grp2Key = `${grp1Key}_${grp2KeyName}`;
+    
+    let grp2Id;
+    if (!registeredGroups.has(grp2Key)) {
+      grp2Id = nextId++;
+      registeredGroups.set(grp2Key, grp2Id);
+      tree.push({
+        id: grp2Id,
+        parentId: grp1Id,
+        accountName: grp2KeyName,
+        amount: 0,
+        amountBulanLalu: 0,
+        type: "header"
+      });
+    } else {
+      grp2Id = registeredGroups.get(grp2Key);
+    }
+
+    // Amount resolution:
+    let amountVal = 0;
+    if (item.Jumlah !== undefined) amountVal = Number(item.Jumlah);
+    else if (item.Perhitungan !== undefined) amountVal = Number(item.Perhitungan);
+    else if (item.SaldoAkhirD !== undefined) amountVal = Number(item.SaldoAkhirD);
+    else if (item.NeracaSaldoAkD !== undefined) amountVal = Number(item.NeracaSaldoAkD);
+
+    let amountBulanLaluVal = 0;
+    if (item.JumlahBulanLalu !== undefined) amountBulanLaluVal = Number(item.JumlahBulanLalu);
+    else if (item.PerhitunganBulanLalu !== undefined) amountBulanLaluVal = Number(item.PerhitunganBulanLalu);
+    else if (item.SaldoAkhirK !== undefined) amountBulanLaluVal = Number(item.SaldoAkhirK);
+    else if (item.NeracaSaldoAkK !== undefined) amountBulanLaluVal = Number(item.NeracaSaldoAkK);
+
+    tree.push({
+      id: nextId++,
+      parentId: grp2Id,
+      accountName: `${perkiraanVal ? perkiraanVal + ' - ' : ''}${keteranganVal || ''}`,
+      amount: amountVal,
+      amountBulanLalu: amountBulanLaluVal,
+      type: "detail"
+    });
+
+    const parent1 = tree.find(node => node.id === grp1Id);
+    if (parent1) {
+      parent1.amount += amountVal;
+      parent1.amountBulanLalu += amountBulanLaluVal;
+    }
+    const parent2 = tree.find(node => node.id === grp2Id);
+    if (parent2) {
+      parent2.amount += amountVal;
+      parent2.amountBulanLalu += amountBulanLaluVal;
+    }
+  });
+
+  return tree;
+};
+
+const processedDataSource = computed(() => {
+  if (props.type === "jurnal") return [];
+  return transformToTree(props.dataSource);
+});
+
+// Jurnal Specific Computations & Helpers
+const formatCurrencyID = (value) => {
+  const num = Number(value || 0);
+  return num.toLocaleString("id-ID", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
+const formatShortDate = (dateStr) => {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = String(d.getFullYear()).slice(-2);
+  return `${day}/${month}/${year}`;
+};
+
+const groupedTransactions = computed(() => {
+  if (props.type !== "jurnal") return [];
+  
+  const groups = {};
+  props.dataSource.forEach((item) => {
+    const key = item.Nobukti;
+    if (!groups[key]) {
+      groups[key] = {
+        Nobukti: item.Nobukti,
+        tanggal: item.tanggal,
+        JenisLaporan: item.JenisLaporan || "LAPORAN JURNAL",
+        tgl1: item.tgl1,
+        tgl2: item.tgl2,
+        details: []
+      };
+    }
+    groups[key].details.push(item);
+  });
+
+  // Sort details within each group by Urut/Prioritas
+  Object.values(groups).forEach(g => {
+    g.details.sort((a, b) => {
+      if (a.Urut !== undefined && b.Urut !== undefined) {
+        return a.Urut - b.Urut;
+      }
+      return String(a.Prioritas || "").localeCompare(String(b.Prioritas || ""));
+    });
+  });
+
+  // Return as sorted list by date and Nobukti
+  return Object.values(groups).sort((a, b) => {
+    const dateCompare = new Date(a.tanggal) - new Date(b.tanggal);
+    if (dateCompare !== 0) return dateCompare;
+    return String(a.Nobukti).localeCompare(String(b.Nobukti));
+  });
+});
+
+const jurnalPages = computed(() => {
+  if (props.type !== "jurnal") return [];
+  
+  const transactions = groupedTransactions.value;
+  const pages = [];
+  let currentPage = [];
+  let currentLines = 0;
+  const maxLinesPerPage = 18; // A safe count of detail lines per A4 print page
+
+  transactions.forEach((tx) => {
+    const linesNeeded = tx.details.length;
+    
+    if (currentPage.length > 0 && currentLines + linesNeeded > maxLinesPerPage) {
+      pages.push(currentPage);
+      currentPage = [];
+      currentLines = 0;
+    }
+    
+    currentPage.push(tx);
+    currentLines += linesNeeded;
+  });
+  
+  if (currentPage.length > 0) {
+    pages.push(currentPage);
+  }
+  
+  return pages;
+});
+
+const getGlobalIndex = (pageIdx, txIdx) => {
+  let index = 1;
+  for (let i = 0; i < pageIdx; i++) {
+    index += jurnalPages.value[i].length;
+  }
+  return index + txIdx;
+};
+
+const reportTitle = computed(() => {
+  if (props.dataSource.length > 0 && props.dataSource[0].JenisLaporan) {
+    return `LAPORAN ${props.dataSource[0].JenisLaporan.toUpperCase()}`;
+  }
+  return "LAPORAN JURNAL";
+});
+
+const reportPeriod = computed(() => {
+  if (props.dataSource.length > 0 && props.dataSource[0].tgl1 && props.dataSource[0].tgl2) {
+    const formatDateFull = (dateStr) => {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return "";
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+    return `${formatDateFull(props.dataSource[0].tgl1)} - ${formatDateFull(props.dataSource[0].tgl2)}`;
+  }
+  
+  const formatDateFull = (d) => {
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+  return `${formatDateFull(startDate.value)} - ${formatDateFull(endDate.value)}`;
+});
+
+const currentPrintTime = computed(() => {
+  const d = new Date();
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+});
+
+const grandTotalDebet = computed(() => {
+  return props.dataSource.reduce((sum, item) => sum + Number(item.Debet || 0), 0);
+});
+
+const grandTotalKredit = computed(() => {
+  return props.dataSource.reduce((sum, item) => sum + Number(item.kredit || 0), 0);
+});
+
+const customizeSummaryText = (e) => {
+  return formatCurrency(e.value);
+};
 
 // Update state saat row di-expand
 const onRowExpanded = (e) => {
@@ -268,6 +1434,7 @@ const openFilter = () => {
 const handleFilterApply = (filterData) => {
   startDate.value = filterData.startDate;
   endDate.value = filterData.endDate;
+  filterParams.value = filterData;
   hasBeenFiltered.value = true;
   emit("filter-change", filterData);
 };
@@ -422,5 +1589,228 @@ onUnmounted(() => {
 .sp-footer-hidden::-moz-selection {
   color: #111827;
   background: #ffe58f;
+}
+
+/* Jurnal Print Preview CSS */
+.jurnal-preview-outer {
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.no-data-jurnal {
+  background-color: white;
+  padding: 2.5rem;
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
+}
+
+.jurnal-preview-container {
+  background-color: #f1f5f9; /* Slate-100 */
+  padding: 2.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+  overflow-y: auto;
+  min-height: 600px;
+}
+
+.jurnal-page-sheet {
+  background-color: #ffffff;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 20mm 15mm;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.jurnal-table-wrapper {
+  flex-grow: 1;
+}
+
+.jurnal-print-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.jurnal-report-title {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #000000 !important;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+}
+
+.jurnal-report-subtitle {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  color: #000000 !important;
+  margin: 0;
+}
+
+.jurnal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  color: #000000 !important;
+}
+
+.jurnal-table th {
+  border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  padding: 6px 4px;
+  font-weight: bold;
+  text-align: left;
+}
+
+.jurnal-table th.text-right {
+  text-align: right;
+}
+
+.jurnal-table td {
+  padding: 5px 4px;
+  vertical-align: top;
+}
+
+.jurnal-table tr.transaction-divider td {
+  border-bottom: 1px solid #000000;
+}
+
+.jurnal-table tr.grand-total-row td {
+  border-top: 1px solid #000000;
+  border-bottom: 4px double #000000;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.jurnal-print-footer {
+  margin-top: 1.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e2e8f0;
+  font-size: 11px;
+  color: #64748b;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Buku Besar Styles */
+.bukubesar-group-header {
+  border: 1px solid #000000;
+  padding: 6px 12px;
+  font-weight: bold;
+  font-size: 13px;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.bukubesar-group-header-continued {
+  font-weight: bold;
+  font-size: 11px;
+  color: #555555;
+  margin-bottom: 4px;
+  text-align: left;
+  font-style: italic;
+}
+
+.bukubesar-table-header-row {
+  border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  font-weight: bold;
+}
+
+.bukubesar-table-header-row th {
+  padding: 6px 4px;
+}
+
+.border-y-black {
+  border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  font-weight: bold;
+  padding: 6px 4px;
+}
+
+.bukubesar-subtotal-row td {
+  padding: 4px 4px;
+}
+
+.bukubesar-total-label-row td {
+  padding: 8px 4px 4px 4px;
+}
+
+/* Mutasi Table Styles */
+.mutasi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 11px;
+  color: #000000 !important;
+}
+
+.mutasi-table th, .mutasi-table td {
+  border: 1px solid #000000;
+  padding: 5px 8px;
+}
+
+.mutasi-table th {
+  font-weight: bold;
+  background-color: #ffffff;
+}
+
+.mutasi-table td {
+  vertical-align: middle;
+}
+
+.mutasi-data-row-blank td {
+  border: 1px solid #000000;
+  height: 25px;
+}
+
+@media print {
+  .jurnal-preview-container {
+    background-color: transparent !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  .jurnal-page-sheet {
+    width: 100% !important;
+    min-height: auto !important;
+    height: 297mm !important;
+    padding: 10mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+  }
+
+  .jurnal-page-sheet.landscape-page {
+    width: 297mm !important;
+    height: 210mm !important;
+    min-height: auto !important;
+    padding: 10mm !important;
+  }
+}
+
+.jurnal-page-sheet.landscape-page {
+  width: 297mm;
+  min-height: 210mm;
+  padding: 10mm 15mm;
 }
 </style>
