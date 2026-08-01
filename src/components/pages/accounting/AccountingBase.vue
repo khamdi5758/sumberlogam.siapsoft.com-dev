@@ -32,75 +32,91 @@
     </div>
 
     <!-- UI/UX: Card putih bersih untuk memberikan fokus pada angka -->
-    <div v-if="hasBeenFiltered" class="card-box">
-      <!-- Kondisi Jurnal: Render Flat DataGrid -->
+    <div v-if="hasBeenFiltered" :class="type === 'jurnal' ? 'jurnal-preview-outer' : 'card-box'">
+      <!-- Kondisi Jurnal: Render PDF-style A4 Preview -->
       <template v-if="type === 'jurnal'">
-        <DxDataGrid
-          id="jurnal-grid"
-          :data-source="jurnalDataSource"
-          key-expr="id"
-          :show-row-lines="true"
-          :show-borders="false"
-          :column-auto-width="true"
-        >
-          <DxGridColumn
-            data-field="tanggal"
-            caption="Tanggal"
-            data-type="date"
-            format="dd-MM-yyyy"
-            width="110"
-          />
-          <DxGridColumn
-            data-field="Nobukti"
-            caption="No. Bukti"
-            width="150"
-          />
-          <DxGridColumn
-            data-field="perkiraan"
-            caption="Perkiraan"
-            width="100"
-          />
-          <DxGridColumn
-            data-field="NamaAkun"
-            caption="Nama Akun"
-            width="220"
-          />
-          <DxGridColumn
-            data-field="keterangan"
-            caption="Keterangan"
-          />
-          <DxGridColumn
-            data-field="Debet"
-            caption="Debet"
-            alignment="right"
-            width="130"
-            cell-template="currencyTemplate"
-          />
-          <DxGridColumn
-            data-field="kredit"
-            caption="Kredit"
-            alignment="right"
-            width="130"
-            cell-template="currencyTemplate"
-          />
+        <div v-if="dataSource.length === 0" class="no-data-jurnal">
+          Tidak ada data jurnal untuk periode ini.
+        </div>
+        <div v-else class="jurnal-preview-container">
+          <div
+            v-for="(pageTransactions, pageIdx) in jurnalPages"
+            :key="pageIdx"
+            class="jurnal-page-sheet"
+          >
+            <!-- Header -->
+            <div class="jurnal-print-header">
+              <h3 class="jurnal-report-title">{{ reportTitle }}</h3>
+              <p class="jurnal-report-subtitle">Periode : {{ reportPeriod }}</p>
+            </div>
 
-          <template #currencyTemplate="{ data }">
-            <span>{{ formatCurrency(data.value) }}</span>
-          </template>
+            <!-- Table Container -->
+            <div class="jurnal-table-wrapper">
+              <table class="jurnal-table">
+                <thead>
+                  <tr>
+                    <th style="width: 5%">No</th>
+                    <th style="width: 10%">Tanggal</th>
+                    <th style="width: 45%">No Bukti/Keterangan</th>
+                    <th style="width: 25%">Perkiraan</th>
+                    <th style="width: 7.5%" class="text-right">Debet</th>
+                    <th style="width: 7.5%" class="text-right">Kredit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template v-for="(tx, txIdx) in pageTransactions" :key="tx.Nobukti">
+                    <tr
+                      v-for="(detail, detIdx) in tx.details"
+                      :key="detail.id || detIdx"
+                      :class="{ 'transaction-divider': detIdx === tx.details.length - 1 }"
+                    >
+                      <td>
+                        <span v-if="detIdx === 0">{{ getGlobalIndex(pageIdx, txIdx) }}.</span>
+                      </td>
+                      <td>
+                        <span v-if="detIdx === 0">{{ formatShortDate(tx.tanggal) }}</span>
+                      </td>
+                      <td class="text-left">
+                        <span v-if="detIdx === 0" class="font-bold">{{ tx.Nobukti }}</span>
+                        <span v-else class="pl-4 text-slate-600 block italic text-xs">{{ detail.keterangan }}</span>
+                      </td>
+                      <td class="text-left font-sans">
+                        <span>{{ detail.perkiraan }} - {{ detail.NamaAkun }}</span>
+                      </td>
+                      <td class="text-right font-sans">
+                        <span>{{ formatCurrencyID(detail.Debet) }}</span>
+                      </td>
+                      <td class="text-right font-sans">
+                        <span>{{ formatCurrencyID(detail.kredit) }}</span>
+                      </td>
+                    </tr>
+                  </template>
 
-          <DxSummary>
-            <DxTotalItem
-              column="Debet"
-              summary-type="sum"
-              :customize-text="customizeSummaryText"
-            />
-            <DxTotalItem
-              column="kredit"
-              summary-type="sum"
-              :customize-text="customizeSummaryText"
-            />
-          </DxSummary>
-        </DxDataGrid>
+                  <!-- Grand Total (Only on the last page) -->
+                  <tr v-if="pageIdx === jurnalPages.length - 1" class="grand-total-row">
+                    <td colspan="4" class="text-right font-bold py-2">
+                      GRAND TOTAL :
+                    </td>
+                    <td class="text-right font-bold py-2">
+                      {{ formatCurrencyID(grandTotalDebet) }}
+                    </td>
+                    <td class="text-right font-bold py-2">
+                      {{ formatCurrencyID(grandTotalKredit) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="jurnal-print-footer">
+              <div class="flex justify-between">
+                <span>Dicetak: {{ currentPrintTime }}</span>
+                <span>Halaman {{ pageIdx + 1 }} dari {{ jurnalPages.length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </template>
 
       <DxTreeList
@@ -393,6 +409,146 @@ const processedDataSource = computed(() => {
   return transformToTree(props.dataSource);
 });
 
+// Jurnal Specific Computations & Helpers
+const formatCurrencyID = (value) => {
+  const num = Number(value || 0);
+  return num.toLocaleString("id-ID", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
+const formatShortDate = (dateStr) => {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = String(d.getFullYear()).slice(-2);
+  return `${day}/${month}/${year}`;
+};
+
+const groupedTransactions = computed(() => {
+  if (props.type !== "jurnal") return [];
+  
+  const groups = {};
+  props.dataSource.forEach((item) => {
+    const key = item.Nobukti;
+    if (!groups[key]) {
+      groups[key] = {
+        Nobukti: item.Nobukti,
+        tanggal: item.tanggal,
+        JenisLaporan: item.JenisLaporan || "LAPORAN JURNAL",
+        tgl1: item.tgl1,
+        tgl2: item.tgl2,
+        details: []
+      };
+    }
+    groups[key].details.push(item);
+  });
+
+  // Sort details within each group by Urut/Prioritas
+  Object.values(groups).forEach(g => {
+    g.details.sort((a, b) => {
+      if (a.Urut !== undefined && b.Urut !== undefined) {
+        return a.Urut - b.Urut;
+      }
+      return String(a.Prioritas || "").localeCompare(String(b.Prioritas || ""));
+    });
+  });
+
+  // Return as sorted list by date and Nobukti
+  return Object.values(groups).sort((a, b) => {
+    const dateCompare = new Date(a.tanggal) - new Date(b.tanggal);
+    if (dateCompare !== 0) return dateCompare;
+    return String(a.Nobukti).localeCompare(String(b.Nobukti));
+  });
+});
+
+const jurnalPages = computed(() => {
+  if (props.type !== "jurnal") return [];
+  
+  const transactions = groupedTransactions.value;
+  const pages = [];
+  let currentPage = [];
+  let currentLines = 0;
+  const maxLinesPerPage = 18; // A safe count of detail lines per A4 print page
+
+  transactions.forEach((tx) => {
+    const linesNeeded = tx.details.length;
+    
+    if (currentPage.length > 0 && currentLines + linesNeeded > maxLinesPerPage) {
+      pages.push(currentPage);
+      currentPage = [];
+      currentLines = 0;
+    }
+    
+    currentPage.push(tx);
+    currentLines += linesNeeded;
+  });
+  
+  if (currentPage.length > 0) {
+    pages.push(currentPage);
+  }
+  
+  return pages;
+});
+
+const getGlobalIndex = (pageIdx, txIdx) => {
+  let index = 1;
+  for (let i = 0; i < pageIdx; i++) {
+    index += jurnalPages.value[i].length;
+  }
+  return index + txIdx;
+};
+
+const reportTitle = computed(() => {
+  if (props.dataSource.length > 0 && props.dataSource[0].JenisLaporan) {
+    return `LAPORAN ${props.dataSource[0].JenisLaporan.toUpperCase()}`;
+  }
+  return "LAPORAN JURNAL";
+});
+
+const reportPeriod = computed(() => {
+  if (props.dataSource.length > 0 && props.dataSource[0].tgl1 && props.dataSource[0].tgl2) {
+    const formatDateFull = (dateStr) => {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return "";
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+    return `${formatDateFull(props.dataSource[0].tgl1)} - ${formatDateFull(props.dataSource[0].tgl2)}`;
+  }
+  
+  const formatDateFull = (d) => {
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+  return `${formatDateFull(startDate.value)} - ${formatDateFull(endDate.value)}`;
+});
+
+const currentPrintTime = computed(() => {
+  const d = new Date();
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+});
+
+const grandTotalDebet = computed(() => {
+  return props.dataSource.reduce((sum, item) => sum + Number(item.Debet || 0), 0);
+});
+
+const grandTotalKredit = computed(() => {
+  return props.dataSource.reduce((sum, item) => sum + Number(item.kredit || 0), 0);
+});
+
 const customizeSummaryText = (e) => {
   return formatCurrency(e.value);
 };
@@ -615,5 +771,142 @@ onUnmounted(() => {
 .sp-footer-hidden::-moz-selection {
   color: #111827;
   background: #ffe58f;
+}
+
+/* Jurnal Print Preview CSS */
+.jurnal-preview-outer {
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.no-data-jurnal {
+  background-color: white;
+  padding: 2.5rem;
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
+}
+
+.jurnal-preview-container {
+  background-color: #f1f5f9; /* Slate-100 */
+  padding: 2.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+  overflow-y: auto;
+  min-height: 600px;
+}
+
+.jurnal-page-sheet {
+  background-color: #ffffff;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 20mm 15mm;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.jurnal-table-wrapper {
+  flex-grow: 1;
+}
+
+.jurnal-print-header {
+  margin-bottom: 1.5rem;
+}
+
+.jurnal-report-title {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #000000 !important;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+}
+
+.jurnal-report-subtitle {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  color: #000000 !important;
+  margin: 0;
+}
+
+.jurnal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  color: #000000 !important;
+}
+
+.jurnal-table th {
+  border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  padding: 6px 4px;
+  font-weight: bold;
+  text-align: left;
+}
+
+.jurnal-table th.text-right {
+  text-align: right;
+}
+
+.jurnal-table td {
+  padding: 5px 4px;
+  vertical-align: top;
+}
+
+.jurnal-table tr.transaction-divider td {
+  border-bottom: 1px solid #000000;
+}
+
+.jurnal-table tr.grand-total-row td {
+  border-top: 1px solid #000000;
+  border-bottom: 4px double #000000;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.jurnal-print-footer {
+  margin-top: 1.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e2e8f0;
+  font-size: 11px;
+  color: #64748b;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+@media print {
+  .jurnal-preview-container {
+    background-color: transparent !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  .jurnal-page-sheet {
+    width: 100% !important;
+    min-height: auto !important;
+    height: 297mm !important;
+    padding: 10mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+  }
 }
 </style>
