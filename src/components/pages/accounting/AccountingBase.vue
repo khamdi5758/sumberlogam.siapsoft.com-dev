@@ -206,6 +206,113 @@
         </div>
       </template>
 
+      <!-- Kondisi Mutasi: Render PDF-style A4 Preview -->
+      <template v-else-if="type === 'mutasi'">
+        <div v-if="dataSource.length === 0" class="no-data-jurnal">
+          Tidak ada data mutasi untuk periode ini.
+        </div>
+        <div v-else class="jurnal-preview-container">
+          <div
+            v-for="(pageRows, pageIdx) in mutasiPages"
+            :key="pageIdx"
+            class="jurnal-page-sheet"
+          >
+            <!-- Header -->
+            <div class="jurnal-print-header" style="text-align: left; margin-bottom: 20px;">
+              <h3 class="jurnal-report-title" style="font-size: 16px; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 2px;">
+                LAPORAN MUTASI
+              </h3>
+              <p class="jurnal-report-subtitle" style="font-size: 13px;">
+                Periode : {{ reportPeriod }}
+              </p>
+            </div>
+
+            <!-- Table Container -->
+            <div class="jurnal-table-wrapper">
+              <table class="mutasi-table">
+                <thead>
+                  <tr class="mutasi-header-top">
+                    <th rowspan="2" style="width: 15%; text-align: left; border: 1px solid #000; padding: 6px 8px;">Perkiraan</th>
+                    <th rowspan="2" style="width: 35%; text-align: left; border: 1px solid #000; padding: 6px 8px;">Keterangan</th>
+                    <th colspan="2" style="width: 25%; text-align: center; border: 1px solid #000; padding: 6px 8px;">
+                      {{ formatMutasiDate(endDate) }}
+                    </th>
+                    <th colspan="2" style="width: 25%; text-align: center; border: 1px solid #000; padding: 6px 8px;">
+                      S/d {{ formatMutasiDate(endDate) }}
+                    </th>
+                  </tr>
+                  <tr class="mutasi-header-bottom">
+                    <th style="width: 12.5%; text-align: right; border: 1px solid #000; padding: 6px 8px;">Debet</th>
+                    <th style="width: 12.5%; text-align: right; border: 1px solid #000; padding: 6px 8px;">Kredit</th>
+                    <th style="width: 12.5%; text-align: right; border: 1px solid #000; padding: 6px 8px;">Debet</th>
+                    <th style="width: 12.5%; text-align: right; border: 1px solid #000; padding: 6px 8px;">Kredit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, rowIdx) in pageRows" :key="rowIdx" class="mutasi-data-row">
+                    <td class="text-left" style="border: 1px solid #000; padding: 5px 8px; font-weight: bold;">
+                      {{ row.perkiraan }}
+                    </td>
+                    <td class="text-left" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ row.keterangan }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ formatCurrencyID(row.debet) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ formatCurrencyID(row.kredit) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ formatCurrencyID(row.sdDebet) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ formatCurrencyID(row.sdKredit) }}
+                    </td>
+                  </tr>
+
+                  <!-- Fill remaining empty rows to keep table height consistent if it's the last page -->
+                  <tr v-if="pageRows.length < 18" v-for="blankIdx in (18 - pageRows.length)" :key="'blank-' + blankIdx" class="mutasi-data-row-blank">
+                    <td style="border: 1px solid #000; padding: 5px 8px;">&nbsp;</td>
+                    <td style="border: 1px solid #000; padding: 5px 8px;">&nbsp;</td>
+                    <td style="border: 1px solid #000; padding: 5px 8px;">&nbsp;</td>
+                    <td style="border: 1px solid #000; padding: 5px 8px;">&nbsp;</td>
+                    <td style="border: 1px solid #000; padding: 5px 8px;">&nbsp;</td>
+                    <td style="border: 1px solid #000; padding: 5px 8px;">&nbsp;</td>
+                  </tr>
+
+                  <!-- Totals Row (Only on the last page) -->
+                  <tr v-if="pageIdx === mutasiPages.length - 1" class="mutasi-total-row">
+                    <td colspan="2" class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold; text-align: right;">
+                      Total
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold;">
+                      {{ formatCurrencyID(mutasiTotals.debet) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold;">
+                      {{ formatCurrencyID(mutasiTotals.kredit) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold;">
+                      {{ formatCurrencyID(mutasiTotals.sdDebet) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold;">
+                      {{ formatCurrencyID(mutasiTotals.sdKredit) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="jurnal-print-footer">
+              <div class="flex justify-between">
+                <span>Dicetak: {{ currentPrintTime }}</span>
+                <span>Halaman {{ pageIdx + 1 }} dari {{ mutasiPages.length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <DxTreeList
         v-else
         id="profit-loss-tree"
@@ -381,6 +488,82 @@ const spFooterText = computed(() => {
 const formatDateRange = computed(() => {
   const options = { day: "numeric", month: "short", year: "numeric" };
   return `${startDate.value.toLocaleDateString("id-ID", options)} - ${endDate.value.toLocaleDateString("id-ID", options)}`;
+});
+
+const formatMutasiDate = (date) => {
+  if (!date) return "30 Dec 1899";
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "30 Dec 1899";
+  const day = d.getDate();
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = months[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day} ${month} ${year}`;
+};
+
+const mutasiList = computed(() => {
+  if (props.type !== "mutasi") return [];
+  
+  return props.dataSource.map((item) => {
+    const perkiraan = item.Perkiraan !== undefined ? item.Perkiraan : (item.perkiraan !== undefined ? item.perkiraan : "");
+    const keterangan = item.Keterangan !== undefined ? item.Keterangan : (item.keterangan !== undefined ? item.keterangan : "");
+    
+    const debet = Number(item.MutasiDebet !== undefined ? item.MutasiDebet : (item.mutasidebet !== undefined ? item.mutasidebet : (item.MD !== undefined ? item.MD : (item.Debet !== undefined ? item.Debet : (item.debet !== undefined ? item.debet : 0)))));
+    
+    const kredit = Number(item.MutasiKredit !== undefined ? item.MutasiKredit : (item.mutasikredit !== undefined ? item.mutasikredit : (item.MK !== undefined ? item.MK : (item.Kredit !== undefined ? item.Kredit : (item.kredit !== undefined ? item.kredit : 0)))));
+    
+    const sdDebet = Number(item.SdMutasiDebet !== undefined ? item.SdMutasiDebet : (item.sdmutasidebet !== undefined ? item.sdmutasidebet : (item.SdDebet !== undefined ? item.SdDebet : (item.sddebet !== undefined ? item.sddebet : (item.NeracaSaldoAkD !== undefined ? item.NeracaSaldoAkD : (item.SaldoAkhirD !== undefined ? item.SaldoAkhirD : 0))))));
+    
+    const sdKredit = Number(item.SdMutasiKredit !== undefined ? item.SdMutasiKredit : (item.sdmutasikredit !== undefined ? item.sdmutasikredit : (item.SdKredit !== undefined ? item.SdKredit : (item.sdkredit !== undefined ? item.sdkredit : (item.NeracaSaldoAkK !== undefined ? item.NeracaSaldoAkK : (item.SaldoAkhirK !== undefined ? item.SaldoAkhirK : 0))))));
+
+    return {
+      perkiraan,
+      keterangan,
+      debet,
+      kredit,
+      sdDebet,
+      sdKredit
+    };
+  });
+});
+
+const mutasiTotals = computed(() => {
+  let totalDebet = 0;
+  let totalKredit = 0;
+  let totalSdDebet = 0;
+  let totalSdKredit = 0;
+
+  mutasiList.value.forEach((row) => {
+    totalDebet += row.debet;
+    totalKredit += row.kredit;
+    totalSdDebet += row.sdDebet;
+    totalSdKredit += row.sdKredit;
+  });
+
+  return {
+    debet: totalDebet,
+    kredit: totalKredit,
+    sdDebet: totalSdDebet,
+    sdKredit: totalSdKredit
+  };
+});
+
+const mutasiPages = computed(() => {
+  if (props.type !== "mutasi") return [];
+  
+  const list = mutasiList.value;
+  const pages = [];
+  const maxLinesPerPage = 18;
+  
+  for (let i = 0; i < list.length; i += maxLinesPerPage) {
+    pages.push(list.slice(i, i + maxLinesPerPage));
+  }
+  
+  if (pages.length === 0) {
+    pages.push([]);
+  }
+  
+  return pages;
 });
 
 const groupedBukuBesar = computed(() => {
@@ -1166,6 +1349,34 @@ onUnmounted(() => {
 
 .bukubesar-total-label-row td {
   padding: 8px 4px 4px 4px;
+}
+
+/* Mutasi Table Styles */
+.mutasi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 11px;
+  color: #000000 !important;
+}
+
+.mutasi-table th, .mutasi-table td {
+  border: 1px solid #000000;
+  padding: 5px 8px;
+}
+
+.mutasi-table th {
+  font-weight: bold;
+  background-color: #ffffff;
+}
+
+.mutasi-table td {
+  vertical-align: middle;
+}
+
+.mutasi-data-row-blank td {
+  border: 1px solid #000000;
+  height: 25px;
 }
 
 @media print {
