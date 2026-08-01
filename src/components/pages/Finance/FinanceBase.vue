@@ -35,9 +35,10 @@
     <div v-if="hasBeenFiltered" class="card-box">
       <DxTreeList
         id="profit-loss-tree"
-        :data-source="dataSource"
+        :data-source="treeDataSource"
         key-expr="id"
         parent-id-expr="parentId"
+        root-value="__root__"
         :show-row-lines="true"
         :show-borders="false"
         :column-auto-width="true"
@@ -105,6 +106,7 @@
             }}
           </span>
         </template>
+        <DxScrolling mode="standard" />
       </DxTreeList>
     </div>
 
@@ -115,6 +117,7 @@
       :type="type"
       :submit-button-text="submitButtonText"
       :perkiraan-mode="perkiraanMode"
+      :perkiraan-browse-code="perkiraanBrowseCode"
       @on-filter-apply="handleFilterApply"
     />
 
@@ -128,7 +131,11 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
-import { DxTreeList, DxColumn } from "devextreme-vue/tree-list";
+import {
+  DxTreeList,
+  DxColumn,
+  DxScrolling,
+} from "devextreme-vue/tree-list";
 import DxButton from "devextreme-vue/button";
 import FinancePopup from "./FinancePopup.vue";
 
@@ -141,6 +148,7 @@ const props = defineProps({
   autoOpenFilter: { type: Boolean, default: false },
   showContentInitially: { type: Boolean, default: true },
   submitButtonText: { type: String, default: "Terapkan Filter" },
+  perkiraanBrowseCode: { type: String, default: "" },
   // Prop mode perkiraan
   perkiraanMode: {
     type: String,
@@ -166,6 +174,29 @@ const endDate = ref(new Date());
 
 const expandedKeys = ref([...props.defaultExpandedKeys]);
 const hasBeenFiltered = ref(props.showContentInitially || isVisited);
+const treeDataSource = computed(() =>
+  props.dataSource.map((row, index) => {
+    const accountName = [
+      row.accountName,
+      row.NamaPerkiraan,
+      row.Keterangan,
+      row.keterangan2,
+      row.Perkiraan,
+      row.NoBukti,
+      row.Periode,
+    ].find((value) => value !== null && value !== undefined && value !== "");
+
+    return {
+      ...row,
+      id: row.id ?? row.keyindex ?? `finance-row-${index}`,
+      parentId: row.parentId ?? "__root__",
+      accountName: accountName ?? `Baris ${index + 1}`,
+      amount: row.amount ?? row.saldo ?? row.SaldoAwal ?? 0,
+      amountBulanLalu: row.amountBulanLalu ?? 0,
+      type: row.type ?? "detail",
+    };
+  }),
+);
 
 const moduleNameMap = {
   kasharian: "kasharian",

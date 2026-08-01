@@ -9,6 +9,7 @@
     :showContentInitially="false"
     submitButtonText="Cetak"
     perkiraanMode="single"
+    perkiraanBrowseCode="02"
     @filter-change="handleFilterChange"
   />
 </template>

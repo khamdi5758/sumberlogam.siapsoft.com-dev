@@ -1,5 +1,12 @@
 import api from "@/api";
 
+const formatDate = (date) => {
+  if (!(date instanceof Date)) return date;
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+};
+
 const state = {
   rekapkasbankList: [],
   isLoading: false,
@@ -32,16 +39,13 @@ const actions = {
   async getRekapkasbank({ commit }, requestPayload) {
     commit("setLoading", true);
     try {
-      const startDate = requestPayload.startDate instanceof Date
-        ? requestPayload.startDate.toISOString().split("T")[0]
-        : requestPayload.startDate;
-      const endDate = requestPayload.endDate instanceof Date
-        ? requestPayload.endDate.toISOString().split("T")[0]
-        : requestPayload.endDate;
+      const startDate = formatDate(requestPayload.startDate);
+      const endDate = formatDate(requestPayload.endDate);
 
-      const response = await api.post("kasbank/rekapkasbankharian", {
-        startDate,
-        endDate,
+      const response = await api.post("kasbank/bukukasbank", {
+        mulaitgl: startDate,
+        sampaitgl: endDate,
+        perkiraan: requestPayload.perkiraan || "",
       });
       const resultData = response.data?.data || response.data || [];
 
