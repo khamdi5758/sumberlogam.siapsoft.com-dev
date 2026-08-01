@@ -372,9 +372,7 @@ const applyFilter = () => {
 async function handleBrowsePerkiraan(target) {
   try {
     visible.value = false;
-    const response = await api.get("formbrowse", {
-      params: { kode: "02" }
-    });
+    const response = await api.getbydata("formbrowse", { kode: "02" });
     const responseData = response.data?.datafrbrowse || (Array.isArray(response.data) ? response.data : []);
     
     // Add a unique key field for devxtreme grid
@@ -394,8 +392,13 @@ async function handleBrowsePerkiraan(target) {
     });
     
     if (selected) {
-      const firstColumn = Object.keys(selected).find(k => k !== "__browseKey" && k !== "id" && k !== "ket");
-      const codeVal = selected.perkiraan || selected.Kode || selected.kode || selected.KodePerk || selected[firstColumn] || "";
+      const codeVal =
+        selected.id ||
+        selected.kode ||
+        selected.Kode ||
+        selected.kodeperkiraan ||
+        selected.KodePerkiraan ||
+        "";
       
       if (target === "dari") {
         dariPerkiraan.value = codeVal;
