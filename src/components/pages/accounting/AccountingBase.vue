@@ -32,7 +32,7 @@
     </div>
 
     <!-- UI/UX: Card putih bersih untuk memberikan fokus pada angka -->
-    <div v-if="hasBeenFiltered" :class="['jurnal', 'bukubesar'].includes(type) ? 'jurnal-preview-outer' : 'card-box'">
+    <div v-if="hasBeenFiltered" :class="['jurnal', 'bukubesar', 'mutasi', 'biaya'].includes(type) ? 'jurnal-preview-outer' : 'card-box'">
       <!-- Kondisi Jurnal: Render PDF-style A4 Preview -->
       <template v-if="type === 'jurnal'">
         <div v-if="dataSource.length === 0" class="no-data-jurnal">
@@ -302,6 +302,86 @@
         </div>
       </template>
 
+      <!-- Kondisi Biaya: Render PDF-style A4 Preview -->
+      <template v-else-if="type === 'biaya'">
+        <div class="jurnal-preview-container">
+          <div
+            v-for="(pageRows, pageIdx) in biayaPages"
+            :key="pageIdx"
+            class="jurnal-page-sheet"
+          >
+            <!-- Header -->
+            <div class="jurnal-print-header" style="text-align: left; margin-bottom: 20px;">
+              <h3 class="jurnal-report-title" style="font-size: 16px; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 2px;">
+                LAPORAN BIAYA
+              </h3>
+              <p class="jurnal-report-subtitle" style="font-size: 13px;">
+                Periode : {{ reportPeriod }}
+              </p>
+            </div>
+
+            <!-- Table Container -->
+            <div class="jurnal-table-wrapper">
+              <table class="mutasi-table">
+                <thead>
+                  <tr class="mutasi-header-top">
+                    <th style="width: 5%; text-align: left; border: 1px solid #000; padding: 6px 8px;">No</th>
+                    <th style="width: 15%; text-align: left; border: 1px solid #000; padding: 6px 8px;">Perkiraan</th>
+                    <th style="width: 40%; text-align: left; border: 1px solid #000; padding: 6px 8px;">Keterangan</th>
+                    <th style="width: 20%; text-align: right; border: 1px solid #000; padding: 6px 8px;">
+                      {{ formatMutasiDate(endDate) }}
+                    </th>
+                    <th style="width: 20%; text-align: right; border: 1px solid #000; padding: 6px 8px;">
+                      S/d {{ formatMutasiDate(endDate) }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, rowIdx) in pageRows" :key="rowIdx" class="mutasi-data-row">
+                    <td class="text-left" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ pageIdx * 18 + rowIdx + 1 }}
+                    </td>
+                    <td class="text-left" style="border: 1px solid #000; padding: 5px 8px; font-weight: bold;">
+                      {{ row.perkiraan }}
+                    </td>
+                    <td class="text-left" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ row.keterangan }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ formatCurrencyID(row.bulanIni) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 5px 8px;">
+                      {{ formatCurrencyID(row.sdBulanIni) }}
+                    </td>
+                  </tr>
+
+                  <!-- Totals Row (Only on the last page) -->
+                  <tr v-if="pageIdx === biayaPages.length - 1" class="mutasi-total-row">
+                    <td colspan="3" class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold; text-align: right;">
+                      Total
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold;">
+                      {{ formatCurrencyID(biayaTotals.bulanIni) }}
+                    </td>
+                    <td class="text-right" style="border: 1px solid #000; padding: 6px 8px; font-weight: bold;">
+                      {{ formatCurrencyID(biayaTotals.sdBulanIni) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="jurnal-print-footer">
+              <div class="flex justify-between">
+                <span>Dicetak: {{ currentPrintTime }}</span>
+                <span>Halaman {{ pageIdx + 1 }} dari {{ biayaPages.length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <DxTreeList
         v-else
         id="profit-loss-tree"
@@ -541,6 +621,59 @@ const mutasiPages = computed(() => {
   if (props.type !== "mutasi") return [];
   
   const list = mutasiList.value;
+  const pages = [];
+  const maxLinesPerPage = 18;
+  
+  for (let i = 0; i < list.length; i += maxLinesPerPage) {
+    pages.push(list.slice(i, i + maxLinesPerPage));
+  }
+  
+  if (pages.length === 0) {
+    pages.push([]);
+  }
+  
+  return pages;
+});
+
+const biayaList = computed(() => {
+  if (props.type !== "biaya") return [];
+  
+  return props.dataSource.map((item) => {
+    const perkiraan = item.Perkiraan !== undefined ? item.Perkiraan : (item.perkiraan !== undefined ? item.perkiraan : "");
+    const keterangan = item.Keterangan !== undefined ? item.Keterangan : (item.keterangan !== undefined ? item.keterangan : (item.NamaPerkiraan || item.namaperkiraan || item.Nama || item.nama || item.NamaAkun || item.namaakun || ""));
+    
+    const bulanIni = Number(item.BulanIni !== undefined ? item.BulanIni : (item.bulanini !== undefined ? item.bulanini : (item.Amount !== undefined ? item.Amount : (item.amount !== undefined ? item.amount : (item.Jumlah !== undefined ? item.Jumlah : (item.jumlah !== undefined ? item.jumlah : (item.Debet !== undefined ? item.Debet : (item.debet !== undefined ? item.debet : 0))))))));
+    
+    const sdBulanIni = Number(item.SdBulanIni !== undefined ? item.SdBulanIni : (item.sdbulanini !== undefined ? item.sdbulanini : (item.AmountSd !== undefined ? item.AmountSd : (item.amountSd !== undefined ? item.amountSd : (item.JumlahSd !== undefined ? item.JumlahSd : (item.jumlahSd !== undefined ? item.jumlahSd : (item.SdDebet !== undefined ? item.SdDebet : (item.sddebet !== undefined ? item.sddebet : 0))))))));
+
+    return {
+      perkiraan,
+      keterangan,
+      bulanIni,
+      sdBulanIni
+    };
+  });
+});
+
+const biayaTotals = computed(() => {
+  let totalBulanIni = 0;
+  let totalSdBulanIni = 0;
+
+  biayaList.value.forEach((row) => {
+    totalBulanIni += row.bulanIni;
+    totalSdBulanIni += row.sdBulanIni;
+  });
+
+  return {
+    bulanIni: totalBulanIni,
+    sdBulanIni: totalSdBulanIni
+  };
+});
+
+const biayaPages = computed(() => {
+  if (props.type !== "biaya") return [];
+  
+  const list = biayaList.value;
   const pages = [];
   const maxLinesPerPage = 18;
   
