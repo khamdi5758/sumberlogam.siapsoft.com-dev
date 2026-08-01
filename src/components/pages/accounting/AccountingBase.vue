@@ -267,15 +267,7 @@
                     </td>
                   </tr>
 
-                  <!-- Fill remaining empty rows to keep table height consistent if it's the last page -->
-                  <tr v-if="pageRows.length < 18" v-for="blankIdx in (18 - pageRows.length)" :key="'blank-' + blankIdx" class="mutasi-data-row-blank">
-                    <td style="border: 1px solid #000; padding: 5px 8px;">&nbsp;</td>
-                    <td style="border: 1px solid #000; padding: 5px 8px;">&nbsp;</td>
-                    <td style="border: 1px solid #000; padding: 5px 8px;">&nbsp;</td>
-                    <td style="border: 1px solid #000; padding: 5px 8px;">&nbsp;</td>
-                    <td style="border: 1px solid #000; padding: 5px 8px;">&nbsp;</td>
-                    <td style="border: 1px solid #000; padding: 5px 8px;">&nbsp;</td>
-                  </tr>
+
 
                   <!-- Totals Row (Only on the last page) -->
                   <tr v-if="pageIdx === mutasiPages.length - 1" class="mutasi-total-row">
