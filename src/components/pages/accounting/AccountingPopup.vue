@@ -82,21 +82,39 @@
             <!-- Dari Perkiraan -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">Dari Perkiraan</label>
-              <input
-                v-model="dariPerkiraan"
-                type="text"
-                class="w-full px-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
-              />
+              <div class="relative flex items-center">
+                <input
+                  v-model="dariPerkiraan"
+                  type="text"
+                  class="w-full pr-10 pl-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  class="absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-slate-500 hover:text-slate-800 border-l border-slate-300 bg-slate-50 rounded-r-md hover:bg-slate-100 transition"
+                  @click="handleBrowsePerkiraan('dari')"
+                >
+                  <MoreHorizontal :size="16" />
+                </button>
+              </div>
             </div>
 
             <!-- S/d Perkiraan -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">S/d Perkiraan</label>
-              <input
-                v-model="sdPerkiraan"
-                type="text"
-                class="w-full px-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
-              />
+              <div class="relative flex items-center">
+                <input
+                  v-model="sdPerkiraan"
+                  type="text"
+                  class="w-full pr-10 pl-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  class="absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-slate-500 hover:text-slate-800 border-l border-slate-300 bg-slate-50 rounded-r-md hover:bg-slate-100 transition"
+                  @click="handleBrowsePerkiraan('sd')"
+                >
+                  <MoreHorizontal :size="16" />
+                </button>
+              </div>
             </div>
 
             <!-- Jurnal Penutup Option -->
@@ -183,21 +201,39 @@
             <!-- Dari Perkiraan -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">Dari Perkiraan</label>
-              <input
-                v-model="dariPerkiraan"
-                type="text"
-                class="w-full px-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
-              />
+              <div class="relative flex items-center">
+                <input
+                  v-model="dariPerkiraan"
+                  type="text"
+                  class="w-full pr-10 pl-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  class="absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-slate-500 hover:text-slate-800 border-l border-slate-300 bg-slate-50 rounded-r-md hover:bg-slate-100 transition"
+                  @click="handleBrowsePerkiraan('dari')"
+                >
+                  <MoreHorizontal :size="16" />
+                </button>
+              </div>
             </div>
 
             <!-- S/d Perkiraan -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">S/d Perkiraan</label>
-              <input
-                v-model="sdPerkiraan"
-                type="text"
-                class="w-full px-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
-              />
+              <div class="relative flex items-center">
+                <input
+                  v-model="sdPerkiraan"
+                  type="text"
+                  class="w-full pr-10 pl-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  class="absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-slate-500 hover:text-slate-800 border-l border-slate-300 bg-slate-50 rounded-r-md hover:bg-slate-100 transition"
+                  @click="handleBrowsePerkiraan('sd')"
+                >
+                  <MoreHorizontal :size="16" />
+                </button>
+              </div>
             </div>
           </template>
         </div>
@@ -226,9 +262,11 @@
 
 <script setup>
 import { ref } from "vue";
-import { X } from "lucide-vue-next";
+import { X, MoreHorizontal } from "lucide-vue-next";
 import { DxDateBox } from "devextreme-vue/date-box";
 import { DxSelectBox } from "devextreme-vue/select-box";
+import api from "@/api";
+import FormBrowseDialog from "@/components/widgets/FormBrowseDialog.vue";
 
 const props = defineProps({
   title: {
@@ -330,6 +368,44 @@ const applyFilter = () => {
   emit("on-filter-apply", payload);
   visible.value = false;
 };
+
+async function handleBrowsePerkiraan(target) {
+  try {
+    const response = await api.get("labarugineraca/getperkiraan");
+    const responseData = response.data?.datafrbrowse || (Array.isArray(response.data) ? response.data : []);
+    
+    // Add a unique key field for devxtreme grid
+    const data = responseData.map((item, index) => ({
+      ...item,
+      __browseKey: index,
+    }));
+    
+    const selected = await FormBrowseDialog.show({
+      title: "Pilih Perkiraan",
+      dataSource: data,
+      keyField: "__browseKey",
+      disablecol: [
+        ...(response.data?.disablecol || ["id", "ket"]),
+        "__browseKey",
+      ],
+    });
+    
+    if (selected) {
+      const firstColumn = Object.keys(selected).find(k => k !== "__browseKey" && k !== "id" && k !== "ket");
+      const codeVal = selected.perkiraan || selected.Kode || selected.kode || selected.KodePerk || selected[firstColumn] || "";
+      
+      if (target === "dari") {
+        dariPerkiraan.value = codeVal;
+      } else if (target === "sd") {
+        sdPerkiraan.value = codeVal;
+      }
+    }
+  } catch (error) {
+    if (error !== "cancelled") {
+      console.error("Browse perkiraan error:", error);
+    }
+  }
+}
 
 const open = () => {
   visible.value = true;
