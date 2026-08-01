@@ -82,39 +82,27 @@
             <!-- Dari Perkiraan -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">Dari Perkiraan</label>
-              <div class="relative flex items-center">
-                <input
-                  v-model="dariPerkiraan"
-                  type="text"
-                  class="w-full pr-10 pl-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
-                />
-                <button
-                  type="button"
-                  class="absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-slate-500 hover:text-slate-800 border-l border-slate-300 bg-slate-50 rounded-r-md hover:bg-slate-100 transition"
-                  @click="handleBrowsePerkiraan('dari')"
-                >
-                  <MoreHorizontal :size="16" />
-                </button>
-              </div>
+              <DxTextBox
+                v-model:value="dariPerkiraan"
+                styling-mode="outlined"
+                :read-only="true"
+                placeholder="Klik untuk browse"
+                :buttons="browseButtonsDari"
+                @focus-in="handleBrowsePerkiraan('dari')"
+              />
             </div>
 
             <!-- S/d Perkiraan -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">S/d Perkiraan</label>
-              <div class="relative flex items-center">
-                <input
-                  v-model="sdPerkiraan"
-                  type="text"
-                  class="w-full pr-10 pl-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
-                />
-                <button
-                  type="button"
-                  class="absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-slate-500 hover:text-slate-800 border-l border-slate-300 bg-slate-50 rounded-r-md hover:bg-slate-100 transition"
-                  @click="handleBrowsePerkiraan('sd')"
-                >
-                  <MoreHorizontal :size="16" />
-                </button>
-              </div>
+              <DxTextBox
+                v-model:value="sdPerkiraan"
+                styling-mode="outlined"
+                :read-only="true"
+                placeholder="Klik untuk browse"
+                :buttons="browseButtonsSd"
+                @focus-in="handleBrowsePerkiraan('sd')"
+              />
             </div>
 
             <!-- Jurnal Penutup Option -->
@@ -201,39 +189,27 @@
             <!-- Dari Perkiraan -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">Dari Perkiraan</label>
-              <div class="relative flex items-center">
-                <input
-                  v-model="dariPerkiraan"
-                  type="text"
-                  class="w-full pr-10 pl-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
-                />
-                <button
-                  type="button"
-                  class="absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-slate-500 hover:text-slate-800 border-l border-slate-300 bg-slate-50 rounded-r-md hover:bg-slate-100 transition"
-                  @click="handleBrowsePerkiraan('dari')"
-                >
-                  <MoreHorizontal :size="16" />
-                </button>
-              </div>
+              <DxTextBox
+                v-model:value="dariPerkiraan"
+                styling-mode="outlined"
+                :read-only="true"
+                placeholder="Klik untuk browse"
+                :buttons="browseButtonsDari"
+                @focus-in="handleBrowsePerkiraan('dari')"
+              />
             </div>
 
             <!-- S/d Perkiraan -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">S/d Perkiraan</label>
-              <div class="relative flex items-center">
-                <input
-                  v-model="sdPerkiraan"
-                  type="text"
-                  class="w-full pr-10 pl-3 py-1.5 border border-slate-300 rounded-md text-[14px] outline-none focus:border-blue-500"
-                />
-                <button
-                  type="button"
-                  class="absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-slate-500 hover:text-slate-800 border-l border-slate-300 bg-slate-50 rounded-r-md hover:bg-slate-100 transition"
-                  @click="handleBrowsePerkiraan('sd')"
-                >
-                  <MoreHorizontal :size="16" />
-                </button>
-              </div>
+              <DxTextBox
+                v-model:value="sdPerkiraan"
+                styling-mode="outlined"
+                :read-only="true"
+                placeholder="Klik untuk browse"
+                :buttons="browseButtonsSd"
+                @focus-in="handleBrowsePerkiraan('sd')"
+              />
             </div>
           </template>
         </div>
@@ -261,10 +237,11 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { X, MoreHorizontal } from "lucide-vue-next";
 import { DxDateBox } from "devextreme-vue/date-box";
 import { DxSelectBox } from "devextreme-vue/select-box";
+import { DxTextBox } from "devextreme-vue/text-box";
 import api from "@/api";
 import FormBrowseDialog from "@/components/widgets/FormBrowseDialog.vue";
 
@@ -307,6 +284,30 @@ const sdPerkiraan = ref("");
 const jurnalPenutup = ref("Tanpa Jurnal Penutup");
 const valas = ref(false);
 const formatOption = ref("Detail");
+
+const browseButtonsDari = computed(() => [
+  {
+    name: "browse",
+    location: "after",
+    options: {
+      text: "...",
+      onClick: () => handleBrowsePerkiraan('dari'),
+      stylingMode: "outlined",
+    },
+  },
+]);
+
+const browseButtonsSd = computed(() => [
+  {
+    name: "browse",
+    location: "after",
+    options: {
+      text: "...",
+      onClick: () => handleBrowsePerkiraan('sd'),
+      stylingMode: "outlined",
+    },
+  },
+]);
 
 const jurnalPenutupOptions = [
   "Tanpa Jurnal Penutup",
