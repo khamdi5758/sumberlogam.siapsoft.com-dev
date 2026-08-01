@@ -208,10 +208,7 @@
 
       <!-- Kondisi Mutasi: Render PDF-style A4 Preview -->
       <template v-else-if="type === 'mutasi'">
-        <div v-if="dataSource.length === 0" class="no-data-jurnal">
-          Tidak ada data mutasi untuk periode ini.
-        </div>
-        <div v-else class="jurnal-preview-container">
+        <div class="jurnal-preview-container">
           <div
             v-for="(pageRows, pageIdx) in mutasiPages"
             :key="pageIdx"
