@@ -57,10 +57,10 @@
                   <tr>
                     <th style="width: 5%">No</th>
                     <th style="width: 10%">Tanggal</th>
-                    <th style="width: 45%">No Bukti/Keterangan</th>
-                    <th style="width: 25%">Perkiraan</th>
-                    <th style="width: 7.5%" class="text-right">Debet</th>
-                    <th style="width: 7.5%" class="text-right">Kredit</th>
+                    <th style="width: 30%">No Bukti/Keterangan</th>
+                    <th style="width: 35%">Perkiraan</th>
+                    <th style="width: 10%" class="text-right">Debet</th>
+                    <th style="width: 10%" class="text-right">Kredit</th>
                   </tr>
                 </thead>
                 <tbody>
