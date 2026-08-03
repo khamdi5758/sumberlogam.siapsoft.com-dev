@@ -774,7 +774,7 @@ const mutasiPages = computed(() => {
   
   const list = mutasiList.value;
   const pages = [];
-  const maxLinesPerPage = 18;
+  const maxLinesPerPage = 28;
   
   for (let i = 0; i < list.length; i += maxLinesPerPage) {
     pages.push(list.slice(i, i + maxLinesPerPage));
@@ -827,7 +827,7 @@ const biayaPages = computed(() => {
   
   const list = biayaList.value;
   const pages = [];
-  const maxLinesPerPage = 18;
+  const maxLinesPerPage = 28;
   
   for (let i = 0; i < list.length; i += maxLinesPerPage) {
     pages.push(list.slice(i, i + maxLinesPerPage));
@@ -942,7 +942,7 @@ const aktivaPages = computed(() => {
   
   const list = aktivaList.value;
   const pages = [];
-  const maxLinesPerPage = 14;
+  const maxLinesPerPage = 20;
   
   for (let i = 0; i < list.length; i += maxLinesPerPage) {
     pages.push(list.slice(i, i + maxLinesPerPage));
@@ -1045,7 +1045,7 @@ const bukubesarPages = computed(() => {
   const pages = [];
   let currentPageGroups = [];
   let currentLines = 0;
-  const maxLinesPerPage = 18; // same as Jurnal
+  const maxLinesPerPage = 28; // same as Jurnal
 
   groups.forEach((group) => {
     const rows = group.rows;
@@ -1289,7 +1289,7 @@ const jurnalPages = computed(() => {
   const pages = [];
   let currentPage = [];
   let currentLines = 0;
-  const maxLinesPerPage = 18; // A safe count of detail lines per A4 print page
+  const maxLinesPerPage = 28; // A safe count of detail lines per A4 print page
 
   transactions.forEach((tx) => {
     const linesNeeded = tx.details.length;
