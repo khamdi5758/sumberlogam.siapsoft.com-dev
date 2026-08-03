@@ -691,7 +691,7 @@ const isVisited = !!window.__accountingVisited[props.type];
 
 const popupRef = ref(null);
 const startDate = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-const endDate = ref(new Date());
+const endDate = ref(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0));
 
 const expandedKeys = ref([...props.defaultExpandedKeys]);
 const hasBeenFiltered = ref(props.showContentInitially || isVisited);

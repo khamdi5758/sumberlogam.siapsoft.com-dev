@@ -263,8 +263,8 @@ const props = defineProps({
 const emit = defineEmits(["on-filter-apply"]);
 
 const visible = ref(false);
-const startDate = ref(new Date());
-const endDate = ref(new Date());
+const startDate = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+const endDate = ref(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0));
 
 // For 'jurnal'
 const selectedType = ref(null);
