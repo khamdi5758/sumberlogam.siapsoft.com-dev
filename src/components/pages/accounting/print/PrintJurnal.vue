@@ -51,7 +51,7 @@
               </tr>
             </template>
 
-            <tr v-slot v-if="pageIdx === jurnalPages.length - 1" class="grand-total-row">
+            <tr v-if="pageIdx === jurnalPages.length - 1" class="grand-total-row">
               <td colspan="4" class="text-right font-bold py-2">GRAND TOTAL :</td>
               <td class="text-right font-bold py-2">{{ formatCurrencyID(grandTotalDebet) }}</td>
               <td class="text-right font-bold py-2">{{ formatCurrencyID(grandTotalKredit) }}</td>
