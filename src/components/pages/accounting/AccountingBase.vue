@@ -839,40 +839,40 @@
                     <td colspan="2" style="text-align: left; font-weight: bold;">
                       Total
                     </td>
-                    <td style="text-align: right; font-weight: bold;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(neracalajurTotals.saDebet) }}
                     </td>
-                    <td style="text-align: right; font-weight: bold;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(neracalajurTotals.saKredit) }}
                     </td>
-                    <td style="text-align: right; font-weight: bold;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(neracalajurTotals.mutasiDebet) }}
                     </td>
-                    <td style="text-align: right; font-weight: bold;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(neracalajurTotals.mutasiKredit) }}
                     </td>
-                    <td style="text-align: right; font-weight: bold;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(neracalajurTotals.penyesuaianDebet) }}
                     </td>
-                    <td style="text-align: right; font-weight: bold;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(neracalajurTotals.penyesuaianKredit) }}
                     </td>
-                    <td style="text-align: right; font-weight: bold;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(neracalajurTotals.nsDebet) }}
                     </td>
-                    <td style="text-align: right; font-weight: bold;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(neracalajurTotals.nsKredit) }}
                     </td>
-                    <td style="text-align: right; font-weight: bold;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(neracalajurTotals.lrDebet) }}
                     </td>
-                    <td style="text-align: right; font-weight: bold;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(neracalajurTotals.lrKredit) }}
                     </td>
-                    <td style="text-align: right; font-weight: bold;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(neracalajurTotals.neracaDebet) }}
                     </td>
-                    <td style="text-align: right; font-weight: bold;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(neracalajurTotals.neracaKredit) }}
                     </td>
                   </tr>
@@ -2650,7 +2650,6 @@ onUnmounted(() => {
 
 .neracalajur-total-row td {
   border: 1px solid #000000;
-  font-weight: bold;
   background-color: #ffffff;
 }
 
