@@ -138,7 +138,7 @@ const labarugiPages = computed(() => {
   const pages = [];
   let currentPageItems = [];
   let currentLines = 0;
-  const maxLinesPerPage = 48;
+  const maxLinesPerPage = 58;
 
   groups.forEach((group) => {
     const linesNeeded = 2 + group.rows.length + 2;
@@ -154,7 +154,7 @@ const labarugiPages = computed(() => {
       });
       currentLines += linesNeeded;
     } else {
-      if (linesNeeded <= 8 || currentLines > 33) {
+      if (linesNeeded <= 8 || currentLines > 45) {
         pages.push(currentPageItems);
         currentPageItems = [{
           type: "group",
