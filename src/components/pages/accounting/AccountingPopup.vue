@@ -31,15 +31,41 @@
       <!-- Form -->
       <div class="pt-4">
         <div class="space-y-4">
+          <!-- Kondisi Type: Neraca (Boxed Container) -->
+          <div v-if="type === 'neraca'" class="border border-slate-300 rounded-md p-4 bg-slate-50 space-y-3">
+            <!-- Dari Tanggal -->
+            <div class="grid grid-cols-1 items-center gap-2 sm:grid-cols-[120px_1fr]">
+              <label class="text-[14px] font-medium text-slate-700">Dari Tanggal :</label>
+              <DxDateBox
+                v-model:value="startDate"
+                type="date"
+                display-format="dd/MM/yyyy"
+                :use-mask-behavior="true"
+                styling-mode="outlined"
+              />
+            </div>
+            <!-- S/d Tanggal -->
+            <div class="grid grid-cols-1 items-center gap-2 sm:grid-cols-[120px_1fr]">
+              <label class="text-[14px] font-medium text-slate-700">S/d Tanggal :</label>
+              <DxDateBox
+                v-model:value="endDate"
+                type="date"
+                display-format="dd/MM/yyyy"
+                :use-mask-behavior="true"
+                styling-mode="outlined"
+              />
+            </div>
+          </div>
+
           <!-- Mulai Tanggal / Dari Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, Neraca Lajur, atau Neraca) -->
           <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur' && type !== 'neraca'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
             <label class="text-[14px] text-slate-700">
-              {{ type === 'neraca' ? 'Dari Tanggal' : 'Mulai Tanggal' }}
+              Mulai Tanggal
             </label>
             <DxDateBox
               v-model:value="startDate"
               type="date"
-              display-format="dd-MM-yyyy"
+              display-format="dd/MM/yyyy"
               :use-mask-behavior="true"
               styling-mode="outlined"
             />
@@ -48,12 +74,12 @@
           <!-- Sampai Tanggal / S/d Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, Neraca Lajur, atau Neraca) -->
           <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur' && type !== 'neraca'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
             <label class="text-[14px] text-slate-700">
-              {{ type === 'neraca' ? 'S/d Tanggal' : 'Sampai Tanggal' }}
+              Sampai Tanggal
             </label>
             <DxDateBox
               v-model:value="endDate"
               type="date"
-              display-format="dd-MM-yyyy"
+              display-format="dd/MM/yyyy"
               :use-mask-behavior="true"
               styling-mode="outlined"
             />
@@ -139,8 +165,8 @@
             </div>
           </template>
 
-          <!-- Kondisi Type: Mutasi, Aktiva Tetap, Laba Rugi, Neraca Lajur, atau Neraca -->
-          <template v-else-if="type === 'mutasi' || type === 'aktivatetap' || type === 'labarugi' || type === 'neracalajur' || type === 'neraca'">
+          <!-- Kondisi Type: Mutasi, Aktiva Tetap, Laba Rugi, Neraca Lajur -->
+          <template v-else-if="type === 'mutasi' || type === 'aktivatetap' || type === 'labarugi' || type === 'neracalajur'">
             <!-- Periode -->
             <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
               <label class="text-[14px] text-slate-700">Periode :</label>
@@ -217,20 +243,32 @@
 
       <!-- Tombol -->
       <div class="mt-5 flex justify-end gap-3 border-t border-slate-100 pt-4">
-        <button
-          type="button"
-          class="min-w-[80px] rounded-lg bg-[#e12b2b] px-4 py-2 text-[14px] font-semibold text-white transition hover:bg-[#c61f1f] active:translate-y-px"
-          @click="close"
-        >
-          Batal
-        </button>
-        <button
-          type="button"
-          class="min-w-[80px] rounded-lg bg-[#0f3d7a] px-4 py-2 text-[14px] font-semibold text-white transition hover:bg-[#0b2f5f] active:translate-y-px"
-          @click="applyFilter"
-        >
-          {{ submitButtonText }}
-        </button>
+        <template v-if="type === 'neraca'">
+          <button
+            type="button"
+            class="flex items-center gap-2 rounded border border-slate-300 bg-white px-4 py-1.5 text-[14px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:translate-y-px"
+            @click="applyFilter"
+          >
+            <Printer :size="16" />
+            <span class="underline">C</span>etak
+          </button>
+        </template>
+        <template v-else>
+          <button
+            type="button"
+            class="min-w-[80px] rounded-lg bg-[#e12b2b] px-4 py-2 text-[14px] font-semibold text-white transition hover:bg-[#c61f1f] active:translate-y-px"
+            @click="close"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            class="min-w-[80px] rounded-lg bg-[#0f3d7a] px-4 py-2 text-[14px] font-semibold text-white transition hover:bg-[#0b2f5f] active:translate-y-px"
+            @click="applyFilter"
+          >
+            {{ submitButtonText }}
+          </button>
+        </template>
       </div>
     </section>
   </div>
@@ -238,7 +276,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { X, MoreHorizontal } from "lucide-vue-next";
+import { X, MoreHorizontal, Printer } from "lucide-vue-next";
 import { DxDateBox } from "devextreme-vue/date-box";
 import { DxSelectBox } from "devextreme-vue/select-box";
 import { DxTextBox } from "devextreme-vue/text-box";
@@ -342,7 +380,7 @@ const applyFilter = () => {
       valas: valas.value,
       formatOption: formatOption.value,
     };
-  } else if (props.type === "mutasi" || props.type === "aktivatetap" || props.type === "labarugi" || props.type === "neracalajur" || props.type === "neraca") {
+  } else if (props.type === "mutasi" || props.type === "aktivatetap" || props.type === "labarugi" || props.type === "neracalajur") {
     const start = new Date(selectedYear.value, selectedMonth.value - 1, 1);
     const end = new Date(selectedYear.value, selectedMonth.value, 0);
 
@@ -351,6 +389,16 @@ const applyFilter = () => {
       endDate: end,
       month: selectedMonth.value,
       year: selectedYear.value,
+    };
+  } else if (props.type === "neraca") {
+    const start = new Date(startDate.value);
+    const end = new Date(endDate.value);
+
+    payload = {
+      startDate: start,
+      endDate: end,
+      month: end.getMonth() + 1,
+      year: end.getFullYear(),
     };
   } else if (props.type === "biaya") {
     const start = new Date(selectedYear.value, selectedMonth.value - 1, 1);
