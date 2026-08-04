@@ -638,72 +638,72 @@
               <table class="neracalajur-table">
                 <thead>
                   <tr class="neracalajur-header-top">
-                    <th rowspan="2" style="width: 6%; text-align: left; border: 1px solid #000; padding: 4px;">Perkiraan</th>
-                    <th rowspan="2" style="width: 14%; text-align: left; border: 1px solid #000; padding: 4px;">Keterangan</th>
-                    <th colspan="2" style="width: 13%; text-align: center; border: 1px solid #000; padding: 4px;">Saldo Awal</th>
-                    <th colspan="2" style="width: 13%; text-align: center; border: 1px solid #000; padding: 4px;">Mutasi Kas & Bank</th>
-                    <th colspan="2" style="width: 13%; text-align: center; border: 1px solid #000; padding: 4px;">Penyesuaian</th>
-                    <th colspan="2" style="width: 13%; text-align: center; border: 1px solid #000; padding: 4px;">Neraca Saldo</th>
-                    <th colspan="2" style="width: 13%; text-align: center; border: 1px solid #000; padding: 4px;">Laba/Rugi</th>
-                    <th colspan="2" style="width: 13%; text-align: center; border: 1px solid #000; padding: 4px;">Neraca</th>
+                    <th rowspan="2" style="width: 6%; text-align: left;">Perkiraan</th>
+                    <th rowspan="2" style="width: 14%; text-align: left;">Keterangan</th>
+                    <th colspan="2" style="width: 13%; text-align: center;">Saldo Awal</th>
+                    <th colspan="2" style="width: 13%; text-align: center;">Mutasi Kas & Bank</th>
+                    <th colspan="2" style="width: 13%; text-align: center;">Penyesuaian</th>
+                    <th colspan="2" style="width: 13%; text-align: center;">Neraca Saldo</th>
+                    <th colspan="2" style="width: 13%; text-align: center;">Laba/Rugi</th>
+                    <th colspan="2" style="width: 13%; text-align: center;">Neraca</th>
                   </tr>
                   <tr class="neracalajur-header-bottom">
-                    <th style="width: 6.5%; text-align: right; border: 1px solid #000; padding: 4px;">Debet</th>
-                    <th style="width: 6.5%; text-align: right; border: 1px solid #000; padding: 4px;">Kredit</th>
-                    <th style="width: 6.5%; text-align: right; border: 1px solid #000; padding: 4px;">Debet</th>
-                    <th style="width: 6.5%; text-align: right; border: 1px solid #000; padding: 4px;">Kredit</th>
-                    <th style="width: 6.5%; text-align: right; border: 1px solid #000; padding: 4px;">Debet</th>
-                    <th style="width: 6.5%; text-align: right; border: 1px solid #000; padding: 4px;">Kredit</th>
-                    <th style="width: 6.5%; text-align: right; border: 1px solid #000; padding: 4px;">Debet</th>
-                    <th style="width: 6.5%; text-align: right; border: 1px solid #000; padding: 4px;">Kredit</th>
-                    <th style="width: 6.5%; text-align: right; border: 1px solid #000; padding: 4px;">Debet</th>
-                    <th style="width: 6.5%; text-align: right; border: 1px solid #000; padding: 4px;">Kredit</th>
-                    <th style="width: 6.5%; text-align: right; border: 1px solid #000; padding: 4px;">Debet</th>
-                    <th style="width: 6.5%; text-align: right; border: 1px solid #000; padding: 4px;">Kredit</th>
+                    <th style="width: 6.5%; text-align: right;">Debet</th>
+                    <th style="width: 6.5%; text-align: right;">Kredit</th>
+                    <th style="width: 6.5%; text-align: right;">Debet</th>
+                    <th style="width: 6.5%; text-align: right;">Kredit</th>
+                    <th style="width: 6.5%; text-align: right;">Debet</th>
+                    <th style="width: 6.5%; text-align: right;">Kredit</th>
+                    <th style="width: 6.5%; text-align: right;">Debet</th>
+                    <th style="width: 6.5%; text-align: right;">Kredit</th>
+                    <th style="width: 6.5%; text-align: right;">Debet</th>
+                    <th style="width: 6.5%; text-align: right;">Kredit</th>
+                    <th style="width: 6.5%; text-align: right;">Debet</th>
+                    <th style="width: 6.5%; text-align: right;">Kredit</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(row, rowIdx) in pageRows" :key="rowIdx" class="neracalajur-data-row">
-                    <td class="text-left" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: left;">
                       {{ row.perkiraan }}
                     </td>
-                    <td class="text-left" style="border: 1px solid #000; padding: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <td style="text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                       {{ row.keterangan }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(row.saDebet) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(row.saKredit) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(row.mutasiDebet) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(row.mutasiKredit) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(row.penyesuaianDebet) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(row.penyesuaianKredit) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(row.nsDebet) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(row.nsKredit) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(row.lrDebet) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(row.lrKredit) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(row.neracaDebet) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px;">
+                    <td style="text-align: right;">
                       {{ formatCurrencyID(row.neracaKredit) }}
                     </td>
                   </tr>
@@ -711,62 +711,62 @@
                   <!-- Fill remaining blank rows if it is not the last page, to keep page size consistent -->
                   <template v-if="pageIdx < neracalajurPages.length - 1">
                     <tr v-for="blankIdx in (20 - pageRows.length)" :key="'blank-' + blankIdx" class="neracalajur-data-row-blank">
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
-                      <td style="border: 1px solid #000; height: 25px;"></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
                     </tr>
                   </template>
 
                   <!-- Totals Row (Only on the last page) -->
                   <tr v-if="pageIdx === neracalajurPages.length - 1" class="neracalajur-total-row">
-                    <td colspan="2" class="text-left" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td colspan="2" style="text-align: left; font-weight: bold;">
                       Total
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.saDebet) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.saKredit) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.mutasiDebet) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.mutasiKredit) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.penyesuaianDebet) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.penyesuaianKredit) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.nsDebet) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.nsKredit) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.lrDebet) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.lrKredit) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.neracaDebet) }}
                     </td>
-                    <td class="text-right" style="border: 1px solid #000; padding: 4px; font-weight: bold;">
+                    <td style="text-align: right; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.neracaKredit) }}
                     </td>
                   </tr>
@@ -776,54 +776,54 @@
 
             <!-- Footer -->
             <div class="jurnal-print-footer">
-              <table style="width: 100%; border-collapse: collapse; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10px; color: #000; margin-top: 4px;">
+              <table style="width: 100%; border-collapse: collapse; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 8px; color: #000; margin-top: 4px;">
                 <tbody>
                   <tr>
                     <!-- Page Number, Date, Time -->
-                    <td style="width: 6%; text-align: left; padding: 2px;">
+                    <td style="width: 6%; text-align: left; padding: 2px 1px;">
                       {{ pageIdx + 1 }} of {{ neracalajurPages.length }}
                     </td>
-                    <td style="width: 7%; text-align: left; padding: 2px;">
+                    <td style="width: 7%; text-align: left; padding: 2px 1px;">
                       {{ currentPrintDateOnly }}
                     </td>
-                    <td style="width: 7%; text-align: left; padding: 2px;">
+                    <td style="width: 7%; text-align: left; padding: 2px 1px;">
                       {{ currentPrintTimeOnly }}
                     </td>
                     <!-- 12 Totals -->
-                    <td style="width: 6.5%; text-align: right; padding: 2px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.saDebet) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.saKredit) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.mutasiDebet) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.mutasiKredit) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.penyesuaianDebet) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.penyesuaianKredit) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.nsDebet) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.nsKredit) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.lrDebet) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.lrKredit) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.neracaDebet) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
                       {{ formatCurrencyID(neracalajurTotals.neracaKredit) }}
                     </td>
                   </tr>
@@ -2458,17 +2458,16 @@ onUnmounted(() => {
   width: 100%;
   border-collapse: collapse;
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 10px;
+  font-size: 8px;
   color: #000000 !important;
   table-layout: fixed;
 }
 
 .neracalajur-table th, .neracalajur-table td {
   border: 1px solid #000000;
-  padding: 3px 4px;
+  padding: 2px 2px;
   vertical-align: middle;
-  word-wrap: break-word;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 .neracalajur-table th {
