@@ -614,10 +614,7 @@
 
       <!-- Kondisi Neraca: Render PDF-style A4 Preview -->
       <template v-else-if="type === 'neraca'">
-        <div v-if="dataSource.length === 0" class="no-data-jurnal">
-          Tidak ada data neraca untuk periode ini.
-        </div>
-        <div v-else class="jurnal-preview-container">
+        <div class="jurnal-preview-container">
           <div
             v-for="(pageRows, pageIdx) in neracaPages"
             :key="pageIdx"
@@ -696,7 +693,7 @@
                   </tr>
 
                   <!-- Fill remaining blank rows if it is not the last page, to keep page size consistent -->
-                  <template v-if="pageIdx < neracaPages.length - 1">
+                  <template v-if="pageRows.length < 28">
                     <tr v-for="blankIdx in (28 - pageRows.length)" :key="'blank-' + blankIdx" class="neraca-data-row-blank">
                       <td style="border: 1px solid #000; height: 18px;"></td>
                       <td style="border: 1px solid #000;"></td>
