@@ -710,7 +710,7 @@
 
                   <!-- Fill remaining blank rows if it is not the last page, to keep page size consistent -->
                   <template v-if="pageIdx < neracalajurPages.length - 1">
-                    <tr v-for="blankIdx in (20 - pageRows.length)" :key="'blank-' + blankIdx" class="neracalajur-data-row-blank">
+                    <tr v-for="blankIdx in (28 - pageRows.length)" :key="'blank-' + blankIdx" class="neracalajur-data-row-blank">
                       <td></td>
                       <td></td>
                       <td></td>
@@ -790,40 +790,40 @@
                       {{ currentPrintTimeOnly }}
                     </td>
                     <!-- 12 Totals -->
-                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px;">
                       {{ formatCurrencyID(neracalajurTotals.saDebet) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px;">
                       {{ formatCurrencyID(neracalajurTotals.saKredit) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px;">
                       {{ formatCurrencyID(neracalajurTotals.mutasiDebet) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px;">
                       {{ formatCurrencyID(neracalajurTotals.mutasiKredit) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px;">
                       {{ formatCurrencyID(neracalajurTotals.penyesuaianDebet) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px;">
                       {{ formatCurrencyID(neracalajurTotals.penyesuaianKredit) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px;">
                       {{ formatCurrencyID(neracalajurTotals.nsDebet) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px;">
                       {{ formatCurrencyID(neracalajurTotals.nsKredit) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px;">
                       {{ formatCurrencyID(neracalajurTotals.lrDebet) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px;">
                       {{ formatCurrencyID(neracalajurTotals.lrKredit) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px;">
                       {{ formatCurrencyID(neracalajurTotals.neracaDebet) }}
                     </td>
-                    <td style="width: 6.5%; text-align: right; padding: 2px 1px; font-weight: bold;">
+                    <td style="width: 6.5%; text-align: right; padding: 2px 1px;">
                       {{ formatCurrencyID(neracalajurTotals.neracaKredit) }}
                     </td>
                   </tr>
@@ -1383,7 +1383,7 @@ const neracalajurPages = computed(() => {
   
   const list = neracalajurList.value;
   const pages = [];
-  const maxLinesPerPage = 20;
+  const maxLinesPerPage = 28;
   
   for (let i = 0; i < list.length; i += maxLinesPerPage) {
     pages.push(list.slice(i, i + maxLinesPerPage));
