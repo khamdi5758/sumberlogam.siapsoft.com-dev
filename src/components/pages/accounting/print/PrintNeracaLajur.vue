@@ -18,54 +18,68 @@
         <table class="neracalajur-table">
           <thead>
             <tr class="neracalajur-header-top">
-              <th rowspan="2" style="width: 5%">Kode</th>
-              <th rowspan="2" style="width: 19%">Nama Perkiraan</th>
-              <th colspan="2" style="width: 19%">Neraca Saldo</th>
-              <th colspan="2" style="width: 19%">Penyesuaian</th>
-              <th colspan="2" style="width: 19%">Rugi/Laba</th>
-              <th colspan="2" style="width: 19%">Neraca</th>
+              <th rowspan="2" style="width: 6%; text-align: left;">Perkiraan</th>
+              <th rowspan="2" style="width: 14%; text-align: left;">Keterangan</th>
+              <th colspan="2" style="width: 13%; text-align: center;">Saldo Awal</th>
+              <th colspan="2" style="width: 13%; text-align: center;">Mutasi Kas & Bank</th>
+              <th colspan="2" style="width: 13%; text-align: center;">Penyesuaian</th>
+              <th colspan="2" style="width: 13%; text-align: center;">Neraca Saldo</th>
+              <th colspan="2" style="width: 13%; text-align: center;">Laba/Rugi</th>
+              <th colspan="2" style="width: 13%; text-align: center;">Neraca</th>
             </tr>
             <tr class="neracalajur-header-bottom">
-              <th>Debet</th>
-              <th>Kredit</th>
-              <th>Debet</th>
-              <th>Kredit</th>
-              <th>Debet</th>
-              <th>Kredit</th>
-              <th>Debet</th>
-              <th>Kredit</th>
+              <th style="text-align: right;">Debet</th>
+              <th style="text-align: right;">Kredit</th>
+              <th style="text-align: right;">Debet</th>
+              <th style="text-align: right;">Kredit</th>
+              <th style="text-align: right;">Debet</th>
+              <th style="text-align: right;">Kredit</th>
+              <th style="text-align: right;">Debet</th>
+              <th style="text-align: right;">Kredit</th>
+              <th style="text-align: right;">Debet</th>
+              <th style="text-align: right;">Kredit</th>
+              <th style="text-align: right;">Debet</th>
+              <th style="text-align: right;">Kredit</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(row, rIdx) in pageRows" :key="rIdx" class="neracalajur-data-row">
-              <td>{{ row.perkiraan }}</td>
-              <td class="text-left" style="overflow: hidden; text-overflow: ellipsis;">{{ row.keterangan }}</td>
-              <td class="text-right">{{ formatCurrency(row.nsDebet) }}</td>
-              <td class="text-right">{{ formatCurrency(row.nsKredit) }}</td>
-              <td class="text-right">{{ formatCurrency(row.penyesuaianDebet) }}</td>
-              <td class="text-right">{{ formatCurrency(row.penyesuaianKredit) }}</td>
-              <td class="text-right">{{ formatCurrency(row.rlDebet) }}</td>
-              <td class="text-right">{{ formatCurrency(row.rlKredit) }}</td>
-              <td class="text-right">{{ formatCurrency(row.neracaDebet) }}</td>
-              <td class="text-right">{{ formatCurrency(row.neracaKredit) }}</td>
+              <td style="text-align: left;">{{ row.perkiraan }}</td>
+              <td class="text-left" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ row.keterangan }}</td>
+              <td style="text-align: right;">{{ formatCurrency(row.saDebet) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(row.saKredit) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(row.mutasiDebet) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(row.mutasiKredit) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(row.penyesuaianDebet) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(row.penyesuaianKredit) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(row.nsDebet) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(row.nsKredit) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(row.rlDebet) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(row.rlKredit) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(row.neracaDebet) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(row.neracaKredit) }}</td>
             </tr>
 
             <template v-if="pageIdx < neracalajurPages.length - 1">
               <tr v-for="blankIdx in (28 - pageRows.length)" :key="'blank-' + blankIdx" class="neracalajur-data-row-blank">
-                <td v-for="n in 10" :key="n"></td>
+                <td v-for="n in 14" :key="n"></td>
               </tr>
             </template>
 
             <tr v-if="pageIdx === neracalajurPages.length - 1" class="neracalajur-total-row">
-              <td colspan="2" class="text-right">TOTAL :</td>
-              <td class="text-right">{{ formatCurrency(neracalajurTotals.nsDebet) }}</td>
-              <td class="text-right">{{ formatCurrency(neracalajurTotals.nsKredit) }}</td>
-              <td class="text-right">{{ formatCurrency(neracalajurTotals.penyesuaianDebet) }}</td>
-              <td class="text-right">{{ formatCurrency(neracalajurTotals.penyesuaianKredit) }}</td>
-              <td class="text-right">{{ formatCurrency(neracalajurTotals.rlDebet) }}</td>
-              <td class="text-right">{{ formatCurrency(neracalajurTotals.rlKredit) }}</td>
-              <td class="text-right">{{ formatCurrency(neracalajurTotals.neracaDebet) }}</td>
-              <td class="text-right">{{ formatCurrency(neracalajurTotals.neracaKredit) }}</td>
+              <td colspan="2" style="text-align: left; font-weight: bold;">TOTAL :</td>
+              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.saDebet) }}</td>
+              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.saKredit) }}</td>
+              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.mutasiDebet) }}</td>
+              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.mutasiKredit) }}</td>
+              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.penyesuaianDebet) }}</td>
+              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.penyesuaianKredit) }}</td>
+              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.nsDebet) }}</td>
+              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.nsKredit) }}</td>
+              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.rlDebet) }}</td>
+              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.rlKredit) }}</td>
+              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.neracaDebet) }}</td>
+              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.neracaKredit) }}</td>
             </tr>
           </tbody>
         </table>
@@ -103,22 +117,30 @@ const neracalajurList = computed(() => {
     const perkiraan = item.Perkiraan !== undefined ? item.Perkiraan : (item.perkiraan !== undefined ? item.perkiraan : "");
     const keterangan = item.Keterangan !== undefined ? item.Keterangan : (item.keterangan !== undefined ? item.keterangan : "");
 
-    const nsDebet = Number(item.NSDebet !== undefined ? item.NSDebet : (item.nsdebet !== undefined ? item.nsdebet : 0));
-    const nsKredit = Number(item.NSKredit !== undefined ? item.NSKredit : (item.nskredit !== undefined ? item.nskredit : 0));
+    const saDebet = Number(item.SaldoAwD !== undefined ? item.SaldoAwD : 0);
+    const saKredit = Number(item.SaldoAwK !== undefined ? item.SaldoAwK : 0);
 
-    const penyesuaianDebet = Number(item.PenyesuaianDebet !== undefined ? item.PenyesuaianDebet : (item.penyesuaiandebet !== undefined ? item.penyesuaiandebet : 0));
-    const penyesuaianKredit = Number(item.PenyesuaianKredit !== undefined ? item.PenyesuaianKredit : (item.penyesuaiankredit !== undefined ? item.penyesuaiankredit : 0));
+    const mutasiDebet = Number(item.MutasiDebet !== undefined ? item.MutasiDebet : (item.mutasidebet !== undefined ? item.mutasidebet : 0));
+    const mutasiKredit = Number(item.MutasiKredit !== undefined ? item.MutasiKredit : (item.mutasikredit !== undefined ? item.mutasikredit : 0));
 
-    const rlDebet = Number(item.RLDebet !== undefined ? item.RLDebet : (item.rldebet !== undefined ? item.rldebet : 0));
-    const rlKredit = Number(item.RLKredit !== undefined ? item.RLKredit : (item.rlkredit !== undefined ? item.rlkredit : 0));
+    const penyesuaianDebet = Number(item.JPD !== undefined ? item.JPD : 0);
+    const penyesuaianKredit = Number(item.JPK !== undefined ? item.JPK : 0);
 
-    const neracaDebet = Number(item.NeracaDebet !== undefined ? item.NeracaDebet : (item.neracadebet !== undefined ? item.neracadebet : 0));
-    const neracaKredit = Number(item.NeracaKredit !== undefined ? item.NeracaKredit : (item.neracakredit !== undefined ? item.neracakredit : 0));
+    const nsDebet = Number(item.NeracaSaldoAkd !== undefined ? item.NeracaSaldoAkd : 0);
+    const nsKredit = Number(item.NeracaSaldoAkk !== undefined ? item.NeracaSaldoAkk : 0);
+
+    const rlDebet = Number(item.LRD !== undefined ? item.LRD : 0);
+    const rlKredit = Number(item.LRK !== undefined ? item.LRK : 0);
+
+    const neracaDebet = Number(item.NeracaSaldoAkD !== undefined ? item.NeracaSaldoAkD : 0);
+    const neracaKredit = Number(item.NeracaSaldoAkK !== undefined ? item.NeracaSaldoAkK : 0);
 
     return {
       perkiraan, keterangan,
-      nsDebet, nsKredit,
+      saDebet, saKredit,
+      mutasiDebet, mutasiKredit,
       penyesuaianDebet, penyesuaianKredit,
+      nsDebet, nsKredit,
       rlDebet, rlKredit,
       neracaDebet, neracaKredit
     };
@@ -126,7 +148,7 @@ const neracalajurList = computed(() => {
 });
 
 const neracalajurTotals = computed(() => {
-  let totals = { nsDebet: 0, nsKredit: 0, penyesuaianDebet: 0, penyesuaianKredit: 0, rlDebet: 0, rlKredit: 0, neracaDebet: 0, neracaKredit: 0 };
+  let totals = { saDebet: 0, saKredit: 0, mutasiDebet: 0, mutasiKredit: 0, penyesuaianDebet: 0, penyesuaianKredit: 0, nsDebet: 0, nsKredit: 0, rlDebet: 0, rlKredit: 0, neracaDebet: 0, neracaKredit: 0 };
   neracalajurList.value.forEach((row) => {
     Object.keys(totals).forEach(key => { totals[key] += row[key]; });
   });
