@@ -43,13 +43,13 @@ const actions = {
       const payload = {
         startDate: formatDate(requestPayload.startDate),
         endDate: formatDate(requestPayload.endDate),
-        bulan: requestPayload.month || requestPayload.bulan,
-        tahun: requestPayload.year || requestPayload.tahun,
+        //bulan: requestPayload.month || requestPayload.bulan,
+        //tahun: requestPayload.year || requestPayload.tahun,
       };
 
       const response = await api.post("labarugineraca/neraca", payload);
       const resultData = response.data?.data || response.data || [];
-      
+
       commit("setNeracaList", resultData);
       commit("setKetsp", response.data?.sqlquery || response.data?.ketsp || "");
     } catch (error) {
