@@ -1,5 +1,13 @@
 import api from "@/api";
 
+const formatDate = (date) => {
+  if (!date) return null;
+  const d = new Date(date);
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+};
+
 const state = {
   neracaList: [],
   isLoading: false,
@@ -33,6 +41,8 @@ const actions = {
     commit("setLoading", true);
     try {
       const payload = {
+        startDate: formatDate(requestPayload.startDate),
+        endDate: formatDate(requestPayload.endDate),
         bulan: requestPayload.month || requestPayload.bulan,
         tahun: requestPayload.year || requestPayload.tahun,
       };
