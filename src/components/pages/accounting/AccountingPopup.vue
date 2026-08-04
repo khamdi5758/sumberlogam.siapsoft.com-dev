@@ -217,32 +217,20 @@
 
       <!-- Tombol -->
       <div class="mt-5 flex justify-end gap-3 border-t border-slate-100 pt-4">
-        <template v-if="type === 'neraca'">
-          <button
-            type="button"
-            class="flex items-center gap-2 rounded border border-slate-300 bg-white px-4 py-1.5 text-[14px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:translate-y-px"
-            @click="applyFilter"
-          >
-            <Printer :size="16" />
-            <span class="underline">C</span>etak
-          </button>
-        </template>
-        <template v-else>
-          <button
-            type="button"
-            class="min-w-[80px] rounded-lg bg-[#e12b2b] px-4 py-2 text-[14px] font-semibold text-white transition hover:bg-[#c61f1f] active:translate-y-px"
-            @click="close"
-          >
-            Batal
-          </button>
-          <button
-            type="button"
-            class="min-w-[80px] rounded-lg bg-[#0f3d7a] px-4 py-2 text-[14px] font-semibold text-white transition hover:bg-[#0b2f5f] active:translate-y-px"
-            @click="applyFilter"
-          >
-            {{ submitButtonText }}
-          </button>
-        </template>
+        <button
+          type="button"
+          class="min-w-[80px] rounded-lg bg-[#e12b2b] px-4 py-2 text-[14px] font-semibold text-white transition hover:bg-[#c61f1f] active:translate-y-px"
+          @click="close"
+        >
+          Batal
+        </button>
+        <button
+          type="button"
+          class="min-w-[80px] rounded-lg bg-[#0f3d7a] px-4 py-2 text-[14px] font-semibold text-white transition hover:bg-[#0b2f5f] active:translate-y-px"
+          @click="applyFilter"
+        >
+          {{ submitButtonText }}
+        </button>
       </div>
     </section>
   </div>
