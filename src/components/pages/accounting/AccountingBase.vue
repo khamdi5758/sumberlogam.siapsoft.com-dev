@@ -32,7 +32,7 @@
     </div>
 
     <!-- UI/UX: Card putih bersih untuk memberikan fokus pada angka -->
-    <div v-if="hasBeenFiltered" :class="['jurnal', 'bukubesar', 'mutasi', 'biaya', 'aktivatetap'].includes(type) ? 'jurnal-preview-outer' : 'card-box'">
+    <div v-if="hasBeenFiltered" :class="['jurnal', 'bukubesar', 'mutasi', 'biaya', 'aktivatetap', 'labarugi'].includes(type) ? 'jurnal-preview-outer' : 'card-box'">
       <!-- Kondisi Jurnal: Render PDF-style A4 Preview -->
       <template v-if="type === 'jurnal'">
         <div v-if="dataSource.length === 0" class="no-data-jurnal">
@@ -534,6 +534,84 @@
         </div>
       </template>
 
+      <!-- Kondisi Laba Rugi: Render PDF-style A4 Preview -->
+      <template v-else-if="type === 'labarugi'">
+        <div v-if="dataSource.length === 0" class="no-data-jurnal">
+          Tidak ada data laba rugi untuk periode ini.
+        </div>
+        <div v-else class="jurnal-preview-container">
+          <div
+            v-for="(pageGroups, pageIdx) in labarugiPages"
+            :key="pageIdx"
+            class="jurnal-page-sheet"
+          >
+            <!-- Header -->
+            <div class="jurnal-print-header" style="text-align: left; margin-bottom: 20px;">
+              <h3 class="jurnal-report-title" style="font-size: 14px; font-weight: bold; font-family: ui-sans-serif, system-ui, sans-serif; color: #000; margin: 0 0 2px 0;">
+                Laporan : Laba / Rugi
+              </h3>
+              <p class="jurnal-report-subtitle" style="font-size: 12px; font-weight: bold; color: #000; margin: 0;">
+                Periode : {{ labaRugiPeriod }}
+              </p>
+            </div>
+
+            <!-- Table Container -->
+            <div class="jurnal-table-wrapper">
+              <div v-for="(item, idx) in pageGroups" :key="idx" style="margin-bottom: 12px;">
+                <!-- Group Header -->
+                <div v-if="item.type === 'group'" style="margin-bottom: 4px;">
+                  <div v-if="item.isStart" class="labarugi-group-header">
+                    {{ item.name.toUpperCase() }}
+                  </div>
+                  <div v-else class="labarugi-group-header-continued">
+                    {{ item.name.toUpperCase() }} (Sambungan)
+                  </div>
+
+                  <!-- Rows -->
+                  <div v-for="(row, rowIdx) in item.rows" :key="rowIdx" class="labarugi-row">
+                    <div class="labarugi-cell-name">
+                      {{ row.code }} - {{ row.name }}
+                    </div>
+                    <div class="labarugi-cell-amount">
+                      {{ formatLabaRugiCurrency(row.amount) }}
+                    </div>
+                  </div>
+
+                  <!-- Subtotal -->
+                  <div v-if="item.isEnd" class="labarugi-subtotal-row">
+                    <div class="labarugi-cell-name font-bold">
+                      SubTotal {{ item.name }}
+                    </div>
+                    <div class="labarugi-cell-amount font-bold">
+                      {{ formatLabaRugiCurrency(item.subtotal) }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Final Net Profit / Loss -->
+                <div v-else-if="item.type === 'netProfitLoss'" class="labarugi-netprofit-row">
+                  <div class="labarugi-cell-name font-bold">
+                    LABA / (RUGI) BERSIH :
+                  </div>
+                  <div class="labarugi-cell-amount font-bold">
+                    {{ formatLabaRugiCurrency(netProfitLoss) }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="jurnal-print-footer">
+              <div style="display: flex; justify-content: space-between; font-size: 11px; font-family: ui-sans-serif, system-ui, sans-serif; color: #000; border-top: 1px solid #000; padding-top: 4px;">
+                <span>{{ pageIdx + 1 }} of {{ labarugiPages.length }}</span>
+                <span>{{ currentPrintDateOnly }}</span>
+                <span>{{ currentPrintTimeOnly }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <DxTreeList
         v-else
         id="profit-loss-tree"
@@ -786,6 +864,191 @@ const mutasiPages = computed(() => {
   
   return pages;
 });
+
+const labarugiGroups = computed(() => {
+  if (props.type !== "labarugi") return [];
+  
+  const groupsMap = new Map();
+  const groupsOrder = [];
+  
+  props.dataSource.forEach((item) => {
+    let groupName = item.nmgroup1 || item.NamaHeader || item.Header;
+    if (!groupName) {
+      groupName = "Lain-lain";
+    }
+    
+    const code = item.perkiraan !== undefined ? item.perkiraan : item.Perkiraan;
+    const name = item.Keterangan !== undefined ? item.Keterangan : (item.keterangan !== undefined ? item.keterangan : item.accountName);
+    
+    let amountVal = 0;
+    if (item.Jumlah !== undefined) amountVal = Number(item.Jumlah);
+    else if (item.Perhitungan !== undefined) amountVal = Number(item.Perhitungan);
+    else if (item.SaldoAkhirD !== undefined) amountVal = Number(item.SaldoAkhirD);
+    else if (item.NeracaSaldoAkD !== undefined) amountVal = Number(item.NeracaSaldoAkD);
+    
+    const row = {
+      code,
+      name,
+      amount: amountVal
+    };
+    
+    if (!groupsMap.has(groupName)) {
+      const newGroup = {
+        name: groupName,
+        rows: [row],
+        subtotal: amountVal
+      };
+      groupsMap.set(groupName, newGroup);
+      groupsOrder.push(newGroup);
+    } else {
+      const existing = groupsMap.get(groupName);
+      existing.rows.push(row);
+      existing.subtotal += amountVal;
+    }
+  });
+  
+  return groupsOrder;
+});
+
+const netProfitLoss = computed(() => {
+  if (props.type !== "labarugi") return 0;
+  return labarugiGroups.value.reduce((sum, g) => sum + g.subtotal, 0);
+});
+
+const labarugiPages = computed(() => {
+  if (props.type !== "labarugi") return [];
+  
+  const groups = labarugiGroups.value;
+  const pages = [];
+  let currentPageItems = [];
+  let currentLines = 0;
+  const maxLinesPerPage = 28;
+
+  groups.forEach((group) => {
+    const linesNeeded = 2 + group.rows.length + 2;
+    
+    if (currentPageItems.length === 0 || currentLines + linesNeeded <= maxLinesPerPage) {
+      currentPageItems.push({
+        type: "group",
+        name: group.name,
+        rows: group.rows,
+        subtotal: group.subtotal,
+        isStart: true,
+        isEnd: true
+      });
+      currentLines += linesNeeded;
+    } else {
+      if (linesNeeded <= 8 || currentLines > 15) {
+        pages.push(currentPageItems);
+        currentPageItems = [{
+          type: "group",
+          name: group.name,
+          rows: group.rows,
+          subtotal: group.subtotal,
+          isStart: true,
+          isEnd: true
+        }];
+        currentLines = linesNeeded;
+      } else {
+        let rowIdx = 0;
+        let isStart = true;
+        
+        while (rowIdx < group.rows.length) {
+          const linesAvailable = maxLinesPerPage - currentLines - 2;
+          
+          if (linesAvailable <= 3) {
+            pages.push(currentPageItems);
+            currentPageItems = [];
+            currentLines = 0;
+            continue;
+          }
+          
+          const rowsToTake = Math.min(linesAvailable, group.rows.length - rowIdx);
+          const chunkRows = group.rows.slice(rowIdx, rowIdx + rowsToTake);
+          rowIdx += rowsToTake;
+          
+          const isEnd = rowIdx >= group.rows.length;
+          
+          currentPageItems.push({
+            type: "group",
+            name: group.name,
+            rows: chunkRows,
+            subtotal: group.subtotal,
+            isStart: isStart,
+            isEnd: isEnd
+          });
+          
+          currentLines += 2 + chunkRows.length + (isEnd ? 2 : 0);
+          isStart = false;
+          
+          if (!isEnd) {
+            pages.push(currentPageItems);
+            currentPageItems = [];
+            currentLines = 0;
+          }
+        }
+      }
+    }
+  });
+  
+  if (currentPageItems.length > 0) {
+    if (currentLines + 2 <= maxLinesPerPage) {
+      currentPageItems.push({
+        type: "netProfitLoss"
+      });
+      pages.push(currentPageItems);
+    } else {
+      pages.push(currentPageItems);
+      pages.push([{
+        type: "netProfitLoss"
+      }]);
+    }
+  } else {
+    pages.push([{
+      type: "netProfitLoss"
+    }]);
+  }
+  
+  if (pages.length === 0) {
+    pages.push([]);
+  }
+  
+  return pages;
+});
+
+const labaRugiPeriod = computed(() => {
+  return `${endDate.value.getMonth() + 1}-${endDate.value.getFullYear()}`;
+});
+
+const currentPrintDateOnly = computed(() => {
+  const d = new Date();
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+});
+
+const currentPrintTimeOnly = computed(() => {
+  const d = new Date();
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  const seconds = String(d.getSeconds()).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
+});
+
+const formatLabaRugiCurrency = (value) => {
+  const num = Number(value || 0);
+  if (num < 0) {
+    return `(${Number(Math.abs(num)).toLocaleString("id-ID", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })})`;
+  }
+  return num.toLocaleString("id-ID", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
 
 const biayaList = computed(() => {
   if (props.type !== "biaya") return [];
@@ -1773,6 +2036,71 @@ onUnmounted(() => {
 .mutasi-data-row-blank td {
   border: 1px solid #000000;
   height: 25px;
+}
+
+/* Laba Rugi Styles */
+.labarugi-group-header {
+  font-size: 13px;
+  font-weight: bold;
+  color: #000000;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.labarugi-group-header-continued {
+  font-size: 12px;
+  font-weight: bold;
+  color: #000000;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  font-style: italic;
+}
+
+.labarugi-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  color: #000000;
+  padding-left: 20px;
+  margin-bottom: 2px;
+}
+
+.labarugi-cell-name {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.labarugi-cell-amount {
+  width: 150px;
+  text-align: right;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.labarugi-subtotal-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: bold;
+  color: #000000;
+  padding-left: 20px;
+  margin-top: 4px;
+  margin-bottom: 12px;
+}
+
+.labarugi-netprofit-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: bold;
+  color: #000000;
+  border-top: 2px solid #000000;
+  border-bottom: 2px solid #000000;
+  padding: 6px 0;
+  margin-top: 16px;
+  margin-bottom: 16px;
 }
 
 @media print {
