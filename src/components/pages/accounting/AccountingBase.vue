@@ -557,7 +557,7 @@
 
             <!-- Table Container -->
             <div class="jurnal-table-wrapper">
-              <div v-for="(item, idx) in pageGroups" :key="idx" style="margin-bottom: 12px;">
+              <div v-for="(item, idx) in pageGroups" :key="idx" style="margin-bottom: 4px;">
                 <!-- Group Header -->
                 <div v-if="item.type === 'group'" style="margin-bottom: 4px;">
                   <div v-if="item.isStart" class="labarugi-group-header">
@@ -1250,7 +1250,7 @@ const labarugiPages = computed(() => {
   const pages = [];
   let currentPageItems = [];
   let currentLines = 0;
-  const maxLinesPerPage = 38;
+  const maxLinesPerPage = 48;
 
   groups.forEach((group) => {
     const linesNeeded = 2 + group.rows.length + 2;
@@ -1266,7 +1266,7 @@ const labarugiPages = computed(() => {
       });
       currentLines += linesNeeded;
     } else {
-      if (linesNeeded <= 8 || currentLines > 25) {
+      if (linesNeeded <= 8 || currentLines > 33) {
         pages.push(currentPageItems);
         currentPageItems = [{
           type: "group",
@@ -2549,8 +2549,8 @@ onUnmounted(() => {
   font-size: 13px;
   font-weight: bold;
   color: #000000;
-  margin-top: 10px;
-  margin-bottom: 4px;
+  margin-top: 4px;
+  margin-bottom: 2px;
   text-transform: uppercase;
 }
 
@@ -2558,8 +2558,8 @@ onUnmounted(() => {
   font-size: 12px;
   font-weight: bold;
   color: #000000;
-  margin-top: 10px;
-  margin-bottom: 4px;
+  margin-top: 4px;
+  margin-bottom: 2px;
   text-transform: uppercase;
   font-style: italic;
 }
@@ -2592,8 +2592,8 @@ onUnmounted(() => {
   font-weight: bold;
   color: #000000;
   padding-left: 20px;
-  margin-top: 4px;
-  margin-bottom: 12px;
+  margin-top: 2px;
+  margin-bottom: 4px;
 }
 
 .labarugi-netprofit-row {
