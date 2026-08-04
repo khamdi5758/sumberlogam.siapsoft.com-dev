@@ -81,7 +81,7 @@ const biayaList = computed(() => {
     
     const bulanIni = Number(item.BulanIni !== undefined ? item.BulanIni : (item.bulanini !== undefined ? item.bulanini : (item.Amount !== undefined ? item.Amount : (item.amount !== undefined ? item.amount : (item.Jumlah !== undefined ? item.Jumlah : (item.jumlah !== undefined ? item.jumlah : (item.Debet !== undefined ? item.Debet : (item.debet !== undefined ? item.debet : 0))))))));
     
-    const sdBulanIni = Number(item.SdBulanIni !== undefined ? item.SdBulanIni : (item.sdbulanini !== undefined ? item.sdbulanini : (item.AmountSd !== undefined ? item.AmountSd : (item.amountSd !== undefined ? item.amountSd : (item.JumlahSd !== undefined ? item.JumlahSd : (item.jumlahSd !== undefined ? item.jumlahSd : (item.textSdBulanIni || item.sdebet || item.SdDebet || 0))))))));
+    const sdBulanIni = Number(item.SdBulanIni !== undefined ? item.SdBulanIni : (item.sdbulanini !== undefined ? item.sdbulanini : (item.AmountSd !== undefined ? item.AmountSd : (item.amountSd !== undefined ? item.amountSd : (item.JumlahSd !== undefined ? item.JumlahSd : (item.jumlahSd !== undefined ? item.jumlahSd : (item.textSdBulanIni || item.sdebet || item.SdDebet || 0)))))));
 
     return {
       perkiraan,
