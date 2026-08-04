@@ -1413,23 +1413,23 @@ const neracalajurList = computed(() => {
     const perkiraan = getStrFieldVal(item, ["Perkiraan", "perkiraan", "Kode", "KodePerkiraan", "accountCode", "KodeAkun"]);
     const keterangan = getStrFieldVal(item, ["Keterangan", "keterangan", "Nama", "NamaPerkiraan", "accountName", "NamaAkun"]);
     
-    const saDebet = getFieldVal(item, ["SADebet", "saDebet", "SaldoAwalDebet", "SAD", "SA_Debet", "SaldoAwalD", "AwalDebet"]);
-    const saKredit = getFieldVal(item, ["SAKredit", "saKredit", "SaldoAwalKredit", "SAK", "SA_Kredit", "SaldoAwalK", "AwalKredit"]);
+    const saDebet = getFieldVal(item, ["SaldoAwD", "SADebet", "saDebet", "SaldoAwalDebet", "SAD", "SA_Debet", "SaldoAwalD", "AwalDebet"]);
+    const saKredit = getFieldVal(item, ["SaldoAwK", "SAKredit", "saKredit", "SaldoAwalKredit", "SAK", "SA_Kredit", "SaldoAwalK", "AwalKredit"]);
     
     const mutasiDebet = getFieldVal(item, ["MutasiDebet", "mutasiDebet", "MD", "MutasiD", "MutDebet", "Debet", "debet"]);
     const mutasiKredit = getFieldVal(item, ["MutasiKredit", "mutasiKredit", "MK", "MutasiK", "MutKredit", "Kredit", "kredit"]);
     
-    const penyesuaianDebet = getFieldVal(item, ["PenyesuaianDebet", "penyesuaianDebet", "PD", "PenyesuaianD", "PenyDebet"]);
-    const penyesuaianKredit = getFieldVal(item, ["PenyesuaianKredit", "penyesuaianKredit", "PK", "PenyesuaianK", "PenyKredit"]);
+    const penyesuaianDebet = getFieldVal(item, ["JPD", "PenyesuaianDebet", "penyesuaianDebet", "PD", "PenyesuaianD", "PenyDebet"]);
+    const penyesuaianKredit = getFieldVal(item, ["JPK", "PenyesuaianKredit", "penyesuaianKredit", "PK", "PenyesuaianK", "PenyKredit"]);
     
-    const nsDebet = getFieldVal(item, ["NeracaSaldoDebet", "neracaSaldoDebet", "NSDebet", "NSD", "NeracaSaldoD"]);
-    const nsKredit = getFieldVal(item, ["NeracaSaldoKredit", "neracaSaldoKredit", "NSKredit", "NSK", "NeracaSaldoK"]);
+    const nsDebet = getFieldVal(item, ["NeracaSaldoAkd", "NeracaSaldoDebet", "neracaSaldoDebet", "NSDebet", "NSD", "NeracaSaldoD"]);
+    const nsKredit = getFieldVal(item, ["NeracaSaldoAkk", "NeracaSaldoKredit", "neracaSaldoKredit", "NSKredit", "NSK", "NeracaSaldoK"]);
     
-    const lrDebet = getFieldVal(item, ["LabaRugiDebet", "labaRugiDebet", "LRDebet", "LRD", "LabaRugiD"]);
-    const lrKredit = getFieldVal(item, ["LabaRugiKredit", "labaRugiKredit", "LRKredit", "LRK", "LabaRugiK"]);
+    const lrDebet = getFieldVal(item, ["LRD", "LabaRugiDebet", "labaRugiDebet", "LRDebet", "LabaRugiD"]);
+    const lrKredit = getFieldVal(item, ["LRK", "LabaRugiKredit", "labaRugiKredit", "LRKredit", "LabaRugiK"]);
     
-    const neracaDebet = getFieldVal(item, ["NeracaDebet", "neracaDebet", "NDebet", "ND", "NeracaD"]);
-    const neracaKredit = getFieldVal(item, ["NeracaKredit", "neracaKredit", "NKredit", "NK", "NeracaK"]);
+    const neracaDebet = getFieldVal(item, ["NeracaSaldoAkD", "NeracaDebet", "neracaDebet", "NDebet", "ND", "NeracaD"]);
+    const neracaKredit = getFieldVal(item, ["NeracaSaldoAkK", "NeracaKredit", "neracaKredit", "NKredit", "NK", "NeracaK"]);
     
     return {
       perkiraan,
