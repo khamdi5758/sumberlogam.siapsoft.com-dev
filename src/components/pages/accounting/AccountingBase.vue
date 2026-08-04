@@ -32,7 +32,7 @@
     </div>
 
     <!-- UI/UX: Card putih bersih untuk memberikan fokus pada angka -->
-    <div v-if="hasBeenFiltered" :class="['jurnal', 'bukubesar', 'mutasi', 'biaya', 'aktivatetap', 'labarugi', 'neracalajur'].includes(type) ? 'jurnal-preview-outer' : 'card-box'">
+    <div v-if="hasBeenFiltered" :class="['jurnal', 'bukubesar', 'mutasi', 'biaya', 'aktivatetap', 'labarugi', 'neracalajur', 'neraca'].includes(type) ? 'jurnal-preview-outer' : 'card-box'">
       <!-- Kondisi Jurnal: Render PDF-style A4 Preview -->
       <template v-if="type === 'jurnal'">
         <div v-if="dataSource.length === 0" class="no-data-jurnal">
@@ -604,6 +604,115 @@
             <div class="jurnal-print-footer">
               <div style="display: flex; justify-content: space-between; font-size: 11px; font-family: ui-sans-serif, system-ui, sans-serif; color: #000; border-top: 1px solid #000; padding-top: 4px;">
                 <span>{{ pageIdx + 1 }} of {{ labarugiPages.length }}</span>
+                <span>{{ currentPrintDateOnly }}</span>
+                <span>{{ currentPrintTimeOnly }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Kondisi Neraca: Render PDF-style A4 Preview -->
+      <template v-else-if="type === 'neraca'">
+        <div v-if="dataSource.length === 0" class="no-data-jurnal">
+          Tidak ada data neraca untuk periode ini.
+        </div>
+        <div v-else class="jurnal-preview-container">
+          <div
+            v-for="(pageRows, pageIdx) in neracaPages"
+            :key="pageIdx"
+            class="jurnal-page-sheet"
+          >
+            <!-- Header -->
+            <div class="jurnal-print-header" style="text-align: left; margin-bottom: 20px;">
+              <h3 class="jurnal-report-title" style="font-size: 14px; font-weight: bold; font-family: ui-sans-serif, system-ui, sans-serif; color: #000; margin: 0 0 2px 0;">
+                NERACA
+              </h3>
+              <p class="jurnal-report-subtitle" style="font-size: 12px; font-weight: bold; color: #000; margin: 0;">
+                Periode : {{ neracaPeriodLong }}
+              </p>
+            </div>
+
+            <!-- Table Container -->
+            <div class="jurnal-table-wrapper">
+              <table class="neraca-table" style="width: 100%; border-collapse: collapse; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10px; color: #000;">
+                <thead>
+                  <tr class="neraca-header-top">
+                    <th rowspan="2" style="border: 1px solid #000; padding: 4px 6px; text-align: left; width: 45%;">Keterangan</th>
+                    <th colspan="3" style="border: 1px solid #000; padding: 4px 6px; text-align: center; width: 38%;">
+                      {{ formatIndoDate(startDate) }} s/d {{ formatIndoDate(endDate) }}
+                    </th>
+                    <th rowspan="2" style="border: 1px solid #000; padding: 4px 6px; text-align: right; width: 17%;">
+                      S/d {{ formatIndoDate(prevMonthEnd) }}
+                    </th>
+                  </tr>
+                  <tr class="neraca-header-bottom">
+                    <th style="border: 1px solid #000; padding: 4px 6px; text-align: right; width: 15%;">Realisasi</th>
+                    <th style="border: 1px solid #000; padding: 4px 6px; text-align: right; width: 15%;">Budget</th>
+                    <th style="border: 1px solid #000; padding: 4px 6px; text-align: center; width: 8%;">%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(row, rowIdx) in pageRows"
+                    :key="rowIdx"
+                    :class="[
+                      'neraca-data-row',
+                      getRowLevel(row, processedDataSource) === 0 ? 'neraca-row-level-0 font-bold' : '',
+                      getRowLevel(row, processedDataSource) === 1 ? 'neraca-row-level-1 font-bold' : '',
+                      getRowLevel(row, processedDataSource) === 2 ? 'neraca-row-level-2' : ''
+                    ]"
+                  >
+                    <!-- Indented Keterangan -->
+                    <td
+                      :style="{
+                        border: '1px solid #000',
+                        padding: '4px 6px',
+                        'padding-left': (6 + getRowLevel(row, processedDataSource) * 12) + 'px'
+                      }"
+                    >
+                      {{ row.accountName }}
+                    </td>
+
+                    <!-- Realisasi (amount) -->
+                    <td style="border: 1px solid #000; padding: 4px 6px; text-align: right;">
+                      {{ formatLabaRugiCurrency(row.amount) }}
+                    </td>
+
+                    <!-- Budget (empty cell) -->
+                    <td style="border: 1px solid #000; padding: 4px 6px; text-align: right;">
+                      <!-- Empty space for budget -->
+                    </td>
+
+                    <!-- % (empty cell) -->
+                    <td style="border: 1px solid #000; padding: 4px 6px; text-align: center;">
+                      <!-- Empty space for percentage -->
+                    </td>
+
+                    <!-- S/d Bulan Lalu (amountBulanLalu) -->
+                    <td style="border: 1px solid #000; padding: 4px 6px; text-align: right;">
+                      {{ formatLabaRugiCurrency(row.amountBulanLalu) }}
+                    </td>
+                  </tr>
+
+                  <!-- Fill remaining blank rows if it is not the last page, to keep page size consistent -->
+                  <template v-if="pageIdx < neracaPages.length - 1">
+                    <tr v-for="blankIdx in (28 - pageRows.length)" :key="'blank-' + blankIdx" class="neraca-data-row-blank">
+                      <td style="border: 1px solid #000; height: 18px;"></td>
+                      <td style="border: 1px solid #000;"></td>
+                      <td style="border: 1px solid #000;"></td>
+                      <td style="border: 1px solid #000;"></td>
+                      <td style="border: 1px solid #000;"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="jurnal-print-footer">
+              <div style="display: flex; justify-content: space-between; font-size: 11px; font-family: ui-sans-serif, system-ui, sans-serif; color: #000; border-top: 1px solid #000; padding-top: 4px;">
+                <span>{{ pageIdx + 1 }} of {{ neracaPages.length }}</span>
                 <span>{{ currentPrintDateOnly }}</span>
                 <span>{{ currentPrintTimeOnly }}</span>
               </div>
@@ -1382,6 +1491,56 @@ const neracalajurPages = computed(() => {
   if (props.type !== "neracalajur") return [];
   
   const list = neracalajurList.value;
+  const pages = [];
+  const maxLinesPerPage = 28;
+  
+  for (let i = 0; i < list.length; i += maxLinesPerPage) {
+    pages.push(list.slice(i, i + maxLinesPerPage));
+  }
+  
+  if (pages.length === 0) {
+    pages.push([]);
+  }
+  
+  return pages;
+});
+
+const formatIndoDate = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+  const day = String(d.getDate()).padStart(2, "0");
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+    "Jul", "Agt", "Sep", "Okt", "Nov", "Des"
+  ];
+  const month = months[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day} ${month} ${year}`;
+};
+
+const prevMonthEnd = computed(() => {
+  if (!startDate.value) return new Date();
+  const d = new Date(startDate.value);
+  d.setDate(d.getDate() - 1);
+  return d;
+});
+
+const neracaPeriodLong = computed(() => {
+  return `${formatIndoDate(startDate.value)} sampai dengan ${formatIndoDate(endDate.value)}`;
+});
+
+const getRowLevel = (row, list) => {
+  if (row.parentId === 0) return 0;
+  const parent = list.find(node => node.id === row.parentId);
+  if (!parent) return 1;
+  if (parent.parentId === 0) return 1;
+  return 2;
+};
+
+const neracaPages = computed(() => {
+  if (props.type !== "neraca") return [];
+  const list = processedDataSource.value;
   const pages = [];
   const maxLinesPerPage = 28;
   
@@ -2535,5 +2694,42 @@ onUnmounted(() => {
   width: 297mm;
   min-height: 210mm;
   padding: 10mm 15mm;
+}
+
+/* Neraca Styles */
+.neraca-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 10px;
+  color: #000000 !important;
+}
+
+.neraca-table th, .neraca-table td {
+  border: 1px solid #000000;
+  padding: 4px 6px;
+  vertical-align: middle;
+}
+
+.neraca-table th {
+  font-weight: bold;
+  background-color: #ffffff;
+}
+
+.neraca-row-level-0 {
+  font-weight: bold;
+}
+
+.neraca-row-level-1 {
+  font-weight: bold;
+}
+
+.neraca-row-level-2 {
+  font-weight: normal;
+}
+
+.neraca-data-row-blank td {
+  border: 1px solid #000000;
+  height: 18px;
 }
 </style>
