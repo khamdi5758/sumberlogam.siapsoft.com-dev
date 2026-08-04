@@ -68,18 +68,18 @@
 
             <tr v-if="pageIdx === neracalajurPages.length - 1" class="neracalajur-total-row">
               <td colspan="2" style="text-align: left; font-weight: bold;">TOTAL :</td>
-              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.saDebet) }}</td>
-              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.saKredit) }}</td>
-              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.mutasiDebet) }}</td>
-              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.mutasiKredit) }}</td>
-              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.penyesuaianDebet) }}</td>
-              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.penyesuaianKredit) }}</td>
-              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.nsDebet) }}</td>
-              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.nsKredit) }}</td>
-              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.rlDebet) }}</td>
-              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.rlKredit) }}</td>
-              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.neracaDebet) }}</td>
-              <td style="text-align: right; font-weight: bold;">{{ formatCurrency(neracalajurTotals.neracaKredit) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(neracalajurTotals.saDebet) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(neracalajurTotals.saKredit) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(neracalajurTotals.mutasiDebet) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(neracalajurTotals.mutasiKredit) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(neracalajurTotals.penyesuaianDebet) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(neracalajurTotals.penyesuaianKredit) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(neracalajurTotals.nsDebet) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(neracalajurTotals.nsKredit) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(neracalajurTotals.rlDebet) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(neracalajurTotals.rlKredit) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(neracalajurTotals.neracaDebet) }}</td>
+              <td style="text-align: right;">{{ formatCurrency(neracalajurTotals.neracaKredit) }}</td>
             </tr>
           </tbody>
         </table>
@@ -231,7 +231,6 @@ const neracalajurPages = computed(() => {
   height: 25px;
 }
 .neracalajur-total-row td {
-  font-weight: bold;
   background-color: #ffffff;
 }
 .jurnal-print-footer {
