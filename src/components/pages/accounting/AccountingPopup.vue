@@ -31,34 +31,8 @@
       <!-- Form -->
       <div class="pt-4">
         <div class="space-y-4">
-          <!-- Kondisi Type: Neraca (Boxed Container) -->
-          <div v-if="type === 'neraca'" class="border border-slate-300 rounded-md p-4 bg-slate-50 space-y-3">
-            <!-- Dari Tanggal -->
-            <div class="grid grid-cols-1 items-center gap-2 sm:grid-cols-[120px_1fr]">
-              <label class="text-[14px] font-medium text-slate-700">Dari Tanggal :</label>
-              <DxDateBox
-                v-model:value="startDate"
-                type="date"
-                display-format="dd/MM/yyyy"
-                :use-mask-behavior="true"
-                styling-mode="outlined"
-              />
-            </div>
-            <!-- S/d Tanggal -->
-            <div class="grid grid-cols-1 items-center gap-2 sm:grid-cols-[120px_1fr]">
-              <label class="text-[14px] font-medium text-slate-700">S/d Tanggal :</label>
-              <DxDateBox
-                v-model:value="endDate"
-                type="date"
-                display-format="dd/MM/yyyy"
-                :use-mask-behavior="true"
-                styling-mode="outlined"
-              />
-            </div>
-          </div>
-
-          <!-- Mulai Tanggal / Dari Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, Neraca Lajur, atau Neraca) -->
-          <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur' && type !== 'neraca'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+          <!-- Mulai Tanggal / Dari Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, Neraca Lajur) -->
+          <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
             <label class="text-[14px] text-slate-700">
               Mulai Tanggal
             </label>
@@ -71,8 +45,8 @@
             />
           </div>
 
-          <!-- Sampai Tanggal / S/d Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, Neraca Lajur, atau Neraca) -->
-          <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur' && type !== 'neraca'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+          <!-- Sampai Tanggal / S/d Tanggal (Hanya jika bukan Mutasi, Biaya, Aktiva Tetap, Laba Rugi, Neraca Lajur) -->
+          <div v-if="type !== 'mutasi' && type !== 'biaya' && type !== 'aktivatetap' && type !== 'labarugi' && type !== 'neracalajur'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
             <label class="text-[14px] text-slate-700">
               Sampai Tanggal
             </label>
