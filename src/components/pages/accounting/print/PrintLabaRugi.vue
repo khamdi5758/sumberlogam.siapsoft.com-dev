@@ -88,7 +88,7 @@ const labarugiGroups = computed(() => {
   const groupsOrder = [];
 
   props.dataSource.forEach((item) => {
-    let groupName = item.nmgroup1 || item.NamaHeader || item.Header;
+    let groupName = item.NamaGrpAcc || item.nmgroup1 || item.NamaHeader || item.Header;
     if (!groupName) {
       groupName = "Lain-lain";
     }
