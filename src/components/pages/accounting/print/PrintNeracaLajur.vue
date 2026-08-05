@@ -129,8 +129,8 @@ const neracalajurList = computed(() => {
     const nsDebet = Number(item.NeracaSaldoAkd !== undefined ? item.NeracaSaldoAkd : 0);
     const nsKredit = Number(item.NeracaSaldoAkk !== undefined ? item.NeracaSaldoAkk : 0);
 
-    const rlDebet = Number(item.LRD !== undefined ? item.LRD : 0);
-    const rlKredit = Number(item.LRK !== undefined ? item.LRK : 0);
+    const rlDebet = Number(item.lrDebet !== undefined ? item.lrDebet : (item.LRK !== undefined ? item.LRK : 0));
+    const rlKredit = Number(item.lrKredit !== undefined ? item.lrKredit : (item.LRD !== undefined ? item.LRD : 0));
 
     const neracaDebet = Number(item.NeracaSaldoAkD !== undefined ? item.NeracaSaldoAkD : 0);
     const neracaKredit = Number(item.NeracaSaldoAkK !== undefined ? item.NeracaSaldoAkK : 0);
