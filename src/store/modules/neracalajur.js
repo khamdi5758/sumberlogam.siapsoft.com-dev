@@ -70,8 +70,8 @@ const actions = {
           penyesuaianKredit: val("JPK"),
           nsDebet: val("NeracaSaldoAkd"),
           nsKredit: val("NeracaSaldoAkk"),
-          lrDebet: val("LRD"),
-          lrKredit: val("LRK"),
+          lrDebet: val("LRK"),
+          lrKredit: val("LRD"),
           neracaDebet: val("NeracaSaldoAkD"),
           neracaKredit: val("NeracaSaldoAkK"),
         };

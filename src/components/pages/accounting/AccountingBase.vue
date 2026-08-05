@@ -1425,8 +1425,8 @@ const neracalajurList = computed(() => {
     const nsDebet = getFieldVal(item, ["NeracaSaldoAkd", "NeracaSaldoDebet", "neracaSaldoDebet", "NSDebet", "NSD", "NeracaSaldoD"]);
     const nsKredit = getFieldVal(item, ["NeracaSaldoAkk", "NeracaSaldoKredit", "neracaSaldoKredit", "NSKredit", "NSK", "NeracaSaldoK"]);
     
-    const lrDebet = getFieldVal(item, ["LRD", "LabaRugiDebet", "labaRugiDebet", "LRDebet", "LabaRugiD"]);
-    const lrKredit = getFieldVal(item, ["LRK", "LabaRugiKredit", "labaRugiKredit", "LRKredit", "LabaRugiK"]);
+    const lrDebet = getFieldVal(item, ["LRK", "LabaRugiKredit", "labaRugiKredit", "LRKredit", "LabaRugiK"]);
+    const lrKredit = getFieldVal(item, ["LRD", "LabaRugiDebet", "labaRugiDebet", "LRDebet", "LabaRugiD"]);
     
     const neracaDebet = getFieldVal(item, ["NeracaSaldoAkD", "NeracaDebet", "neracaDebet", "NDebet", "ND", "NeracaD"]);
     const neracaKredit = getFieldVal(item, ["NeracaSaldoAkK", "NeracaKredit", "neracaKredit", "NKredit", "NK", "NeracaK"]);
