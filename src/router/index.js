@@ -19,6 +19,7 @@ import Invoice from "@/components/pages/Invoice/Invoice.vue";
 
 //registrasi
 import RegisPo from "@/components/pages/Registrasi/MainRegis/RegisterPO.vue";
+import RegisPoDev from "@/components/pages/Registrasi/MainRegis/RegisterPODev.vue";
 import RegisSo from "@/components/pages/Registrasi/MainRegis/RegisterSO.vue";
 import RegisJual from "@/components/pages/Registrasi/MainRegis/RegisterJual.vue";
 import RegisBeli from "@/components/pages/Registrasi/MainRegis/RegisterBeli.vue";
@@ -206,6 +207,11 @@ const routes = [
             path: "po",
             name: "RegisterPo",
             component: RegisPo,
+          },
+          {
+            path: "po_dev",
+            name: "RegisterPoDev",
+            component: RegisPoDev,
           },
           {
             path: "beli",
