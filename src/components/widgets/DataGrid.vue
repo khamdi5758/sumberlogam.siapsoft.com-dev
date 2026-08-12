@@ -162,6 +162,8 @@
         />
         <DxColumnFixing :enabled="false" />
         <DxHeaderFilter :visible="filterSettings.showHeaderFilter" />
+        <DxFilterPanel :visible="showFilterPanel" />
+        <DxFilterBuilderPopup :position="filterBuilderPopupPosition" />
 
         <DxGrouping
           :contextMenuEnabled="true"
@@ -432,6 +434,8 @@ import {
   DxColumnChooser,
   DxPosition,
   DxMasterDetail,
+  DxFilterPanel,
+  DxFilterBuilderPopup,
 } from "devextreme-vue/data-grid";
 import DxCheckBox from "devextreme-vue/check-box";
 import { Workbook } from "exceljs";
@@ -467,6 +471,8 @@ export default {
     DxColumnChooser,
     DxPopup,
     DxMasterDetail,
+    DxFilterPanel,
+    DxFilterBuilderPopup,
   },
   data() {
     return {
@@ -487,6 +493,12 @@ export default {
       },
       // 🔥 Tracking lebar layar untuk deteksi mobile (dipakai untuk swipe & toolbar responsif)
       windowWidth: typeof window !== "undefined" ? window.innerWidth : 1024,
+      filterBuilderPopupPosition: {
+        of: typeof window !== "undefined" ? window : undefined,
+        at: "center",
+        my: "center",
+        offset: { y: 10 },
+      },
     };
   },
 
@@ -587,6 +599,10 @@ export default {
     rowRenderingMode: {
       type: String,
       default: "standard",
+    },
+    showFilterPanel: {
+      type: Boolean,
+      default: false,
     },
     showToolbar: {
       type: Boolean,
