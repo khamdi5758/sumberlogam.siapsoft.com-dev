@@ -44,6 +44,7 @@
       :allowGrouping="true"
       :height="gridHeight"
       :spFooterText="ketsp"
+      :showFilterPanel="true"
       @optionChanged="onDataGridOptionChanged"
       @focusedRowChanged="onFocusedRowChanged"
       :masterDetailEnabled="masterDetailEnabled"
