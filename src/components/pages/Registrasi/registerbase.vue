@@ -46,9 +46,14 @@
       :spFooterText="ketsp"
       @optionChanged="onDataGridOptionChanged"
       @focusedRowChanged="onFocusedRowChanged"
+      :masterDetailEnabled="masterDetailEnabled"
       @group-changed="onGroupChanged"
       @print-click="handlePrint"
-    />
+    >
+      <template v-if="masterDetailEnabled" #master-detail="{ data }">
+        <slot name="master-detail" :data="data" :filterData="filterData"></slot>
+      </template>
+    </ReusableDataGrid>
 
     <!-- Filter Popup -->
     <!--
@@ -111,6 +116,10 @@ export default {
     // Kalau tidak diisi, base pakai defaultBuildPrintPayload (perilaku lama:
     // from/startDate/endDate/kodegdg).
     buildPrintPayload: { type: Function, default: null },
+
+    // Aktifkan baris expandable (master-detail). Isi detail diberikan lewat
+    // slot "master-detail" oleh komponen register yang memakai base ini.
+    masterDetailEnabled: { type: Boolean, default: false },
   },
   data() {
     const today = new Date();

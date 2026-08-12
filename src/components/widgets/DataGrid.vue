@@ -173,6 +173,12 @@
           emptyPanelText="Drag a column header here to group by that column"
         />
 
+        <DxMasterDetail
+          v-if="masterDetailEnabled"
+          :enabled="true"
+          template="masterDetailTemplate"
+        />
+
         <DxToolbar v-if="showToolbar">
           <DxItem location="before" template="headerToolbarTemplate" />
           <DxItem name="groupPanel" location="before" />
@@ -243,6 +249,13 @@
 
         <template #headerToolbarTemplate>
           <slot name="header-toolbar"></slot>
+        </template>
+
+        <template
+          v-if="masterDetailEnabled"
+          #masterDetailTemplate="{ data: masterRow }"
+        >
+          <slot name="master-detail" :data="masterRow"></slot>
         </template>
 
         <template #checkboxExpandTemplate>
@@ -418,6 +431,7 @@ import {
   DxGroupItem,
   DxColumnChooser,
   DxPosition,
+  DxMasterDetail,
 } from "devextreme-vue/data-grid";
 import DxCheckBox from "devextreme-vue/check-box";
 import { Workbook } from "exceljs";
@@ -452,6 +466,7 @@ export default {
     DxCheckBox,
     DxColumnChooser,
     DxPopup,
+    DxMasterDetail,
   },
   data() {
     return {
@@ -740,6 +755,10 @@ export default {
     allowGrouping: {
       type: Boolean,
       default: true,
+    },
+    masterDetailEnabled: {
+      type: Boolean,
+      default: false,
     },
     selectedRowKeys: {
       type: Array,
