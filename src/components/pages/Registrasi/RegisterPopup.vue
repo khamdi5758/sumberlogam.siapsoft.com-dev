@@ -161,6 +161,29 @@
               </button>
             </div>
           </div>
+
+          <!-- Status (Khusus barang serial rekap) -->
+          <div
+            v-if="type === 'stock-serial-rekap'"
+            class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+          >
+            <label for="status-dropdown" class="text-[14px] text-slate-700"
+              >Status</label
+            >
+            <div
+              class="flex items-center overflow-hidden rounded border border-slate-300"
+            >
+              <select
+                id="status-dropdown"
+                v-model="localStatus"
+                class="min-w-0 flex-1 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+              >
+                <option value="Per_Serial">Per Serial</option>
+                <option value="Rekap">Rekap</option>
+                <option value="Per_Perkiraan">Per Perkiraan</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 

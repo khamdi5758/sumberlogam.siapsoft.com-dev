@@ -58,9 +58,10 @@ const actions = {
         mulaitgl: requestPayload.mulaitgl,
         sampaitgl: requestPayload.sampaitgl,
         gudang: requestPayload.kodegdg || "",
+        status: requestPayload.status || "",
       };
 
-      const response = await api.post("register/registerbarangserialrekap", payloadApi);
+      const response = await api.post("register/registerbarangserialrekap", requestPayload);
       const resultData = response.data?.data || response.data || [];
 
       commit("setRegisterList", resultData);
