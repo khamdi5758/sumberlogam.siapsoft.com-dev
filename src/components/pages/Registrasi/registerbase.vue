@@ -52,7 +52,13 @@
       @print-click="handlePrint"
     >
       <template v-if="masterDetailEnabled" #master-detail="{ data }">
-        <slot name="master-detail" :data="data" :filterData="filterData"></slot>
+        <slot
+          name="master-detail"
+          :data="data"
+          :filterData="filterData"
+          :fullResponse="apiResponse"
+          :isLoading="isLoading"
+        ></slot>
       </template>
     </ReusableDataGrid>
 
@@ -148,6 +154,7 @@ export default {
       focusedRowKey: null,
       hasGroupedColumns: false,
       isMobile: false,
+      lastApiResponse: {},
     };
   },
   created() {
@@ -160,16 +167,27 @@ export default {
   },
   unmounted() {
     const activeTabs = this.$store.getters["tabs/getTabs"] || [];
-    const isTabStillOpen = activeTabs.some(path => path.toLowerCase() === this._myRoutePath.toLowerCase());
+    const isTabStillOpen = activeTabs.some(
+      (path) => path.toLowerCase() === this._myRoutePath.toLowerCase(),
+    );
 
     // Hanya hapus memori kunjungan jika tab-nya BENAR-BENAR ditutup (di-silang),
     // bukan sekadar di-unmount oleh keep-alive Vue Router.
-    if (!isTabStillOpen && window.__registerVisited && window.__registerVisited[this.storeModule]) {
+    if (
+      !isTabStillOpen &&
+      window.__registerVisited &&
+      window.__registerVisited[this.storeModule]
+    ) {
       delete window.__registerVisited[this.storeModule];
     }
   },
   computed: {
     ...mapGetters({}),
+    apiResponse() {
+      return this.lastApiResponse || {};
+
+      console.log("apiResponse computed:", this.lastApiResponse);
+    },
     registerList() {
       return this.$store.getters[`${this.storeModule}/registerList`] || [];
     },
@@ -278,9 +296,17 @@ export default {
         console.warn(`Action ${actionName} not found, skipping loadData`);
         return Promise.resolve();
       }
-      return this.$store.dispatch(actionName, payload).catch((err) => {
-        console.error("Error loading data:", err);
-      });
+      return this.$store.dispatch(actionName, payload).then((res) => {
+        // Simpan response.data (payload sebenarnya) kalau tersedia,
+        // fallback ke res jika tidak ada data.
+        if (res) {
+          this.lastApiResponse = res.data || res;
+        }
+        return res;
+      })
+        .catch((err) => {
+          console.error("Error loading data:", err);
+        });
     },
 
     // Dipertahankan untuk backward compatibility, kalau ada pemanggil lama
@@ -342,11 +368,11 @@ export default {
   beforeDestroy() {
     window.removeEventListener("resize", this.checkMobile);
   },
-  watch:{
-    ketsp(a){
+  watch: {
+    ketsp(a) {
       console.log("ketsp changed:", a);
-    }
-  }
+    },
+  },
 };
 </script>
 
