@@ -88,9 +88,14 @@
                   v-for="col in paperColumns" 
                   :key="'th-' + col.dataField"
                   :class="col.alignment === 'right' ? 'text-right' : 'text-left'"
-                  :style="{ width: col.width }"
+                  :style="{ width: manualWidths[col.dataField] || col.width }"
+                  class="resizable-th"
                 >
                   {{ col.caption }}
+                  <div
+                    class="resize-handle"
+                    @mousedown.stop.prevent="startResize($event, col.dataField)"
+                  ></div>
                 </th>
               </tr>
             </thead>
@@ -257,7 +262,7 @@
               v-for="col in paperColumns" 
               :key="'measure-th-' + col.dataField"
               :class="col.alignment === 'right' ? 'text-right' : 'text-left'"
-              :style="{ width: col.width }"
+              :style="{ width: manualWidths[col.dataField] || col.width }"
             >
               {{ col.caption }}
             </th>
@@ -347,6 +352,11 @@ export default {
       computedPages: [],
       computedRowHeights: [],
       lastApiResponse: {},
+      // Resizable columns
+      manualWidths: {},
+      _resizeField: null,
+      _resizeStartX: 0,
+      _resizeStartW: 0,
     };
   },
   created() {
@@ -929,6 +939,35 @@ export default {
         }, 100);
       });
     },
+    // ── Resizable columns ──────────────────────────────────────────────────
+    startResize(event, dataField) {
+      // Find the th element from the event target's parent
+      const th = event.target.closest('th');
+      if (!th) return;
+      this._resizeField  = dataField;
+      this._resizeStartX = event.pageX;
+      this._resizeStartW = th.offsetWidth;
+      this._resizeMoveHandler = this.doResize.bind(this);
+      this._resizeUpHandler   = this.stopResize.bind(this);
+      window.addEventListener('mousemove', this._resizeMoveHandler);
+      window.addEventListener('mouseup',   this._resizeUpHandler);
+    },
+    doResize(event) {
+      if (!this._resizeField) return;
+      const delta    = event.pageX - this._resizeStartX;
+      const newWidth = Math.max(30, this._resizeStartW + delta);
+      // Vue reactive update: spread to trigger reactivity
+      this.manualWidths = { ...this.manualWidths, [this._resizeField]: `${newWidth}px` };
+    },
+    stopResize() {
+      window.removeEventListener('mousemove', this._resizeMoveHandler);
+      window.removeEventListener('mouseup',   this._resizeUpHandler);
+      this._resizeField = null;
+      // Re-paginate: manual width change may cause text to wrap/unwrap
+      this.$nextTick(() => {
+        setTimeout(() => this.triggerPagination(), 50);
+      });
+    },
     paginateDataByHeights(heights) {
       const pages = [];
       let currentPage = [];
@@ -1285,6 +1324,28 @@ export default {
   word-break: normal;
   overflow-wrap: normal;
   overflow: hidden;
+}
+
+/* Resizable column header */
+.jurnal-table th.resizable-th {
+  position: relative;
+  user-select: none;
+}
+
+.jurnal-table th .resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 1;
+}
+
+.jurnal-table th .resize-handle:hover,
+.jurnal-table th .resize-handle:active {
+  background: rgba(99, 102, 241, 0.5);
 }
 
 .jurnal-table th {
