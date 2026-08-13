@@ -7,7 +7,7 @@
     :defaultExpandedKeys="[1]"
     :autoOpenFilter="true"
     :showContentInitially="false"
-    submitButtonText="Cetak"
+    submitButtonText="Go"
     perkiraanMode="single"
     perkiraanBrowseCode="02"
     @filter-change="handleFilterChange"
