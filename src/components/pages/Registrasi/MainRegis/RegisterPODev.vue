@@ -4,6 +4,8 @@
     type="po"
     storeModule="register"
     apiEndpoint="report"
+    layoutMode="paper"
+    paperOrientation="landscape"
   />
 </template>
 
