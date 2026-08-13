@@ -62,6 +62,18 @@
           hint="Filter Data"
           @click="openFilter"
         />
+        <!-- Zoom control -->
+        <select
+          v-model.number="userZoom"
+          class="zoom-select"
+          title="Zoom tampilan kertas"
+        >
+          <option :value="0.5">50%</option>
+          <option :value="0.75">75%</option>
+          <option :value="1">100%</option>
+          <option :value="1.25">125%</option>
+          <option :value="1.5">150%</option>
+        </select>
       </div>
     </div>
 
@@ -71,6 +83,7 @@
         v-for="(pageData, pageIdx) in pages" 
         :key="'page-' + pageIdx"
         :class="['jurnal-page-sheet mx-auto my-4', paperOrientation === 'landscape' ? 'landscape-page' : '']"
+        :style="{ zoom: appliedZoom }"
       >
         <!-- Header inside paper sheet -->
         <div class="jurnal-print-header">
@@ -357,6 +370,8 @@ export default {
       _resizeField: null,
       _resizeStartX: 0,
       _resizeStartW: 0,
+      // Zoom control
+      userZoom: 1,
     };
   },
   created() {
@@ -395,6 +410,12 @@ export default {
       const start = this.filterData.startDate ? new Date(this.filterData.startDate) : new Date();
       const end = this.filterData.endDate ? new Date(this.filterData.endDate) : new Date();
       return `${start.toLocaleDateString("id-ID", options)} - ${end.toLocaleDateString("id-ID", options)}`;
+    },
+    // Zoom = user selection * landscape base (0.75) if applicable
+    appliedZoom() {
+      return this.paperOrientation === 'landscape'
+        ? 0.75 * this.userZoom
+        : this.userZoom;
     },
     currentPrintTime() {
       const d = new Date();
@@ -1229,6 +1250,29 @@ export default {
 .action-buttons {
   display: flex;
   gap: 12px;
+}
+
+.zoom-select {
+  height: 33px;
+  padding: 0 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: #ffffff;
+  color: #1a1d20;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.zoom-select:hover {
+  border-color: #6366f1;
+}
+
+.zoom-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 .jurnal-preview-container {
