@@ -53,6 +53,7 @@ const mutations = {
 const actions = {
   async getRegister({ commit }, requestPayload) {
     commit("setLoading", true);
+    let response = null;
     try {
       const payloadApi = {
         mulaitgl: requestPayload.mulaitgl,
@@ -61,7 +62,11 @@ const actions = {
         status: requestPayload.status || "",
       };
 
-      const response = await api.post("register/registerbarangserialrekap", requestPayload);
+
+      response = await api.post(
+        "register/registerbarangserialrekap",
+        requestPayload,
+      );
       const resultData = response.data?.data || response.data || [];
 
       commit("setRegisterList", resultData);
@@ -83,6 +88,8 @@ const actions = {
     } finally {
       commit("setLoading", false);
     }
+    // Return the full response so callers can access additional metadata if needed
+    return response;
   },
 
   async getGudang({ commit }) {

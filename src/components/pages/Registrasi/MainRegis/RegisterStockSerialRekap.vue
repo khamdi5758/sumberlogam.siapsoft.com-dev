@@ -6,8 +6,12 @@
     apiEndpoint="report"
     :masterDetailEnabled="true"
   >
-    <template #master-detail="{ data }">
-      <RegisterSerialDetailTemplate :master-row="data" />
+    <template #master-detail="{ data, fullResponse, isLoading }">
+      <RegisterSerialDetailTemplate
+        :master-row="data"
+        :full-response="fullResponse"
+        :is-loading="isLoading"
+      />
     </template>
   </RegisterBase>
 </template>
