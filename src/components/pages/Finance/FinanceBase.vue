@@ -341,80 +341,51 @@
         </table>
       </div>
 
-      <!-- Tabel khusus untuk Arus Kas -->
+      <!-- Tabel khusus untuk Arus Kas (DxDataGrid) -->
       <div v-else-if="isArusKasType" class="aruskas-wrapper">
-        <table class="aruskas-table">
-          <thead>
-            <tr>
-              <th class="col-keterangan">Keterangan</th>
-              <th class="col-jumlah">Jumlah</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Saldo Awal -->
-            <tr class="section-header">
-              <td colspan="2"><strong>Saldo Awal</strong></td>
-            </tr>
-            <tr v-for="(item, idx) in arusKasSaldoAwal" :key="'sa-' + idx" class="detail-row">
-              <td class="col-keterangan">{{ item.keterangan }}</td>
-              <td class="col-jumlah">{{ formatCurrencyArusKas(item.jumlah) }}</td>
-            </tr>
-            <tr class="subtotal-row">
-              <td class="col-keterangan"></td>
-              <td class="col-jumlah">{{ formatCurrencyArusKas(totalSaldoAwal) }}</td>
-            </tr>
+        <DxDataGrid
+          :data-source="arusKasGridData"
+          :show-borders="true"
+          :show-row-lines="true"
+          :show-column-lines="true"
+          :row-alternation-enabled="false"
+          :hover-state-enabled="true"
+          :column-auto-width="false"
+          :word-wrap-enabled="false"
+          no-data-text="Tidak ada data untuk periode ini"
+          class="aruskas-grid"
+          @row-prepared="onArusKasRowPrepared"
+          @context-menu-preparing="onArusKasContextMenu"
+        >
+          <DxColumn
+            data-field="keterangan"
+            caption="Keterangan"
+            :min-width="300"
+            alignment="left"
+            cell-template="ketTemplate"
+          />
+          <DxColumn
+            data-field="jumlah"
+            caption="Jumlah"
+            :width="180"
+            alignment="right"
+            cell-template="jmlTemplate"
+          />
 
-            <!-- Penerimaan -->
-            <tr class="section-header">
-              <td colspan="2"><strong>Penerimaan</strong></td>
-            </tr>
-            <tr v-for="(item, idx) in arusKasPenerimaan" :key="'p-' + idx" class="detail-row">
-              <td class="col-keterangan">{{ item.keterangan }}</td>
-              <td class="col-jumlah">{{ formatCurrencyArusKas(item.jumlah) }}</td>
-            </tr>
-            <tr class="subtotal-row">
-              <td class="col-keterangan"></td>
-              <td class="col-jumlah">{{ formatCurrencyArusKas(totalPenerimaanArusKas) }}</td>
-            </tr>
+          <template #ketTemplate="{ data }">
+            <span :class="arusKasRowClass(data.data)">
+              {{ data.data.keterangan }}
+            </span>
+          </template>
+          <template #jmlTemplate="{ data }">
+            <span :class="arusKasRowClass(data.data)">
+              {{ data.data._rowType === 'section' ? '' : formatCurrencyArusKas(data.data.jumlah) }}
+            </span>
+          </template>
 
-            <!-- Pengeluaran -->
-            <tr class="section-header">
-              <td colspan="2"><strong>Pengeluaran</strong></td>
-            </tr>
-            <tr v-for="(item, idx) in arusKasPengeluaran" :key="'pg-' + idx" class="detail-row">
-              <td class="col-keterangan">{{ item.keterangan }}</td>
-              <td class="col-jumlah">{{ formatCurrencyArusKas(item.jumlah) }}</td>
-            </tr>
-            <tr class="subtotal-row">
-              <td class="col-keterangan"></td>
-              <td class="col-jumlah">{{ formatCurrencyArusKas(totalPengeluaranArusKas) }}</td>
-            </tr>
-
-            <!-- Saldo Akhir -->
-            <tr class="section-header">
-              <td colspan="2"><strong>Saldo Akhir</strong></td>
-            </tr>
-            <tr v-for="(item, idx) in arusKasSaldoAkhir" :key="'sk-' + idx" class="detail-row">
-              <td class="col-keterangan">{{ item.keterangan }}</td>
-              <td class="col-jumlah">{{ formatCurrencyArusKas(item.jumlah) }}</td>
-            </tr>
-            <tr class="subtotal-row">
-              <td class="col-keterangan"></td>
-              <td class="col-jumlah">{{ formatCurrencyArusKas(totalSaldoAkhir) }}</td>
-            </tr>
-
-            <!-- Grand Total -->
-            <tr class="grandtotal-row">
-              <td class="col-keterangan"></td>
-              <td class="col-jumlah">{{ formatCurrencyArusKas(grandTotalArusKas) }}</td>
-            </tr>
-
-            <!-- Empty state -->
-            <tr v-if="arusKasSaldoAwal.length === 0 && arusKasPenerimaan.length === 0 && arusKasPengeluaran.length === 0 && arusKasSaldoAkhir.length === 0">
-              <td colspan="2" class="empty-cell">Tidak ada data untuk periode ini</td>
-            </tr>
-          </tbody>
-        </table>
+          <DxScrolling mode="standard" :use-native="true" />
+          <DxPaging :enabled="false" />
+        </DxDataGrid>
       </div>
 
       <!-- Tabel khusus untuk Rekap Kas Bank -->
@@ -684,6 +655,27 @@
     <div class="sp-footer-hidden">
       {{ spFooterText }}
     </div>
+
+    <!-- Context Menu Copy untuk Arus Kas -->
+    <Teleport to="body">
+      <div
+        v-if="aruskasContextMenuVisible"
+        class="aruskas-context-overlay"
+        @click="aruskasContextMenuVisible = false"
+        @contextmenu.prevent="aruskasContextMenuVisible = false"
+      ></div>
+      <div
+        v-if="aruskasContextMenuVisible"
+        class="aruskas-context-menu"
+        :style="{ left: aruskasContextMenuPos.x + 'px', top: aruskasContextMenuPos.y + 'px' }"
+        @click.stop
+        @contextmenu.stop
+      >
+        <div class="aruskas-context-item" @click="copyArusKasCell">
+          <span>Salin: "{{ aruskasContextMenuValue }}"</span>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -713,7 +705,7 @@ const props = defineProps({
   defaultExpandedKeys: { type: Array, default: () => [] },
   autoOpenFilter: { type: Boolean, default: false },
   showContentInitially: { type: Boolean, default: true },
-  submitButtonText: { type: String, default: "Terapkan Filter" },
+  submitButtonText: { type: String, default: "Go" },
   perkiraanBrowseCode: { type: String, default: "" },
   // Prop mode perkiraan
   perkiraanMode: {
@@ -1022,83 +1014,36 @@ const formatNumber = (value) => {
 // ===== ARUS KAS =====
 const isArusKasType = computed(() => props.type === "aruskas");
 
-// Helper untuk ekstrak nilai dari berbagai kemungkinan field name
-const extractArusKasValue = (row, ...fieldNames) => {
-  for (const field of fieldNames) {
-    if (row[field] !== undefined && row[field] !== null) {
-      return row[field];
-    }
-  }
-  return null;
-};
-
-// Parse data arus kas berdasarkan grup
+// Parse data arus kas berdasarkan field "Laporan" dari API
 const parseArusKasData = computed(() => {
   if (!isArusKasType.value || !props.dataSource || props.dataSource.length === 0) {
     return { saldoAwal: [], penerimaan: [], pengeluaran: [], saldoAkhir: [] };
   }
 
   const result = { saldoAwal: [], penerimaan: [], pengeluaran: [], saldoAkhir: [] };
-  let currentGroup = null;
 
   for (let i = 0; i < props.dataSource.length; i++) {
     const row = props.dataSource[i];
-    const keterangan = extractArusKasValue(row, "Keterangan", "keterangan", "NamaPerkiraan", "nama_perkiraan", "Perkiraan", "uraian", "Uraian") || "";
-    const jumlah = extractArusKasValue(row, "Jumlah", "jumlah", "Saldo", "saldo", "amount", "Amount", "Nilai", "nilai", "total", "Total") || 0;
-    const grup = extractArusKasValue(row, "grup", "Grup", "kategori", "Kategori", "tipe", "Tipe", "type", "kelompok", "Kelompok", "section", "Section") || "";
-    const jenis = extractArusKasValue(row, "jenis", "Jenis", "flag", "Flag", "status", "Status") || "";
 
-    const grupLower = String(grup).toLowerCase().trim();
-    const ketLower = String(keterangan).toLowerCase().trim();
-    const jenisLower = String(jenis).toLowerCase().trim();
-
-    // Deteksi section header dari keterangan (tanpa jumlah atau jumlah = 0/null)
-    const isHeader = (jumlah === 0 || jumlah === null || jumlah === undefined || jumlah === "") &&
-                     (ketLower === "saldo awal" || ketLower === "penerimaan" || ketLower === "pengeluaran" || ketLower === "saldo akhir");
-
-    // Deteksi dari field grup/kategori/tipe
-    if (grupLower.includes("saldoawal") || grupLower.includes("saldo_awal") || grupLower === "sa" ||
-        jenisLower.includes("saldoawal") || jenisLower.includes("saldo_awal") || jenisLower === "sa" ||
-        (isHeader && ketLower === "saldo awal")) {
-      currentGroup = "saldoAwal";
-      continue;
-    }
-    if (grupLower.includes("penerimaan") || grupLower === "p" || grupLower === "terima" ||
-        jenisLower.includes("penerimaan") || jenisLower === "p" || jenisLower === "terima" ||
-        (isHeader && ketLower === "penerimaan")) {
-      currentGroup = "penerimaan";
-      continue;
-    }
-    if (grupLower.includes("pengeluaran") || grupLower === "pg" || grupLower === "keluar" ||
-        jenisLower.includes("pengeluaran") || jenisLower === "pg" || jenisLower === "keluar" ||
-        (isHeader && ketLower === "pengeluaran")) {
-      currentGroup = "pengeluaran";
-      continue;
-    }
-    if (grupLower.includes("saldoakhir") || grupLower.includes("saldo_akhir") || grupLower === "sk" ||
-        jenisLower.includes("saldoakhir") || jenisLower.includes("saldo_akhir") || jenisLower === "sk" ||
-        (isHeader && ketLower === "saldo akhir")) {
-      currentGroup = "saldoAkhir";
-      continue;
-    }
-
-    // Jika belum ada grup, default ke saldoAwal untuk data pertama
-    if (!currentGroup) {
-      currentGroup = "saldoAwal";
-    }
-
-    // Skip baris subtotal/total dari SP (kita hitung sendiri)
-    if (ketLower.includes("subtotal") || ketLower.includes("total") || ketLower === "jumlah" ||
-        grupLower.includes("subtotal") || grupLower.includes("total")) {
-      continue;
-    }
+    // Ambil field dari response API (struktur dbCashFlow via sp_webreportaruskas)
+    const laporan = String(row.Laporan || row.laporan || "").toLowerCase().trim();
+    const keterangan = String(row.keterangan || row.Keterangan || "").trim();
+    const nilai = parseFloat(row.Nilai ?? row.nilai ?? row.jumlah ?? row.Jumlah ?? 0) || 0;
+    const prioritas = parseInt(row.Prioritas ?? row.prioritas ?? -1);
 
     // Skip baris kosong
-    if (!keterangan || String(keterangan).trim() === "") {
-      continue;
-    }
+    if (!keterangan) continue;
 
-    result[currentGroup].push({ keterangan, jumlah });
+    // Klasifikasi berdasarkan field "Laporan" atau "Prioritas"
+    if (laporan === "saldo awal" || prioritas === 0) {
+      result.saldoAwal.push({ keterangan, jumlah: nilai });
+    } else if (laporan === "penerimaan" || prioritas === 1) {
+      result.penerimaan.push({ keterangan, jumlah: nilai });
+    } else if (laporan === "pengeluaran" || prioritas === 2) {
+      result.pengeluaran.push({ keterangan, jumlah: Math.abs(nilai) });
+    } else if (laporan === "saldo akhir" || prioritas === 3) {
+      result.saldoAkhir.push({ keterangan, jumlah: nilai });
+    }
   }
 
   return result;
@@ -1125,6 +1070,126 @@ const totalPenerimaanArusKas = computed(() => arusKasPenerimaan.value.reduce((su
 const totalPengeluaranArusKas = computed(() => arusKasPengeluaran.value.reduce((sum, item) => sum + (item.jumlah || 0), 0));
 const totalSaldoAkhir = computed(() => arusKasSaldoAkhir.value.reduce((sum, item) => sum + (item.jumlah || 0), 0));
 const grandTotalArusKas = computed(() => totalSaldoAwal.value + totalPenerimaanArusKas.value - totalPengeluaranArusKas.value);
+
+// Flat data source untuk DxDataGrid arus kas (section headers + detail + subtotal + grandtotal)
+const arusKasGridData = computed(() => {
+  if (!isArusKasType.value) return [];
+  const rows = [];
+  const addSection = (label) => rows.push({ _rowType: "section", keterangan: label, jumlah: null });
+  const addDetail = (item) => rows.push({ _rowType: "detail", keterangan: item.keterangan, jumlah: item.jumlah });
+  const addSubtotal = (total) => rows.push({ _rowType: "subtotal", keterangan: "", jumlah: total });
+
+  addSection("Saldo Awal");
+  arusKasSaldoAwal.value.forEach(addDetail);
+  addSubtotal(totalSaldoAwal.value);
+
+  addSection("Penerimaan");
+  arusKasPenerimaan.value.forEach(addDetail);
+  addSubtotal(totalPenerimaanArusKas.value);
+
+  addSection("Pengeluaran");
+  arusKasPengeluaran.value.forEach(addDetail);
+  addSubtotal(totalPengeluaranArusKas.value);
+
+  addSection("Saldo Akhir");
+  arusKasSaldoAkhir.value.forEach(addDetail);
+  addSubtotal(totalSaldoAkhir.value);
+
+  rows.push({ _rowType: "grandtotal", keterangan: "", jumlah: grandTotalArusKas.value });
+
+  return rows;
+});
+
+// CSS class per row type untuk styling DxDataGrid
+const arusKasRowClass = (rowData) => {
+  const type = rowData?._rowType || "detail";
+  return `aruskas-row-${type}`;
+};
+
+// Row prepared event untuk background per tipe baris
+const onArusKasRowPrepared = (e) => {
+  if (e.rowType !== "data") return;
+  const type = e.data?._rowType;
+  if (!type) return;
+  if (type === "section") {
+    e.rowElement.style.backgroundColor = "#f3f4f6";
+    e.rowElement.style.fontWeight = "600";
+  } else if (type === "subtotal") {
+    e.rowElement.style.backgroundColor = "#fafbfc";
+    e.rowElement.style.borderTop = "1px solid #d1d5db";
+  } else if (type === "grandtotal") {
+    e.rowElement.style.backgroundColor = "#f3f4f6";
+    e.rowElement.style.fontWeight = "600";
+    e.rowElement.style.borderTop = "1px solid #d1d5db";
+    e.rowElement.style.borderBottom = "2px solid #9ca3af";
+  }
+};
+
+// ===== Context Menu Copy untuk Arus Kas =====
+const aruskasContextMenuVisible = ref(false);
+const aruskasContextMenuPos = ref({ x: 0, y: 0 });
+const aruskasContextMenuValue = ref("");
+
+const onArusKasContextMenu = (e) => {
+  // Hanya tampilkan untuk data row
+  if (e.row?.rowType !== "data") {
+    e.items = [];
+    return;
+  }
+
+  // Ambil nilai cell yang diklik
+  const dataField = e.column?.dataField;
+  let cellValue;
+  if (dataField) {
+    cellValue = e.row?.data?.[dataField];
+  } else {
+    cellValue = e.targetElement?.textContent?.trim();
+  }
+
+  // Skip kalau section header (tidak ada nilai untuk disalin)
+  if (e.row?.data?._rowType === "section") {
+    e.items = [];
+    return;
+  }
+
+  // Simpan nilai untuk ditampilkan di menu
+  const displayVal = cellValue !== null && cellValue !== undefined ? String(cellValue) : "";
+  aruskasContextMenuValue.value = displayVal.length > 30 ? displayVal.substring(0, 30) + "..." : displayVal;
+
+  // Set posisi menu
+  if (e.event) {
+    const mouseEvent = e.event.originalEvent || e.event;
+    const x = mouseEvent.clientX || mouseEvent.pageX || 0;
+    const y = mouseEvent.clientY || mouseEvent.pageY || 0;
+    const menuWidth = 220;
+    const menuHeight = 50;
+    let posX = x + 2;
+    let posY = y + 2;
+    if (posX + menuWidth > window.innerWidth) posX = window.innerWidth - menuWidth - 10;
+    if (posY + menuHeight > window.innerHeight) posY = window.innerHeight - menuHeight - 10;
+    aruskasContextMenuPos.value = { x: posX, y: posY };
+  }
+
+  // Kosongkan items bawaan DevExtreme, pakai custom
+  e.items = [];
+  aruskasContextMenuVisible.value = true;
+};
+
+const copyArusKasCell = async () => {
+  const value = aruskasContextMenuValue.value;
+  if (!value) { aruskasContextMenuVisible.value = false; return; }
+  try {
+    await navigator.clipboard.writeText(value);
+  } catch (err) {
+    const textArea = document.createElement("textarea");
+    textArea.value = value;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textArea);
+  }
+  aruskasContextMenuVisible.value = false;
+};
 
 // Format currency untuk arus kas (dengan kurung untuk negatif)
 const formatCurrencyArusKas = (value) => {
@@ -1485,105 +1550,73 @@ onUnmounted(() => {
   border-bottom: 2px solid #9ca3af;
 }
 
-/* ===== ARUS KAS - Clean & Minimal (konsisten dengan kas bank) ===== */
+/* ===== ARUS KAS - DxDataGrid ===== */
 .aruskas-wrapper {
   width: 100%;
   overflow-x: auto;
 }
 
-.aruskas-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  color: #4b5563;
-  border: 1px solid #f1f3f5;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.aruskas-table th,
-.aruskas-table td {
-  border: 1px solid #f1f3f5;
-  padding: 9px 12px;
-  vertical-align: middle;
-}
-
-/* Header - sama persis dengan kas bank */
-.aruskas-table thead th {
-  background-color: #fafbfc;
+/* Section header (Saldo Awal, Penerimaan, dll) */
+.aruskas-row-section {
   font-weight: 600;
-  font-size: 11.5px;
-  color: #6b7280;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 9px 12px;
-}
-
-.aruskas-table .col-keterangan {
-  text-align: left;
-}
-
-.aruskas-table .col-jumlah {
-  text-align: right;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  width: 180px;
-}
-
-/* Section header (Saldo Awal, Penerimaan, dll) - subtle seperti kas bank */
-.aruskas-table .section-header td {
-  background-color: #f3f4f6;
-  font-weight: 500;
-  color: #374151;
-  border-top: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
-  padding-top: 10px;
-  padding-bottom: 10px;
   font-size: 12px;
+  color: #374151;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 /* Detail rows */
-.aruskas-table .detail-row {
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.aruskas-table .detail-row:hover {
-  background-color: #f9fafb;
-}
-
-.aruskas-table .detail-row .col-keterangan {
-  padding-left: 20px;
+.aruskas-row-detail {
   font-weight: 400;
+  padding-left: 8px;
 }
 
-/* Subtotal row - konsisten dengan kas bank */
-.aruskas-table .subtotal-row td {
-  background-color: #fafbfc;
+/* Subtotal row */
+.aruskas-row-subtotal {
   font-weight: 500;
   color: #374151;
-  border-top: 1px solid #d1d5db;
 }
 
-/* Grand total row - konsisten dengan kas bank */
-.aruskas-table .grandtotal-row td {
-  background-color: #f3f4f6;
+/* Grand total row */
+.aruskas-row-grandtotal {
   font-weight: 600;
   color: #111827;
-  border-top: 1px solid #d1d5db;
-  border-bottom: 2px solid #9ca3af;
 }
 
-/* Empty state */
-.aruskas-table .empty-cell {
-  text-align: center;
-  color: #9ca3af;
-  font-style: italic;
-  padding: 28px 12px;
+/* Context menu copy arus kas */
+.aruskas-context-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+}
+
+.aruskas-context-menu {
+  position: fixed;
+  z-index: 9999;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 4px 0;
+  min-width: 200px;
+}
+
+.aruskas-context-item {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aruskas-context-item:hover {
+  background-color: #f3f4f6;
 }
 
 /* ===== BANK HARIAN - Clean & Minimal (konsisten dengan kas bank) ===== */

@@ -6,7 +6,7 @@
     :defaultExpandedKeys="[1]"
     :autoOpenFilter="true"
     :showContentInitially="false"
-    submitButtonText="Cetak"
+    submitButtonText="Go"
     @filter-change="handleFilterChange"
   />
 </template>

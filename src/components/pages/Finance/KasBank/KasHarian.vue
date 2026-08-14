@@ -8,7 +8,7 @@
     :autoOpenFilter="true"
     :showContentInitially="false"
     perkiraanBrowseCode="01"
-    submitButtonText="Cetak"
+    submitButtonText="Go"
     @filter-change="handleFilterChange"
   />
 </template>

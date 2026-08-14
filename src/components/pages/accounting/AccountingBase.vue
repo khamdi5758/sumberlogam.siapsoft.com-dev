@@ -1082,7 +1082,7 @@ const props = defineProps({
   },
   submitButtonText: {
     type: String,
-    default: "Terapkan Filter",
+    default: "Go",
   },
 });
 
