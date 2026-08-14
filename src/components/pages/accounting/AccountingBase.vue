@@ -100,28 +100,12 @@
       "
     >
       <template #contentTemplate>
-        <div class="p-4 space-y-4">
-          <div class="flex justify-between items-center mb-4" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div class="p-4">
+          <div class="flex justify-between items-center" style="display: flex; justify-content: space-between; align-items: center;">
             <div>Search Panel</div>
             <DxCheckBox
               :value="filterSettings.showSearchPanel"
               @valueChanged="() => toggleFilterOption('showSearchPanel')"
-            />
-          </div>
-
-          <div class="flex justify-between items-center mb-4" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <div>Filter Row</div>
-            <DxCheckBox
-              :value="filterSettings.showFilterRow"
-              @valueChanged="() => toggleFilterOption('showFilterRow')"
-            />
-          </div>
-
-          <div class="flex justify-between items-center" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>Header Filter</div>
-            <DxCheckBox
-              :value="filterSettings.showHeaderFilter"
-              @valueChanged="() => toggleFilterOption('showHeaderFilter')"
             />
           </div>
         </div>
