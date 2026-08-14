@@ -291,7 +291,7 @@ const PerkiraanFields = {
 // ========== KOMPONEN UTAMA ==========
 const props = defineProps({
   title: { type: String, default: "Filter Laporan" },
-  submitButtonText: { type: String, default: "Terapkan Filter" },
+  submitButtonText: { type: String, default: "Go" },
   type: { type: String, default: "jurnal" },
   perkiraanBrowseCode: { type: String, default: "" },
   perkiraanMode: {

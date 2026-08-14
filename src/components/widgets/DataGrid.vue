@@ -30,6 +30,7 @@
         @selection-changed="(e) => $emit('selection-changed', e)"
         @onRowClick="handleFocusedRowChanged"
         @rowDblClick="handleFocusedRowChanged"
+        @contextMenuPreparing="onContextMenuPreparing"
       >
         <!-- @focusedRowChanged="handleFocusedRowChanged" -->
         <DxColumn
@@ -406,6 +407,44 @@
     <div class="sp-footer-hidden">
       {{ spFooterText }}
     </div>
+
+    <!-- Context Menu untuk klik kanan (custom, lebih reliable) -->
+    <Teleport to="body">
+      <!-- Overlay untuk tutup context menu saat klik di luar -->
+      <div
+        v-if="contextMenuVisible"
+        class="context-menu-overlay"
+        @click="contextMenuVisible = false"
+        @contextmenu.prevent="contextMenuVisible = false"
+      ></div>
+      
+      <!-- Context Menu -->
+      <div
+        v-if="contextMenuVisible"
+        class="datagrid-context-menu"
+        :style="{
+          left: contextMenuPosition.x + 'px',
+          top: contextMenuPosition.y + 'px',
+        }"
+        @click.stop
+        @contextmenu.stop
+      >
+        <div
+          v-for="item in contextMenuItems"
+          :key="item.action"
+          class="context-menu-item"
+          :class="{ 'disabled': item.disabled }"
+          @click.stop="handleMenuItemClick(item)"
+        >
+          <span class="context-menu-icon">
+            <Copy v-if="item.action === 'copy'" :size="15" :stroke-width="2" />
+            <MoveHorizontal v-else-if="item.action === 'autoFit'" :size="15" :stroke-width="2" />
+            <Columns3 v-else-if="item.action === 'columnChooser'" :size="15" :stroke-width="2" />
+          </span>
+          <span class="context-menu-text">{{ item.text }}</span>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -438,6 +477,7 @@ import {
   DxFilterBuilderPopup,
 } from "devextreme-vue/data-grid";
 import DxCheckBox from "devextreme-vue/check-box";
+import { Copy, MoveHorizontal, Columns3 } from "lucide-vue-next";
 import { Workbook } from "exceljs";
 import { exportDataGrid } from "devextreme/excel_exporter";
 import { saveAs } from "file-saver-es";
@@ -473,6 +513,9 @@ export default {
     DxMasterDetail,
     DxFilterPanel,
     DxFilterBuilderPopup,
+    Copy,
+    MoveHorizontal,
+    Columns3,
   },
   data() {
     return {
@@ -499,6 +542,10 @@ export default {
         my: "center",
         offset: { y: 10 },
       },
+      // Context menu state
+      contextMenuVisible: false,
+      contextMenuPosition: { x: 0, y: 0 },
+      contextMenuCellData: null,
     };
   },
 
@@ -1052,6 +1099,30 @@ export default {
       });
       return map;
     },
+
+    // Context menu items untuk klik kanan
+    contextMenuItems() {
+      const cellValue = this.contextMenuCellData?.value;
+      const displayValue = cellValue !== null && cellValue !== undefined 
+        ? String(cellValue).substring(0, 30) + (String(cellValue).length > 30 ? "..." : "")
+        : "";
+
+      return [
+        {
+          text: `Salin: "${displayValue}"`,
+          action: "copy",
+          disabled: cellValue === null || cellValue === undefined,
+        },
+        {
+          text: "Ukuran Kolom Otomatis",
+          action: "autoFit",
+        },
+        {
+          text: "Pemilih Kolom",
+          action: "columnChooser",
+        },
+      ];
+    },
   },
 
   watch: {
@@ -1550,6 +1621,144 @@ export default {
         gridElement.style.width = "100%";
       }
     },
+
+    // 🔥 Handle klik kanan pada cell datagrid
+    onContextMenuPreparing(e) {
+      // Hanya tampilkan context menu untuk data row (bukan header/footer)
+      if (e.row?.rowType !== "data") {
+        e.items = []; // Kosongkan items = tidak tampilkan context menu
+        return;
+      }
+
+      // Simpan data cell yang diklik
+      // 🔥 CATATAN: event contextMenuPreparing TIDAK menyediakan e.value,
+      // jadi nilai cell diambil dari row.data berdasarkan dataField kolomnya
+      const dataField = e.column?.dataField;
+      let cellValue;
+
+      if (dataField) {
+        cellValue = e.row?.data?.[dataField];
+      } else {
+        // Fallback untuk kolom tanpa dataField (mis. kolom Actions): ambil teks dari DOM
+        cellValue = e.targetElement?.textContent?.trim();
+      }
+
+      this.contextMenuCellData = {
+        value: cellValue,
+        column: e.column,
+        row: e.row,
+        data: e.row?.data,
+      };
+
+      // Set posisi context menu berdasarkan posisi klik mouse
+      if (e.event) {
+        // Ambil koordinat mouse dari event
+        const mouseEvent = e.event.originalEvent || e.event;
+        const x = mouseEvent.clientX || mouseEvent.pageX || 0;
+        const y = mouseEvent.clientY || mouseEvent.pageY || 0;
+        
+        // Pastikan context menu tidak keluar dari viewport
+        const menuWidth = 220; // perkiraan lebar menu
+        const menuHeight = 120; // perkiraan tinggi menu (3 items)
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        let posX = x + 2;
+        let posY = y + 2;
+        
+        // Adjust kalau melebihi viewport kanan
+        if (posX + menuWidth > viewportWidth) {
+          posX = viewportWidth - menuWidth - 10;
+        }
+        
+        // Adjust kalau melebihi viewport bawah
+        if (posY + menuHeight > viewportHeight) {
+          posY = viewportHeight - menuHeight - 10;
+        }
+        
+        this.contextMenuPosition = { x: posX, y: posY };
+      }
+
+      // Kosongkan items bawaan DevExtreme (kita pakai custom)
+      e.items = [];
+
+      // Tampilkan context menu custom
+      this.contextMenuVisible = true;
+    },
+
+    // Handle klik item di context menu
+    handleMenuItemClick(item) {
+      // Jangan lakukan apa-apa kalau item disabled
+      if (item?.disabled) return;
+      
+      const action = item?.action;
+      if (!action) return;
+
+      // Jalankan action
+      switch (action) {
+        case "copy":
+          this.copyCellValue();
+          break;
+        case "autoFit":
+          this.autoFitColumn();
+          break;
+        case "columnChooser":
+          this.showColumnChooser();
+          break;
+      }
+
+      // Sembunyikan context menu setelah klik
+      this.contextMenuVisible = false;
+    },
+
+    // Salin isi cell ke clipboard
+    async copyCellValue() {
+      const value = this.contextMenuCellData?.value;
+      if (value === null || value === undefined) return;
+
+      try {
+        await navigator.clipboard.writeText(String(value));
+        this.showCopyNotification();
+      } catch (err) {
+        // Fallback untuk browser lama
+        const textArea = document.createElement("textarea");
+        textArea.value = String(value);
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        this.showCopyNotification();
+      }
+    },
+
+    // Auto-fit kolom yang diklik
+    autoFitColumn() {
+      const grid = this.getGridInstance();
+      const column = this.contextMenuCellData?.column;
+      if (!grid || !column?.dataField) return;
+
+      // Gunakan method autoFitColumn dari DevExtreme
+      grid.autoFitColumn(column.dataField);
+    },
+
+    // Tampilkan column chooser
+    showColumnChooser() {
+      const grid = this.getGridInstance();
+      if (!grid) return;
+
+      grid.showColumnChooser();
+    },
+
+    // Notifikasi copy berhasil
+    showCopyNotification() {
+      if (window.DevExpress?.ui?.notify) {
+        window.DevExpress.ui.notify(
+          "Disalin ke clipboard!",
+          "success",
+          1500
+        );
+      }
+    },
   },
 
   mounted() {
@@ -1808,5 +2017,72 @@ export default {
 .sp-footer-hidden::-moz-selection {
   color: #111827;
   background: #ffe58f;
+}
+
+/* 🔥 Context Menu Styling */
+.datagrid-context-menu {
+  position: fixed;
+  z-index: 99999;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
+  padding: 4px 0;
+  min-width: 200px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 13px;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  color: #374151;
+}
+
+.context-menu-item:hover {
+  background-color: #f3f4f6;
+}
+
+.context-menu-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.context-menu-item.disabled:hover {
+  background-color: transparent;
+}
+
+.context-menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.context-menu-item:hover .context-menu-icon {
+  color: #374151;
+}
+
+.context-menu-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.context-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99998;
+  background: transparent;
 }
 </style>
