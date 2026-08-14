@@ -8,33 +8,132 @@
           Periode: {{ formatDateRange }} | Cabang: Pusat
         </p>
       </div>
-      <div class="action-buttons">
-        <DxButton
-          icon="exportpdf"
-          text="Export PDF"
-          type="default"
-          styling-mode="outlined"
-          @click="exportToPDF"
-        />
+      <div class="action-buttons flex items-center gap-1.5">
         <DxButton
           icon="print"
-          text="Print"
           type="default"
+          styling-mode="contained"
+          class="print-btn"
+          hint="Print Data"
           @click="printReport"
         />
         <DxButton
-          icon="filter"
-          text="Filter"
+          icon="export"
           type="default"
+          styling-mode="contained"
+          class="export-btn"
+          hint="Ekspor ke Excel"
+          @click="exportToExcel"
+        />
+        
+        <!-- Filter List Button to open the popover/popup -->
+        <DxButton
+          icon="fields"
+          type="default"
+          styling-mode="contained"
+          class="fields-btn filter-list-trigger"
+          hint="Filter List"
+          @click="filterListPopupVisible = !filterListPopupVisible"
+        />
+
+        <DxButton
+          icon="refresh"
+          type="default"
+          styling-mode="contained"
+          class="custom-refresh-button"
+          hint="Muat ulang data"
+          @click="handleRefresh"
+        />
+        <DxButton
+          icon="filter"
+          type="default"
+          styling-mode="contained"
+          class="filter-button"
+          hint="Filter Data"
           @click="openFilter"
         />
+
+        <!-- Search Box (appears when showSearchPanel is checked) -->
+        <DxTextBox
+          v-if="filterSettings.showSearchPanel"
+          v-model:value="searchText"
+          class="custom-search-box ml-2"
+          :placeholder="'Search ' + title + '...'"
+          mode="search"
+          :width="200"
+        />
+
+        <!-- Zoom control -->
+        <select
+          v-if="currentLayoutMode === 'paper'"
+          v-model.number="userZoom"
+          class="zoom-select"
+          title="Zoom tampilan kertas"
+        >
+          <option :value="0.5">50%</option>
+          <option :value="0.75">75%</option>
+          <option :value="1">100%</option>
+          <option :value="1.25">125%</option>
+          <option :value="1.5">150%</option>
+        </select>
       </div>
     </div>
 
+    <!-- Filter List Popup (matches registerbase layout) -->
+    <DxPopup
+      :visible="filterListPopupVisible"
+      :show-title="true"
+      title="Filter List"
+      :width="260"
+      :height="undefined"
+      :shading="false"
+      :position="{
+        my: 'right top',
+        at: 'right bottom',
+        of: '.filter-list-trigger',
+        offset: '0 5',
+      }"
+      :onHidden="
+        () => {
+          filterListPopupVisible = false;
+        }
+      "
+    >
+      <template #contentTemplate>
+        <div class="p-4 space-y-4">
+          <div class="flex justify-between items-center mb-4" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div>Search Panel</div>
+            <DxCheckBox
+              :value="filterSettings.showSearchPanel"
+              @valueChanged="() => toggleFilterOption('showSearchPanel')"
+            />
+          </div>
+
+          <div class="flex justify-between items-center mb-4" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div>Filter Row</div>
+            <DxCheckBox
+              :value="filterSettings.showFilterRow"
+              @valueChanged="() => toggleFilterOption('showFilterRow')"
+            />
+          </div>
+
+          <div class="flex justify-between items-center" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>Header Filter</div>
+            <DxCheckBox
+              :value="filterSettings.showHeaderFilter"
+              @valueChanged="() => toggleFilterOption('showHeaderFilter')"
+            />
+          </div>
+        </div>
+      </template>
+    </DxPopup>
+
     <!-- UI/UX: Card putih bersih untuk memberikan fokus pada angka -->
-    <div v-if="hasBeenFiltered" :class="['jurnal', 'bukubesar', 'mutasi', 'biaya', 'aktivatetap', 'labarugi', 'neracalajur', 'neraca'].includes(type) ? 'jurnal-preview-outer' : 'card-box'">
-      <!-- Kondisi Jurnal: Render PDF-style A4 Preview -->
-      <template v-if="type === 'jurnal'">
+    <div v-if="hasBeenFiltered" :class="['jurnal', 'bukubesar', 'mutasi', 'biaya', 'aktivatetap', 'labarugi', 'neracalajur', 'neraca'].includes(type) && currentLayoutMode === 'paper' ? 'jurnal-preview-outer' : 'card-box'">
+      <!-- Paper Layout View -->
+      <div v-show="currentLayoutMode === 'paper'">
+        <!-- Kondisi Jurnal: Render PDF-style A4 Preview -->
+        <template v-if="type === 'jurnal'">
         <div v-if="dataSource.length === 0" class="no-data-jurnal">
           Tidak ada data jurnal untuk periode ini.
         </div>
@@ -43,6 +142,7 @@
             v-for="(pageTransactions, pageIdx) in jurnalPages"
             :key="pageIdx"
             class="jurnal-page-sheet"
+            :style="{ zoom: appliedZoom }"
           >
             <!-- Header -->
             <div class="jurnal-print-header">
@@ -129,6 +229,7 @@
             v-for="(pageGroups, pageIdx) in bukubesarPages"
             :key="pageIdx"
             class="jurnal-page-sheet"
+            :style="{ zoom: appliedZoom }"
           >
             <!-- Header -->
             <div class="jurnal-print-header">
@@ -213,6 +314,7 @@
             v-for="(pageRows, pageIdx) in mutasiPages"
             :key="pageIdx"
             class="jurnal-page-sheet"
+            :style="{ zoom: appliedZoom }"
           >
             <!-- Header -->
             <div class="jurnal-print-header" style="text-align: left; margin-bottom: 20px;">
@@ -309,6 +411,7 @@
             v-for="(pageRows, pageIdx) in biayaPages"
             :key="pageIdx"
             class="jurnal-page-sheet"
+            :style="{ zoom: appliedZoom }"
           >
             <!-- Header -->
             <div class="jurnal-print-header" style="text-align: left; margin-bottom: 20px;">
@@ -389,6 +492,7 @@
             v-for="(pageRows, pageIdx) in aktivaPages"
             :key="pageIdx"
             class="jurnal-page-sheet landscape-page"
+            :style="{ zoom: appliedZoom }"
           >
             <!-- Header -->
             <div class="jurnal-print-header" style="text-align: left; margin-bottom: 15px;">
@@ -544,6 +648,7 @@
             v-for="(pageGroups, pageIdx) in labarugiPages"
             :key="pageIdx"
             class="jurnal-page-sheet"
+            :style="{ zoom: appliedZoom }"
           >
             <!-- Header -->
             <div class="jurnal-print-header" style="text-align: left; margin-bottom: 20px;">
@@ -619,6 +724,7 @@
             v-for="(pageRows, pageIdx) in neracaPages"
             :key="pageIdx"
             class="jurnal-page-sheet"
+            :style="{ zoom: appliedZoom }"
           >
             <!-- Header -->
             <div class="jurnal-print-header" style="text-align: left; margin-bottom: 20px;">
@@ -728,6 +834,7 @@
             v-for="(pageRows, pageIdx) in neracalajurPages"
             :key="pageIdx"
             class="jurnal-page-sheet landscape-page"
+            :style="{ zoom: appliedZoom }"
           >
             <!-- Header -->
             <div class="jurnal-print-header" style="text-align: left; margin-bottom: 20px;">
@@ -939,10 +1046,14 @@
           </div>
         </div>
       </template>
+    </div> <!-- Closes currentLayoutMode === 'paper' -->
 
-      <DxTreeList
-        v-else
-        id="profit-loss-tree"
+      <!-- Grid Layout View -->
+      <div v-show="currentLayoutMode === 'grid' || !['jurnal', 'bukubesar', 'mutasi', 'biaya', 'aktivatetap', 'labarugi', 'neracalajur', 'neraca'].includes(type)">
+        <DxTreeList
+          v-if="['labarugi', 'neraca'].includes(type) || !['jurnal', 'bukubesar', 'mutasi', 'biaya', 'aktivatetap', 'neracalajur'].includes(type)"
+          id="profit-loss-tree"
+          ref="treeListRef"
         :data-source="processedDataSource"
         key-expr="id"
         parent-id-expr="parentId"
@@ -953,6 +1064,10 @@
         @row-expanded="onRowExpanded"
         @row-collapsed="onRowCollapsed"
       >
+        <DxTreeSearchPanel :visible="false" />
+        <DxTreeFilterRow :visible="filterSettings.showFilterRow" />
+        <DxTreeHeaderFilter :visible="filterSettings.showHeaderFilter" />
+
         <DxTreeColumn
           data-field="accountName"
           caption="Keterangan"
@@ -1020,7 +1135,25 @@
             }}
           </span>
         </template>
-      </DxTreeList>
+        </DxTreeList>
+
+        <!-- Generic Data Grid for tabular reports -->
+        <DxDataGrid
+          v-else
+          id="accounting-data-grid"
+          ref="gridRef"
+          :data-source="filteredDataSource"
+          :show-borders="true"
+          :row-alternation-enabled="true"
+          :column-auto-width="true"
+          :allow-column-resizing="true"
+          column-resizing-mode="widget"
+        >
+          <DxGridSearchPanel :visible="false" />
+          <DxGridFilterRow :visible="filterSettings.showFilterRow" />
+          <DxGridHeaderFilter :visible="filterSettings.showHeaderFilter" />
+        </DxDataGrid>
+      </div>
     </div>
 
     <AccountingPopup
@@ -1041,15 +1174,30 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
-import { DxTreeList, DxColumn as DxTreeColumn } from "devextreme-vue/tree-list";
+import {
+  DxTreeList,
+  DxColumn as DxTreeColumn,
+  DxSearchPanel as DxTreeSearchPanel,
+  DxFilterRow as DxTreeFilterRow,
+  DxHeaderFilter as DxTreeHeaderFilter,
+} from "devextreme-vue/tree-list";
 import {
   DxDataGrid,
   DxColumn as DxGridColumn,
   DxSummary,
   DxTotalItem,
+  DxSearchPanel as DxGridSearchPanel,
+  DxFilterRow as DxGridFilterRow,
+  DxHeaderFilter as DxGridHeaderFilter,
 } from "devextreme-vue/data-grid";
 import DxButton from "devextreme-vue/button";
+import DxPopup from "devextreme-vue/popup";
+import DxCheckBox from "devextreme-vue/check-box";
+import { DxTextBox } from "devextreme-vue/text-box";
 import AccountingPopup from "./AccountingPopup.vue";
+import { Workbook } from "exceljs";
+import { saveAs } from "file-saver-es";
+import { exportDataGrid } from "devextreme/excel_exporter";
 
 const props = defineProps({
   title: {
@@ -1102,6 +1250,115 @@ const endDate = ref(new Date(new Date().getFullYear(), new Date().getMonth() + 1
 const expandedKeys = ref([...props.defaultExpandedKeys]);
 const hasBeenFiltered = ref(props.showContentInitially || isVisited);
 const filterParams = ref({});
+
+// Zoom & Layout Mode State
+const userZoom = ref(1);
+const defaultLayoutMode = ["jurnal", "bukubesar", "mutasi", "biaya", "aktivatetap", "labarugi", "neracalajur", "neraca"].includes(props.type)
+  ? "paper"
+  : "grid";
+const currentLayoutMode = ref(defaultLayoutMode);
+
+// Filter List Popup State
+const filterListPopupVisible = ref(false);
+const filterSettings = ref({
+  showSearchPanel: false,
+  showFilterRow: false,
+  showHeaderFilter: false,
+});
+
+const toggleFilterOption = (optionName) => {
+  filterSettings.value[optionName] = !filterSettings.value[optionName];
+};
+
+const searchText = ref("");
+
+const filteredDataSource = computed(() => {
+  if (!searchText.value) return props.dataSource;
+  const lower = searchText.value.toLowerCase();
+  return props.dataSource.filter((item) => {
+    return Object.values(item).some(
+      (val) => val !== null && val !== undefined && String(val).toLowerCase().includes(lower)
+    );
+  });
+});
+
+const appliedZoom = computed(() => {
+  const isLandscape = ["aktivatetap", "neracalajur"].includes(props.type);
+  return isLandscape ? 0.75 * userZoom.value : userZoom.value;
+});
+
+const treeListRef = ref(null);
+const gridRef = ref(null);
+
+
+
+const handleRefresh = () => {
+  emit("filter-change", filterParams.value);
+};
+
+const exportToExcel = async () => {
+  try {
+    const isTree = ['labarugi', 'neraca'].includes(props.type) || !['jurnal', 'bukubesar', 'mutasi', 'biaya', 'aktivatetap', 'neracalajur'].includes(props.type);
+
+    const workbook = new Workbook();
+    const worksheet = workbook.addWorksheet(props.title || "Report");
+
+    const now = new Date();
+    const fileName = `${props.title || "Report"}_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}.xlsx`;
+
+    if (isTree) {
+      // Custom Excel TreeList Exporter
+      const headerRow = worksheet.addRow(["Keterangan", "Bulan Ini", "Bulan Lalu", "S/d Bulan Ini"]);
+      headerRow.font = { bold: true };
+
+      worksheet.columns = [
+        { key: "accountName", width: 45 },
+        { key: "amount", width: 18, style: { numFmt: "#,##0" } },
+        { key: "amountBulanLalu", width: 18, style: { numFmt: "#,##0" } },
+        { key: "total", width: 18, style: { numFmt: "#,##0" } }
+      ];
+
+      if (processedDataSource.value && processedDataSource.value.length > 0) {
+        for (const item of processedDataSource.value) {
+          const rowClass = getRowClass(item) || "";
+          const isBold = rowClass.includes("font-bold") || rowClass.includes("bold") || rowClass.includes("level-0") || rowClass.includes("level-1");
+          const level = item.level !== undefined ? item.level : (item.parentId === null || item.parentId === undefined ? 0 : 1);
+          const nameIndent = "    ".repeat(level) + (item.accountName || "");
+          
+          const amountVal = shouldShowAmount(item) ? (item.amount || 0) : null;
+          const amountBulanLaluVal = shouldShowAmount(item) ? (item.amountBulanLalu || 0) : null;
+          const totalVal = shouldShowAmount(item) ? ((item.amount || 0) + (item.amountBulanLalu || 0)) : null;
+
+          const row = worksheet.addRow([nameIndent, amountVal, amountBulanLaluVal, totalVal]);
+          if (isBold) {
+            row.font = { bold: true };
+          }
+        }
+      }
+    } else {
+      const gridInst = gridRef.value?.instance || gridRef.value?.getInstance();
+      if (!gridInst) {
+        throw new Error("Grid instance not found");
+      }
+      await exportDataGrid({
+        component: gridInst,
+        worksheet: worksheet,
+        autoFilterEnabled: true,
+      });
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(
+      new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      }),
+      fileName
+    );
+  } catch (err) {
+    console.error("Export Excel error:", err);
+    alert(`Export Excel gagal: ${err.message}`);
+  }
+};
 
 const spFooterText = computed(() => {
   if (!props.type) return "";
@@ -1883,7 +2140,7 @@ const bukubesarPages = computed(() => {
 
 const jurnalDataSource = computed(() => {
   if (props.type !== "jurnal") return [];
-  return props.dataSource.map((item, index) => ({
+  return filteredDataSource.value.map((item, index) => ({
     ...item,
     id: item.id !== undefined ? item.id : index,
   }));
@@ -1992,7 +2249,7 @@ const transformToTree = (flatData) => {
 
 const processedDataSource = computed(() => {
   if (props.type === "jurnal") return [];
-  return transformToTree(props.dataSource);
+  return transformToTree(filteredDataSource.value);
 });
 
 // Jurnal Specific Computations & Helpers
@@ -2018,7 +2275,7 @@ const groupedTransactions = computed(() => {
   if (props.type !== "jurnal") return [];
   
   const groups = {};
-  props.dataSource.forEach((item) => {
+  filteredDataSource.value.forEach((item) => {
     const key = item.Nobukti;
     if (!groups[key]) {
       groups[key] = {
@@ -2128,11 +2385,11 @@ const currentPrintTime = computed(() => {
 });
 
 const grandTotalDebet = computed(() => {
-  return props.dataSource.reduce((sum, item) => sum + Number(item.Debet || 0), 0);
+  return filteredDataSource.value.reduce((sum, item) => sum + Number(item.Debet || 0), 0);
 });
 
 const grandTotalKredit = computed(() => {
-  return props.dataSource.reduce((sum, item) => sum + Number(item.kredit || 0), 0);
+  return filteredDataSource.value.reduce((sum, item) => sum + Number(item.kredit || 0), 0);
 });
 
 const customizeSummaryText = (e) => {
@@ -2727,5 +2984,118 @@ onUnmounted(() => {
 .neraca-data-row-blank td {
   border: 1px solid #000000;
   height: 18px;
+}
+
+/* Button & Zoom Overrides to match registerbase */
+.zoom-select {
+  height: 33px;
+  padding: 0 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: #ffffff;
+  color: #1a1d20;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.zoom-select:hover {
+  border-color: #6366f1;
+}
+
+.zoom-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+:deep(.custom-refresh-button),
+:deep(.filter-button) {
+  background-color: #002f6c !important;
+  border-color: #002f6c !important;
+  color: white !important;
+  transition: all 0.2s ease !important;
+  width: 33px !important;
+  height: 33px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+:deep(.custom-refresh-button:hover),
+:deep(.filter-button:hover) {
+  background-color: #003d8c !important;
+  border-color: #003d8c !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 47, 108, 0.3) !important;
+}
+:deep(.custom-refresh-button:active),
+:deep(.filter-button:active) {
+  transform: scale(0.95) !important;
+  background-color: #002557 !important;
+}
+:deep(.custom-refresh-button .dx-icon),
+:deep(.filter-button .dx-icon) {
+  color: #ffffff !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+}
+
+:deep(.print-btn),
+:deep(.export-btn),
+:deep(.fields-btn) {
+  background-color: #337ab7 !important;
+  border-color: #337ab7 !important;
+  color: white !important;
+  transition: all 0.2s ease !important;
+  width: 33px !important;
+  height: 33px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+:deep(.print-btn:hover),
+:deep(.export-btn:hover),
+:deep(.fields-btn:hover) {
+  background-color: #286090 !important;
+  border-color: #204d74 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(51, 122, 183, 0.3) !important;
+}
+:deep(.print-btn:active),
+:deep(.export-btn:active),
+:deep(.fields-btn:active) {
+  transform: scale(0.95) !important;
+  background-color: #204d74 !important;
+}
+:deep(.print-btn .dx-icon),
+:deep(.export-btn .dx-icon),
+:deep(.fields-btn .dx-icon) {
+  color: #ffffff !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+}
+
+@media (max-width: 768px) {
+  :deep(.custom-refresh-button),
+  :deep(.filter-button) {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  :deep(.custom-refresh-button .dx-icon),
+  :deep(.filter-button .dx-icon) {
+    font-size: 12px !important;
+  }
+  :deep(.print-btn),
+  :deep(.export-btn),
+  :deep(.fields-btn) {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  :deep(.print-btn .dx-icon),
+  :deep(.export-btn .dx-icon),
+  :deep(.fields-btn .dx-icon) {
+    font-size: 12px !important;
+  }
 }
 </style>
