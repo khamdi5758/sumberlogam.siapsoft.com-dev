@@ -101,18 +101,20 @@
         <DxPaging :enabled="false" />
 
         <slot name="columns">
-          <DxColumn data-field="NoBukti"  caption="No. bukti"    :group-index="0" />
-          <DxColumn data-field="Tanggal"  caption="Tanggal"      data-type="date" format="dd/MM/yyyy" :width="95" />
-          <DxColumn data-field="KodeSupp" caption="Kode supp"    :width="95" />
-          <DxColumn data-field="NamaSupp" caption="Nama supplier" :min-width="190" />
-          <DxColumn data-field="PPN"      caption="PPN"          :width="60" alignment="center" />
-          <DxColumn data-field="KodeBrg"  caption="Kode barang"  :width="110" />
-          <DxColumn data-field="NamaBrg"  caption="Nama barang"  :min-width="200" />
-          <DxColumn data-field="Satuan"   caption="Satuan"       :width="70" alignment="center" />
-          <DxColumn data-field="Qnt"      caption="Qty"          :width="90"  format="#,##0.###" />
-          <DxColumn data-field="Harga"    caption="Harga"        :width="110" format="#,##0.00" />
-          <DxColumn data-field="Diskon"   caption="Diskon"       :width="95"  format="#,##0.00" />
-          <DxColumn data-field="Jumlah"   caption="Jumlah"       :width="130" format="#,##0.00" fixed-position="right" />
+          <DxColumn
+            v-for="col in dynamicColumns"
+            :key="col.dataField"
+            :data-field="col.dataField"
+            :caption="col.caption"
+            :alignment="col.alignment"
+            :data-type="col.dataType"
+            :format="col.format"
+            :width="col.width"
+            :min-width="col.minWidth"
+            :group-index="col.groupIndex"
+            :fixed="col.fixed"
+            :fixed-position="col.fixedPosition"
+          />
         </slot>
 
         <DxSummary>
@@ -162,6 +164,170 @@ const props = defineProps({
   userName:    { type: String, default: 'admin' },
   storageKey:  { type: String, default: 'report-register-po' },
   fileName:    { type: String, default: 'register-po' }
+})
+
+const dynamicColumns = computed(() => {
+  const data = Array.isArray(props.dataSource) ? props.dataSource : []
+  if (data.length === 0) return []
+
+  const allKeysSet = new Set()
+  data.forEach(item => {
+    if (item && typeof item === 'object') {
+      Object.keys(item).forEach(key => {
+        const normalizedKey = key.toLowerCase().replace(/[\s_]/g, '')
+        if (!['id', 'keyindex', 'pagetotal', 'uuid', 'rowversion'].includes(normalizedKey)) {
+          allKeysSet.add(key)
+        }
+      })
+    }
+  })
+
+  const allKeys = Array.from(allKeysSet)
+  
+  return allKeys.map(key => {
+    const lower = key.toLowerCase()
+    
+    // Determine alignment
+    let alignment = 'left'
+    if (
+      lower.startsWith('qnt') ||
+      lower.startsWith('harga') ||
+      lower.startsWith('diskon') ||
+      lower.startsWith('jumlah') ||
+      lower.startsWith('dpp') ||
+      lower.startsWith('ppn') ||
+      lower.startsWith('total') ||
+      lower.startsWith('sum') ||
+      lower.startsWith('avg') ||
+      lower.startsWith('dec')
+    ) {
+      alignment = 'right'
+    } else if (
+      lower.includes('tanggal') ||
+      lower.includes('tgl') ||
+      lower.includes('date') ||
+      lower.includes('ppn')
+    ) {
+      alignment = 'center'
+    }
+
+    // Parse caption
+    let caption = key.toString()
+    if (lower === 'nobukti') caption = 'No. bukti'
+    else if (lower === 'kodesupp') caption = 'Kode supp'
+    else if (lower === 'namasupp') caption = 'Nama supplier'
+    else if (lower === 'kodebrg') caption = 'Kode barang'
+    else if (lower === 'namabrg') caption = 'Nama barang'
+    else if (lower === 'qnt') caption = 'Qty'
+    else {
+      let stripped = true
+      while (stripped) {
+        stripped = false
+        if (caption.startsWith('dec')) {
+          caption = caption.substring(3)
+          stripped = true
+        } else if (caption.startsWith('sum') || caption.startsWith('avg')) {
+          caption = caption.substring(3)
+          stripped = true
+        }
+      }
+      caption = caption
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/_/g, ' ')
+        .trim()
+      caption = caption
+        .split(' ')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ')
+    }
+
+    // Determine dataType and format
+    let dataType = 'string'
+    let format = undefined
+
+    if (
+      lower.includes('tanggal') ||
+      lower.includes('tgl') ||
+      lower.includes('date')
+    ) {
+      dataType = 'date'
+      format = 'dd/MM/yyyy'
+    } else if (
+      lower.startsWith('qnt') ||
+      lower.startsWith('harga') ||
+      lower.startsWith('diskon') ||
+      lower.startsWith('jumlah') ||
+      lower.startsWith('dpp') ||
+      lower.startsWith('total') ||
+      lower.startsWith('sum') ||
+      lower.startsWith('avg') ||
+      lower.startsWith('dec')
+    ) {
+      dataType = 'number'
+      if (lower.startsWith('qnt') || lower.includes('qty')) {
+        format = '#,##0.###'
+      } else {
+        format = '#,##0.00'
+      }
+    }
+
+    // Determine width/minWidth
+    let width = undefined
+    let minWidth = undefined
+
+    if (lower === 'nobukti') {
+      width = 120
+    } else if (lower.includes('tanggal') || lower.includes('tgl')) {
+      width = 95
+    } else if (lower === 'kodesupp') {
+      width = 95
+    } else if (lower === 'namasupp') {
+      minWidth = 190
+    } else if (lower === 'ppn') {
+      width = 60
+    } else if (lower === 'kodebrg') {
+      width = 110
+    } else if (lower === 'namabrg') {
+      minWidth = 200
+    } else if (lower === 'satuan') {
+      width = 70
+    } else if (lower === 'qnt') {
+      width = 90
+    } else if (lower === 'harga') {
+      width = 110
+    } else if (lower === 'diskon') {
+      width = 95
+    } else if (lower === 'jumlah') {
+      width = 130
+    }
+
+    // Grouping
+    let groupIndex = undefined
+    if (lower === 'nobukti') {
+      groupIndex = 0
+    }
+
+    // Fixed column
+    let fixed = undefined
+    let fixedPosition = undefined
+    if (lower === 'jumlah') {
+      fixed = true
+      fixedPosition = 'right'
+    }
+
+    return {
+      dataField: key,
+      caption,
+      alignment,
+      dataType,
+      format,
+      width,
+      minWidth,
+      groupIndex,
+      fixed,
+      fixedPosition
+    }
+  })
 })
 
 const gridRef = ref(null)
