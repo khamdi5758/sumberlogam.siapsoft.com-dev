@@ -10,7 +10,7 @@
 <script>
 import RegisterBasePoDev from "@/components/pages/Registrasi/RegisterBasePoDev.vue";
 export default {
-  name: "RegisterPODev",
+  name: "RegisterPoDev",
   components: { RegisterBasePoDev },
 };
 </script>
