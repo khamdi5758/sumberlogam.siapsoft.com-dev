@@ -35,7 +35,7 @@
       <DxColumn data-field="KodeSupp"   caption="Kode Supp" :width="90" />
       <DxColumn data-field="NamaSupp"   caption="Nama Supplier" :min-width="200" />
       <DxColumn data-field="PPN"        caption="PPN" :width="60" alignment="center" />
-      <DxColumn data-field="KodeBrg"    caption="Kode Barang" :width="110" />
+      <DxColumn data-field="Kodebrg"    caption="Kode Barang" :width="110" />
       <DxColumn data-field="NamaBrg"    caption="Nama Barang" :min-width="220" />
       <DxColumn data-field="Satuan"     caption="Satuan" :width="70" alignment="center" />
       <DxColumn data-field="Qnt"        caption="Qty"     :width="90"  format="#,##0.###" />

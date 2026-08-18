@@ -121,7 +121,18 @@ export default {
       return `${start.toLocaleDateString("id-ID", options)} - ${end.toLocaleDateString("id-ID", options)}`;
     },
     gridDataSource() {
-      return this.dataSource && this.dataSource.length > 0 ? this.dataSource : this.registerList;
+      const data = this.dataSource && this.dataSource.length > 0 ? this.dataSource : this.registerList;
+      if (!Array.isArray(data)) return [];
+      return data.map(item => {
+        if (!item || typeof item !== 'object') return item;
+        const newItem = { ...item };
+        if ('Kodebrg' in newItem && !('KodeBrg' in newItem)) {
+          newItem.KodeBrg = newItem.Kodebrg;
+        } else if ('KodeBrg' in newItem && !('Kodebrg' in newItem)) {
+          newItem.Kodebrg = newItem.KodeBrg;
+        }
+        return newItem;
+      });
     },
     registerList() {
       return this.$store.getters[`${this.storeModule}/registerList`] || [];
