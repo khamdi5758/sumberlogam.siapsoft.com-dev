@@ -1,5 +1,5 @@
 <template>
-  <RegisterBase
+  <RegisterBasePoDev
     title="Register PO Dev"
     type="po"
     storeModule="register"
@@ -8,9 +8,9 @@
 </template>
 
 <script>
-import RegisterBase from "@/components/pages/Registrasi/RegisterBase.vue";
+import RegisterBasePoDev from "@/components/pages/Registrasi/RegisterBasePoDev.vue";
 export default {
   name: "RegisterPODev",
-  components: { RegisterBase },
+  components: { RegisterBasePoDev },
 };
 </script>
