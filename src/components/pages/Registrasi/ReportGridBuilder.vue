@@ -11,35 +11,54 @@
       <div class="rb-chrome__tools">
         <!-- Zoom -->
         <div class="rb-group">
-          <button class="rb-btn" title="Perkecil (Ctrl -)" @click="zoomOut">&#8722;</button>
+          <button class="rb-btn" title="Perkecil (Ctrl -)" @click="zoomOut">
+            <Minus :size="15" :stroke-width="2" />
+          </button>
           <button class="rb-btn rb-btn--zoom" title="Kembalikan ke 100%" @click="zoomReset">
             {{ Math.round(zoom * 100) }}%
           </button>
-          <button class="rb-btn" title="Perbesar (Ctrl +)" @click="zoomIn">&#43;</button>
+          <button class="rb-btn" title="Perbesar (Ctrl +)" @click="zoomIn">
+            <Plus :size="15" :stroke-width="2" />
+          </button>
         </div>
 
         <span class="rb-sep"></span>
 
         <!-- Struktur -->
         <div class="rb-group">
-          <button class="rb-btn" title="Buka semua grup" @click="expandAll">Buka semua</button>
-          <button class="rb-btn" title="Tutup semua grup" @click="collapseAll">Tutup semua</button>
-          <button class="rb-btn" title="Pilih kolom yang tampil" @click="showColumnChooser">Kolom</button>
+          <button class="rb-btn" title="Buka semua grup" @click="expandAll">
+            <ChevronsDown :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Tutup semua grup" @click="collapseAll">
+            <ChevronsUp :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Pilih kolom yang tampil" @click="showColumnChooser">
+            <Columns3 :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Pengaturan filter" @click="showFilterPopup">
+            <Filter :size="15" :stroke-width="2" />
+          </button>
         </div>
 
         <span class="rb-sep"></span>
 
         <!-- Keluaran -->
         <div class="rb-group">
-          <button class="rb-btn" title="Unduh sebagai Excel" @click="exportExcel">Excel</button>
-          <button class="rb-btn" title="Unduh sebagai PDF" @click="exportPdf">PDF</button>
-          <button class="rb-btn" title="Cetak lembar ini" @click="printSheet">Cetak</button>
+          <button class="rb-btn" title="Unduh sebagai Excel" @click="exportExcel">
+            <FileSpreadsheet :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Unduh sebagai PDF" @click="exportPdf">
+            <FileText :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Cetak lembar ini" @click="printSheet">
+            <Printer :size="15" :stroke-width="2" />
+          </button>
         </div>
 
         <span class="rb-sep"></span>
 
         <button class="rb-btn rb-btn--ghost" title="Kembalikan susunan kolom & grup ke awal" @click="resetLayout">
-          Atur ulang
+          <RotateCcw :size="15" :stroke-width="2" />
         </button>
 
         <span class="rb-sep"></span>
@@ -92,11 +111,11 @@
         />
         <DxGrouping :auto-expand-all="true" :context-menu-enabled="true" expand-mode="rowClick" />
 
-        <DxFilterRow :visible="true" />
-        <DxHeaderFilter :visible="true" />
-        <DxFilterPanel :visible="true" />
-        <DxSearchPanel :visible="true" :width="220" placeholder="Cari di seluruh laporan" />
-        <DxColumnChooser :enabled="true" mode="select" title="Kolom yang ditampilkan" />
+        <DxFilterRow :visible="filterSettings.showFilterRow" />
+        <DxHeaderFilter :visible="filterSettings.showHeaderFilter" />
+        <DxFilterPanel :visible="filterSettings.showFilterPanel" />
+        <DxSearchPanel :visible="filterSettings.showSearchPanel" :width="220" placeholder="Cari di seluruh laporan" />
+        <DxColumnChooser :enabled="false" mode="select" title="Kolom yang ditampilkan" />
         <DxColumnFixing :enabled="true" />
         <DxPaging :enabled="false" />
 
@@ -143,6 +162,50 @@
     <transition name="rb-fade">
       <div v-if="toast" class="rb-toast">{{ toast }}</div>
     </transition>
+
+    <!-- Popup pengaturan filter -->
+    <DxPopup
+      :visible="filterPopupVisible"
+      :show-title="true"
+      title="Pengaturan Filter"
+      :width="260"
+      :height="undefined"
+      :shading="false"
+      :on-hidden="hideFilterPopup"
+    >
+      <template #contentTemplate>
+        <div class="rb-filter-popup">
+          <div class="rb-filter-popup__row">
+            <span>Baris filter</span>
+            <DxCheckBox
+              :value="filterSettings.showFilterRow"
+              @valueChanged="() => toggleFilterOption('showFilterRow')"
+            />
+          </div>
+          <div class="rb-filter-popup__row">
+            <span>Filter header kolom</span>
+            <DxCheckBox
+              :value="filterSettings.showHeaderFilter"
+              @valueChanged="() => toggleFilterOption('showHeaderFilter')"
+            />
+          </div>
+          <div class="rb-filter-popup__row">
+            <span>Panel filter</span>
+            <DxCheckBox
+              :value="filterSettings.showFilterPanel"
+              @valueChanged="() => toggleFilterOption('showFilterPanel')"
+            />
+          </div>
+          <div class="rb-filter-popup__row">
+            <span>Panel pencarian</span>
+            <DxCheckBox
+              :value="filterSettings.showSearchPanel"
+              @valueChanged="() => toggleFilterOption('showSearchPanel')"
+            />
+          </div>
+        </div>
+      </template>
+    </DxPopup>
   </div>
 </template>
 
@@ -154,6 +217,12 @@ import {
   DxFilterPanel, DxSearchPanel, DxColumnChooser, DxColumnFixing,
   DxSelection, DxStateStoring, DxLoadPanel, DxPaging
 } from 'devextreme-vue/data-grid'
+import DxPopup from 'devextreme-vue/popup'
+import DxCheckBox from 'devextreme-vue/check-box'
+import {
+  Minus, Plus, ChevronsDown, ChevronsUp, Columns3, Filter,
+  FileSpreadsheet, FileText, Printer, RotateCcw
+} from 'lucide-vue-next'
 
 const props = defineProps({
   dataSource:  { type: [Array, Object], default: () => [] },
@@ -366,14 +435,58 @@ const expandAll   = () => grid()?.expandAll()
 const collapseAll = () => grid()?.collapseAll()
 const showColumnChooser = () => grid()?.showColumnChooser()
 
+/* ─────────────── FILTER (Baris filter, header, panel, pencarian) ─────────────── */
+const savedFilters = localStorage.getItem(`${props.storageKey}:filters`)
+const filterSettings = ref(savedFilters ? JSON.parse(savedFilters) : {
+  showFilterRow: false,
+  showHeaderFilter: false,
+  showFilterPanel: true,
+  showSearchPanel: false
+})
+const filterPopupVisible = ref(false)
+
+const showFilterPopup = () => { filterPopupVisible.value = true }
+const hideFilterPopup = () => { filterPopupVisible.value = false }
+
+function applyFilterOptionsToGrid () {
+  const g = grid()
+  if (!g) return
+
+  g.option('filterRow.visible', filterSettings.value.showFilterRow)
+  g.option('headerFilter.visible', filterSettings.value.showHeaderFilter)
+  g.option('filterPanel.visible', filterSettings.value.showFilterPanel)
+  g.option('searchPanel.visible', filterSettings.value.showSearchPanel)
+
+  localStorage.setItem(`${props.storageKey}:filters`, JSON.stringify(filterSettings.value))
+
+  setTimeout(() => {
+    try { g.updateDimensions() } catch (e) {}
+  }, 50)
+}
+
+function toggleFilterOption (key) {
+  filterSettings.value[key] = !filterSettings.value[key]
+  applyFilterOptionsToGrid()
+}
+
 function resetLayout () {
   grid()?.state(null)
   localStorage.removeItem(props.storageKey)
+  localStorage.removeItem(`${props.storageKey}:filters`)
+  filterSettings.value = {
+    showFilterRow: false,
+    showHeaderFilter: false,
+    showFilterPanel: true,
+    showSearchPanel: false
+  }
+  applyFilterOptionsToGrid()
   applyZoom(1)
   notify('Susunan dikembalikan ke awal')
 }
 
-function onContentReady () { /* hook bila perlu */ }
+function onContentReady () {
+  applyFilterOptionsToGrid()
+}
 
 /* ─────────────── CLIPBOARD ─────────────── */
 function notify (msg) {
@@ -802,6 +915,23 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 
 /* ---- Scrollbar ---- */
 .report-sheet :deep(.dx-scrollable-scroll-content) { background: rgba(22,24,29,.22); }
+
+/* ============================================================
+   POPUP FILTER
+   ============================================================ */
+.rb-filter-popup {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.rb-filter-popup__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
 /* ============================================================
    TOAST
