@@ -19,6 +19,7 @@
     "exceljs": "^4.4.0",
     "file-saver-es": "^2.0.5",
     "idn-area-data": "^4.0.1",
+    "jspdf": "^4.2.1",
     "lodash.debounce": "^4.0.8",
     "lucide-vue-next": "^0.563.0",
     "pinia": "^3.0.4",

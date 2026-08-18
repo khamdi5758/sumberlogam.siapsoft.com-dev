@@ -60,6 +60,11 @@ const routes = [
   },
   // ✅ Tambahkan di sini
   {
+    path: "/po-report-demo",
+    name: "PoReportDemo",
+    component: () => import("@/components/pages/Registrasi/RegisterPoReportDemo.vue"),
+  },
+  {
     path: "/logout",
     name: "logout",
     beforeEnter: async (to, from, next) => {
