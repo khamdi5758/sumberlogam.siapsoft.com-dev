@@ -11,54 +11,35 @@
       <div class="rb-chrome__tools">
         <!-- Zoom -->
         <div class="rb-group">
-          <button class="rb-btn" title="Perkecil (Ctrl -)" @click="zoomOut">
-            <Minus :size="15" :stroke-width="2" />
-          </button>
+          <button class="rb-btn" title="Perkecil (Ctrl -)" @click="zoomOut">&#8722;</button>
           <button class="rb-btn rb-btn--zoom" title="Kembalikan ke 100%" @click="zoomReset">
             {{ Math.round(zoom * 100) }}%
           </button>
-          <button class="rb-btn" title="Perbesar (Ctrl +)" @click="zoomIn">
-            <Plus :size="15" :stroke-width="2" />
-          </button>
+          <button class="rb-btn" title="Perbesar (Ctrl +)" @click="zoomIn">&#43;</button>
         </div>
 
         <span class="rb-sep"></span>
 
         <!-- Struktur -->
         <div class="rb-group">
-          <button class="rb-btn" title="Buka semua grup" @click="expandAll">
-            <ChevronsDown :size="15" :stroke-width="2" />
-          </button>
-          <button class="rb-btn" title="Tutup semua grup" @click="collapseAll">
-            <ChevronsUp :size="15" :stroke-width="2" />
-          </button>
-          <button class="rb-btn" title="Pilih kolom yang tampil" @click="showColumnChooser">
-            <Columns3 :size="15" :stroke-width="2" />
-          </button>
-          <button class="rb-btn" title="Pengaturan filter" @click="showFilterPopup">
-            <Filter :size="15" :stroke-width="2" />
-          </button>
+          <button class="rb-btn" title="Buka semua grup" @click="expandAll">Buka semua</button>
+          <button class="rb-btn" title="Tutup semua grup" @click="collapseAll">Tutup semua</button>
+          <button class="rb-btn" title="Pilih kolom yang tampil" @click="showColumnChooser">Kolom</button>
         </div>
 
         <span class="rb-sep"></span>
 
         <!-- Keluaran -->
         <div class="rb-group">
-          <button class="rb-btn" title="Unduh sebagai Excel" @click="exportExcel">
-            <FileSpreadsheet :size="15" :stroke-width="2" />
-          </button>
-          <button class="rb-btn" title="Unduh sebagai PDF" @click="exportPdf">
-            <FileText :size="15" :stroke-width="2" />
-          </button>
-          <button class="rb-btn" title="Cetak lembar ini" @click="printSheet">
-            <Printer :size="15" :stroke-width="2" />
-          </button>
+          <button class="rb-btn" title="Unduh sebagai Excel" @click="exportExcel">Excel</button>
+          <button class="rb-btn" title="Unduh sebagai PDF" @click="exportPdf">PDF</button>
+          <button class="rb-btn" title="Cetak lembar ini" @click="printSheet">Cetak</button>
         </div>
 
         <span class="rb-sep"></span>
 
         <button class="rb-btn rb-btn--ghost" title="Kembalikan susunan kolom & grup ke awal" @click="resetLayout">
-          <RotateCcw :size="15" :stroke-width="2" />
+          Atur ulang
         </button>
 
         <span class="rb-sep"></span>
@@ -111,11 +92,11 @@
         />
         <DxGrouping :auto-expand-all="true" :context-menu-enabled="true" expand-mode="rowClick" />
 
-        <DxFilterRow :visible="filterSettings.showFilterRow" />
-        <DxHeaderFilter :visible="filterSettings.showHeaderFilter" />
-        <DxFilterPanel :visible="filterSettings.showFilterPanel" />
-        <DxSearchPanel :visible="filterSettings.showSearchPanel" :width="220" placeholder="Cari di seluruh laporan" />
-        <DxColumnChooser :enabled="false" mode="select" title="Kolom yang ditampilkan" />
+        <DxFilterRow :visible="true" />
+        <DxHeaderFilter :visible="true" />
+        <DxFilterPanel :visible="true" />
+        <DxSearchPanel :visible="true" :width="220" placeholder="Cari di seluruh laporan" />
+        <DxColumnChooser :enabled="true" mode="select" title="Kolom yang ditampilkan" />
         <DxColumnFixing :enabled="true" />
         <DxPaging :enabled="false" />
 
@@ -160,351 +141,240 @@
     <transition name="rb-fade">
       <div v-if="toast" class="rb-toast">{{ toast }}</div>
     </transition>
-
-    <!-- Popup pengaturan filter -->
-    <DxPopup
-      :visible="filterPopupVisible"
-      :show-title="true"
-      title="Pengaturan Filter"
-      :width="260"
-      :height="undefined"
-      :shading="false"
-      :on-hidden="hideFilterPopup"
-    >
-      <template #contentTemplate>
-        <div class="rb-filter-popup">
-          <div class="rb-filter-popup__row">
-            <span>Baris filter</span>
-            <DxCheckBox
-              :value="filterSettings.showFilterRow"
-              @valueChanged="() => toggleFilterOption('showFilterRow')"
-            />
-          </div>
-          <div class="rb-filter-popup__row">
-            <span>Filter header kolom</span>
-            <DxCheckBox
-              :value="filterSettings.showHeaderFilter"
-              @valueChanged="() => toggleFilterOption('showHeaderFilter')"
-            />
-          </div>
-          <div class="rb-filter-popup__row">
-            <span>Panel filter</span>
-            <DxCheckBox
-              :value="filterSettings.showFilterPanel"
-              @valueChanged="() => toggleFilterOption('showFilterPanel')"
-            />
-          </div>
-          <div class="rb-filter-popup__row">
-            <span>Panel pencarian</span>
-            <DxCheckBox
-              :value="filterSettings.showSearchPanel"
-              @valueChanged="() => toggleFilterOption('showSearchPanel')"
-            />
-          </div>
-        </div>
-      </template>
-    </DxPopup>
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import {
   DxDataGrid, DxColumn, DxGrouping, DxGroupPanel, DxScrolling, DxSorting,
   DxSummary, DxGroupItem, DxTotalItem, DxHeaderFilter, DxFilterRow,
   DxFilterPanel, DxSearchPanel, DxColumnChooser, DxColumnFixing,
   DxSelection, DxStateStoring, DxLoadPanel, DxPaging
 } from 'devextreme-vue/data-grid'
-import DxPopup from 'devextreme-vue/popup'
-import DxCheckBox from 'devextreme-vue/check-box'
-import {
-  Minus, Plus, ChevronsDown, ChevronsUp, Columns3, Filter,
-  FileSpreadsheet, FileText, Printer, RotateCcw
-} from 'lucide-vue-next'
 
-export default {
-  name: 'ReportGridBuilder',
+const props = defineProps({
+  dataSource:  { type: [Array, Object], default: () => [] },
+  keyExpr:     { type: String, default: 'Id' },
+  companyName: { type: String, default: 'PT SIAP INTEGRASI' },
+  reportTitle: { type: String, default: 'Register purchase order' },
+  periodLabel: { type: String, default: '' },
+  userName:    { type: String, default: 'admin' },
+  storageKey:  { type: String, default: 'report-register-po' },
+  fileName:    { type: String, default: 'register-po' }
+})
 
-  components: {
-    DxDataGrid, DxColumn, DxGrouping, DxGroupPanel, DxScrolling, DxSorting,
-    DxSummary, DxGroupItem, DxTotalItem, DxHeaderFilter, DxFilterRow,
-    DxFilterPanel, DxSearchPanel, DxColumnChooser, DxColumnFixing,
-    DxSelection, DxStateStoring, DxLoadPanel, DxPaging,
-    DxPopup, DxCheckBox,
-    Minus, Plus, ChevronsDown, ChevronsUp, Columns3, Filter,
-    FileSpreadsheet, FileText, Printer, RotateCcw
-  },
+const gridRef = ref(null)
+const sheetEl = ref(null)
+const toast   = ref('')
+const grid    = () => gridRef.value?.instance
 
-  props: {
-    dataSource:  { type: [Array, Object], default: () => [] },
-    keyExpr:     { type: String, default: 'Id' },
-    companyName: { type: String, default: 'PT SIAP INTEGRASI' },
-    reportTitle: { type: String, default: 'Register purchase order' },
-    periodLabel: { type: String, default: '' },
-    userName:    { type: String, default: 'admin' },
-    storageKey:  { type: String, default: 'report-register-po' },
-    fileName:    { type: String, default: 'register-po' }
-  },
+const printedAt = computed(() =>
+  new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeStyle: 'short' }).format(new Date())
+)
 
-  data () {
-    return {
-      toast: '',
-      zoom: Number(localStorage.getItem(`${this.storageKey}:zoom`)) || 1,
-      filterSettings: {
-        showFilterRow: false,
-        showHeaderFilter: false,
-        showFilterPanel: true,
-        showSearchPanel: false
-      },
-      filterPopupVisible: false
-    }
-  },
+/* ─────────────── ZOOM ─────────────── */
+const ZOOM_KEY = `${props.storageKey}:zoom`
+const zoom = ref(Number(localStorage.getItem(ZOOM_KEY)) || 1)
 
-  computed: {
-    printedAt () {
-      return new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeStyle: 'short' }).format(new Date())
-    },
-    zoomKey () {
-      return `${this.storageKey}:zoom`
-    }
-  },
-
-  mounted () {
-    window.addEventListener('keydown', this.onKeydown)
-  },
-
-  beforeUnmount () {
-    window.removeEventListener('keydown', this.onKeydown)
-  },
-
-  methods: {
-    grid () {
-      return this.$refs.gridRef?.instance
-    },
-
-    /* ─────────────── ZOOM ─────────────── */
-    applyZoom (v) {
-      this.zoom = Math.min(1.6, Math.max(0.7, Math.round(v * 10) / 10))
-      localStorage.setItem(this.zoomKey, String(this.zoom))
-      requestAnimationFrame(() => this.grid()?.updateDimensions())
-    },
-    zoomIn ()    { this.applyZoom(this.zoom + 0.1) },
-    zoomOut ()   { this.applyZoom(this.zoom - 0.1) },
-    zoomReset () { this.applyZoom(1) },
-
-    onKeydown (e) {
-      if (!(e.ctrlKey || e.metaKey)) return
-      if (e.key === '=' || e.key === '+') { e.preventDefault(); this.zoomIn() }
-      if (e.key === '-')                  { e.preventDefault(); this.zoomOut() }
-      if (e.key === '0')                  { e.preventDefault(); this.zoomReset() }
-    },
-
-    /* ─────────────── STRUKTUR ─────────────── */
-    expandAll ()   { this.grid()?.expandAll() },
-    collapseAll () { this.grid()?.collapseAll() },
-    showColumnChooser () { this.grid()?.showColumnChooser() },
-
-    resetLayout () {
-      this.grid()?.state(null)
-      localStorage.removeItem(this.storageKey)
-      this.applyZoom(1)
-      this.notify('Susunan dikembalikan ke awal')
-    },
-
-    /* ─────────────── FILTER (Baris filter, header, panel, pencarian) ─────────────── */
-    showFilterPopup () { this.filterPopupVisible = true },
-    hideFilterPopup () { this.filterPopupVisible = false },
-
-    applyFilterOptionsToGrid () {
-      const g = this.grid()
-      if (!g) return
-
-      g.option('filterRow.visible', this.filterSettings.showFilterRow)
-      g.option('headerFilter.visible', this.filterSettings.showHeaderFilter)
-      g.option('filterPanel.visible', this.filterSettings.showFilterPanel)
-      g.option('searchPanel.visible', this.filterSettings.showSearchPanel)
-
-      setTimeout(() => {
-        try { g.updateDimensions() } catch (e) {}
-      }, 50)
-    },
-
-    toggleFilterOption (key) {
-      this.filterSettings[key] = !this.filterSettings[key]
-      this.applyFilterOptionsToGrid()
-    },
-
-    onContentReady () {
-      this.applyFilterOptionsToGrid()
-    },
-
-    /* ─────────────── CLIPBOARD ─────────────── */
-    notify (msg) {
-      this.toast = msg
-      setTimeout(() => { this.toast = '' }, 1600)
-    },
-
-    async toClipboard (text, label) {
-      try {
-        await navigator.clipboard.writeText(text)
-      } catch {
-        const ta = document.createElement('textarea')
-        ta.value = text
-        ta.style.position = 'fixed'
-        ta.style.opacity = '0'
-        document.body.appendChild(ta)
-        ta.select()
-        document.execCommand('copy')
-        document.body.removeChild(ta)
-      }
-      this.notify(label)
-    },
-
-    cellText (e) {
-      return e.text ?? (e.value != null ? String(e.value) : '')
-    },
-
-    onCellDblClick (e) {
-      if (e.rowType !== 'data') return
-      this.toClipboard(this.cellText(e), 'Sel disalin')
-    },
-
-    rowText (rowData, columns) {
-      return columns
-        .filter(c => c.dataField && c.visible !== false)
-        .map(c => {
-          const v = rowData[c.dataField]
-          return v == null ? '' : String(v)
-        })
-        .join('\t')
-    },
-
-    onContextMenuPreparing (e) {
-      const g = this.grid()
-      if (!g) return
-      const cols = g.getVisibleColumns()
-
-      if (e.target === 'content' && e.row?.rowType === 'data') {
-        const cellValue = e.column?.dataField ? e.row.data[e.column.dataField] : ''
-        e.items = [
-          {
-            text: 'Salin sel',
-            onItemClick: () => this.toClipboard(cellValue == null ? '' : String(cellValue), 'Sel disalin')
-          },
-          {
-            text: 'Salin baris',
-            onItemClick: () => this.toClipboard(this.rowText(e.row.data, cols), 'Baris disalin')
-          },
-          {
-            text: 'Salin baris terpilih',
-            onItemClick: async () => {
-              const rows = await g.getSelectedRowsData()
-              const src = rows.length ? rows : [e.row.data]
-              const header = cols.filter(c => c.dataField).map(c => c.caption).join('\t')
-              const body = src.map(r => this.rowText(r, cols)).join('\n')
-              this.toClipboard(`${header}\n${body}`, `${src.length} baris disalin`)
-            }
-          },
-          {
-            text: 'Salin seluruh kolom',
-            onItemClick: () => {
-              const field = e.column?.dataField
-              if (!field) return
-              const all = g.getDataSource().items()
-              const flat = []
-              const walk = arr => arr.forEach(it => it.items ? walk(it.items) : flat.push(it))
-              walk(all)
-              this.toClipboard(flat.map(r => r[field] ?? '').join('\n'), 'Kolom disalin')
-            }
-          },
-          { text: 'Kelompokkan berdasarkan kolom ini',
-            visible: !!e.column?.dataField,
-            onItemClick: () => g.columnOption(e.column.dataField, 'groupIndex', 0) },
-          { text: 'Hapus semua pengelompokan',
-            onItemClick: () => g.clearGrouping() }
-        ]
-      }
-    },
-
-    /* ─────────────── EXPORT ─────────────── */
-    async exportExcel () {
-      const [{ Workbook }, { exportDataGrid }, { saveAs }] = await Promise.all([
-        import('exceljs'),
-        import('devextreme/excel_exporter'),
-        import('file-saver-es')
-      ])
-      const wb = new Workbook()
-      const ws = wb.addWorksheet(this.reportTitle.slice(0, 31))
-
-      ws.mergeCells('A1:D1')
-      ws.getCell('A1').value = this.companyName
-      ws.getCell('A1').font = { bold: true, size: 12 }
-      ws.mergeCells('A2:D2')
-      ws.getCell('A2').value = `${this.reportTitle} — ${this.periodLabel}`
-
-      await exportDataGrid({
-        component: this.grid(),
-        worksheet: ws,
-        topLeftCell: { row: 4, column: 1 },
-        autoFilterEnabled: true,
-        customizeCell: ({ gridCell, excelCell }) => {
-          if (gridCell.rowType === 'header') {
-            excelCell.font = { bold: true }
-            excelCell.border = { bottom: { style: 'thin' } }
-          }
-          if (gridCell.rowType === 'group' || gridCell.rowType === 'groupFooter') {
-            excelCell.font = { bold: true }
-          }
-          if (gridCell.rowType === 'totalFooter') {
-            excelCell.font = { bold: true }
-            excelCell.border = { top: { style: 'thin' }, bottom: { style: 'double' } }
-          }
-        }
-      })
-
-      const buf = await wb.xlsx.writeBuffer()
-      saveAs(new Blob([buf], { type: 'application/octet-stream' }), `${this.fileName}.xlsx`)
-      this.notify('Excel diunduh')
-    },
-
-    async exportPdf () {
-      const [{ jsPDF }, { exportDataGrid }] = await Promise.all([
-        import('jspdf'),
-        import('devextreme/pdf_exporter')
-      ])
-      const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
-
-      doc.setFontSize(11); doc.text(this.companyName, 40, 34)
-      doc.setFontSize(14); doc.text(this.reportTitle, 40, 52)
-      doc.setFontSize(9);  doc.text(this.periodLabel, 40, 66)
-
-      await exportDataGrid({
-        jsPDFDocument: doc,
-        component: this.grid(),
-        topLeft: { x: 40, y: 76 },
-        columnWidths: undefined,
-        customDrawCell: ({ gridCell, pdfCell }) => {
-          if (gridCell.rowType === 'header') {
-            pdfCell.font = { style: 'bold' }
-            pdfCell.backgroundColor = '#ffffff'
-          }
-          if (gridCell.rowType === 'group' || gridCell.rowType === 'totalFooter') {
-            pdfCell.font = { style: 'bold' }
-            pdfCell.backgroundColor = '#ffffff'
-          }
-        }
-      })
-      doc.save(`${this.fileName}.pdf`)
-      this.notify('PDF diunduh')
-    },
-
-    printSheet () {
-      this.grid()?.updateDimensions()
-      setTimeout(() => window.print(), 120)
-    }
-  },
-
-  expose: ['exportExcel', 'exportPdf', 'printSheet', 'resetLayout', 'grid']
+function applyZoom (v) {
+  zoom.value = Math.min(1.6, Math.max(0.7, Math.round(v * 10) / 10))
+  localStorage.setItem(ZOOM_KEY, String(zoom.value))
+  requestAnimationFrame(() => grid()?.updateDimensions())
 }
+const zoomIn    = () => applyZoom(zoom.value + 0.1)
+const zoomOut   = () => applyZoom(zoom.value - 0.1)
+const zoomReset = () => applyZoom(1)
+
+function onKeydown (e) {
+  if (!(e.ctrlKey || e.metaKey)) return
+  if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomIn() }
+  if (e.key === '-')                  { e.preventDefault(); zoomOut() }
+  if (e.key === '0')                  { e.preventDefault(); zoomReset() }
+}
+onMounted(()      => window.addEventListener('keydown', onKeydown))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+
+/* ─────────────── STRUKTUR ─────────────── */
+const expandAll   = () => grid()?.expandAll()
+const collapseAll = () => grid()?.collapseAll()
+const showColumnChooser = () => grid()?.showColumnChooser()
+
+function resetLayout () {
+  grid()?.state(null)
+  localStorage.removeItem(props.storageKey)
+  applyZoom(1)
+  notify('Susunan dikembalikan ke awal')
+}
+
+function onContentReady () { /* hook bila perlu */ }
+
+/* ─────────────── CLIPBOARD ─────────────── */
+function notify (msg) {
+  toast.value = msg
+  setTimeout(() => (toast.value = ''), 1600)
+}
+
+async function toClipboard (text, label) {
+  try {
+    await navigator.clipboard.writeText(text)
+  } catch {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    document.body.removeChild(ta)
+  }
+  notify(label)
+}
+
+function cellText (e) {
+  return e.text ?? (e.value != null ? String(e.value) : '')
+}
+
+function onCellDblClick (e) {
+  if (e.rowType !== 'data') return
+  toClipboard(cellText(e), 'Sel disalin')
+}
+
+function rowText (rowData, columns) {
+  return columns
+    .filter(c => c.dataField && c.visible !== false)
+    .map(c => {
+      const v = rowData[c.dataField]
+      return v == null ? '' : String(v)
+    })
+    .join('\t')
+}
+
+function onContextMenuPreparing (e) {
+  const g = grid()
+  if (!g) return
+  const cols = g.getVisibleColumns()
+
+  if (e.target === 'content' && e.row?.rowType === 'data') {
+    const cellValue = e.column?.dataField ? e.row.data[e.column.dataField] : ''
+    e.items = [
+      {
+        text: 'Salin sel',
+        onItemClick: () => toClipboard(cellValue == null ? '' : String(cellValue), 'Sel disalin')
+      },
+      {
+        text: 'Salin baris',
+        onItemClick: () => toClipboard(rowText(e.row.data, cols), 'Baris disalin')
+      },
+      {
+        text: 'Salin baris terpilih',
+        onItemClick: async () => {
+          const rows = await g.getSelectedRowsData()
+          const src = rows.length ? rows : [e.row.data]
+          const header = cols.filter(c => c.dataField).map(c => c.caption).join('\t')
+          const body = src.map(r => rowText(r, cols)).join('\n')
+          toClipboard(`${header}\n${body}`, `${src.length} baris disalin`)
+        }
+      },
+      {
+        text: 'Salin seluruh kolom',
+        onItemClick: () => {
+          const field = e.column?.dataField
+          if (!field) return
+          const all = g.getDataSource().items()
+          const flat = []
+          const walk = arr => arr.forEach(it => it.items ? walk(it.items) : flat.push(it))
+          walk(all)
+          toClipboard(flat.map(r => r[field] ?? '').join('\n'), 'Kolom disalin')
+        }
+      },
+      { text: 'Kelompokkan berdasarkan kolom ini',
+        visible: !!e.column?.dataField,
+        onItemClick: () => g.columnOption(e.column.dataField, 'groupIndex', 0) },
+      { text: 'Hapus semua pengelompokan',
+        onItemClick: () => g.clearGrouping() }
+    ]
+  }
+}
+
+/* ─────────────── EXPORT ─────────────── */
+async function exportExcel () {
+  const [{ Workbook }, { exportDataGrid }, { saveAs }] = await Promise.all([
+    import('exceljs'),
+    import('devextreme/excel_exporter'),
+    import('file-saver-es')
+  ])
+  const wb = new Workbook()
+  const ws = wb.addWorksheet(props.reportTitle.slice(0, 31))
+
+  ws.mergeCells('A1:D1')
+  ws.getCell('A1').value = props.companyName
+  ws.getCell('A1').font = { bold: true, size: 12 }
+  ws.mergeCells('A2:D2')
+  ws.getCell('A2').value = `${props.reportTitle} — ${props.periodLabel}`
+
+  await exportDataGrid({
+    component: grid(),
+    worksheet: ws,
+    topLeftCell: { row: 4, column: 1 },
+    autoFilterEnabled: true,
+    customizeCell: ({ gridCell, excelCell }) => {
+      if (gridCell.rowType === 'header') {
+        excelCell.font = { bold: true }
+        excelCell.border = { bottom: { style: 'thin' } }
+      }
+      if (gridCell.rowType === 'group' || gridCell.rowType === 'groupFooter') {
+        excelCell.font = { bold: true }
+      }
+      if (gridCell.rowType === 'totalFooter') {
+        excelCell.font = { bold: true }
+        excelCell.border = { top: { style: 'thin' }, bottom: { style: 'double' } }
+      }
+    }
+  })
+
+  const buf = await wb.xlsx.writeBuffer()
+  saveAs(new Blob([buf], { type: 'application/octet-stream' }), `${props.fileName}.xlsx`)
+  notify('Excel diunduh')
+}
+
+async function exportPdf () {
+  const [{ jsPDF }, { exportDataGrid }] = await Promise.all([
+    import('jspdf'),
+    import('devextreme/pdf_exporter')
+  ])
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
+
+  doc.setFontSize(11); doc.text(props.companyName, 40, 34)
+  doc.setFontSize(14); doc.text(props.reportTitle, 40, 52)
+  doc.setFontSize(9);  doc.text(props.periodLabel, 40, 66)
+
+  await exportDataGrid({
+    jsPDFDocument: doc,
+    component: grid(),
+    topLeft: { x: 40, y: 76 },
+    columnWidths: undefined,
+    customDrawCell: ({ gridCell, pdfCell }) => {
+      if (gridCell.rowType === 'header') {
+        pdfCell.font = { style: 'bold' }
+        pdfCell.backgroundColor = '#ffffff'
+      }
+      if (gridCell.rowType === 'group' || gridCell.rowType === 'totalFooter') {
+        pdfCell.font = { style: 'bold' }
+        pdfCell.backgroundColor = '#ffffff'
+      }
+    }
+  })
+  doc.save(`${props.fileName}.pdf`)
+  notify('PDF diunduh')
+}
+
+function printSheet () {
+  grid()?.updateDimensions()
+  setTimeout(() => window.print(), 120)
+}
+
+defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 </script>
 
 <style scoped>
@@ -551,7 +421,6 @@ export default {
 .rb-sep { width: 1px; height: 18px; background: var(--paper-edge); }
 
 .rb-btn {
-  display: inline-flex; align-items: center; justify-content: center;
   height: 27px; min-width: 27px;
   padding: 0 9px;
   font: inherit; font-size: 11.5px;
@@ -767,23 +636,6 @@ export default {
 
 /* ---- Scrollbar ---- */
 .report-sheet :deep(.dx-scrollable-scroll-content) { background: rgba(22,24,29,.22); }
-
-/* ============================================================
-   POPUP FILTER
-   ============================================================ */
-.rb-filter-popup {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  font-size: 12.5px;
-  color: var(--ink);
-}
-.rb-filter-popup__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
 
 /* ============================================================
    TOAST
