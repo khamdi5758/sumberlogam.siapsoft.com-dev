@@ -1,18 +1,16 @@
 <template>
-  <RegisterBase
+  <RegisterBasePoDev
     title="Register PO Dev"
     type="po"
     storeModule="register"
     apiEndpoint="report"
-    layoutMode="paper"
-    paperOrientation="landscape"
   />
 </template>
 
 <script>
-import RegisterBase from "@/components/pages/Registrasi/RegisterBase.vue";
+import RegisterBasePoDev from "@/components/pages/Registrasi/RegisterBasePoDev.vue";
 export default {
   name: "RegisterPODev",
-  components: { RegisterBase },
+  components: { RegisterBasePoDev },
 };
 </script>
