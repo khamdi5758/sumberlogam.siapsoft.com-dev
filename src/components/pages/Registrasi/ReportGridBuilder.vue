@@ -24,6 +24,43 @@
 
         <span class="rb-sep"></span>
 
+        <!-- Mode Tampilan -->
+        <div class="rb-group">
+          <select class="rb-select" v-model="filterSettings.viewMode" title="Mode Tampilan" @change="applyFilterOptionsToGrid">
+            <option value="paper">Halaman Kertas</option>
+            <option value="all">Semua Data</option>
+          </select>
+        </div>
+
+        <!-- Paginasi (Hanya jika mode Halaman Kertas) -->
+        <div class="rb-group" v-if="filterSettings.viewMode === 'paper'">
+          <button class="rb-btn" title="Halaman pertama" :disabled="pageIndex === 0" @click="setPageIndex(0)">
+            <ChevronsLeft :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Halaman sebelumnya" :disabled="pageIndex === 0" @click="setPageIndex(pageIndex - 1)">
+            <ChevronLeft :size="15" :stroke-width="2" />
+          </button>
+          
+          <input 
+            type="text" 
+            class="rb-pager-input" 
+            :value="pageIndex + 1" 
+            @change="onPageInputChange"
+            @keydown.enter="onPageInputChange"
+            title="Masukkan halaman"
+          />
+          <span class="rb-pager-total">/ {{ totalPages }}</span>
+
+          <button class="rb-btn" title="Halaman berikutnya" :disabled="pageIndex >= totalPages - 1" @click="setPageIndex(pageIndex + 1)">
+            <ChevronRight :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Halaman terakhir" :disabled="pageIndex >= totalPages - 1" @click="setPageIndex(totalPages - 1)">
+            <ChevronsRight :size="15" :stroke-width="2" />
+          </button>
+        </div>
+
+        <span class="rb-sep"></span>
+
         <!-- Struktur -->
         <div class="rb-group">
           <button class="rb-btn" title="Buka semua grup" @click="expandAll">
@@ -69,11 +106,14 @@
     <!-- ══════════════ LEMBAR KERTAS ══════════════ -->
     <div ref="sheetEl" class="report-sheet" :style="{ '--z': zoom }">
 
-      <header class="report-head">
+      <div class="report-head">
         <div class="company">{{ companyName }}</div>
+        <div v-if="companyAddress" class="company-address">
+          {{ companyAddress }}<span v-if="companyPhone"> &bull; Telp: {{ companyPhone }}</span>
+        </div>
         <h1 class="title">{{ reportTitle }}</h1>
         <div class="period">{{ periodLabel }}</div>
-      </header>
+      </div>
 
       <DxDataGrid
         ref="gridRef"
@@ -99,7 +139,7 @@
         <DxStateStoring :enabled="true" type="localStorage" :storage-key="storageKey" />
 
         <DxLoadPanel :enabled="true" />
-        <DxScrolling mode="standard" column-rendering-mode="standard" />
+        <DxScrolling mode="standard" column-rendering-mode="standard" :use-native="true" />
         <DxSorting mode="multiple" />
         <DxSelection mode="multiple" show-check-boxes-mode="none" />
 
@@ -117,7 +157,8 @@
         <DxSearchPanel :visible="filterSettings.showSearchPanel" :width="220" placeholder="Cari di seluruh laporan" />
         <DxColumnChooser :enabled="false" mode="select" title="Kolom yang ditampilkan" />
         <DxColumnFixing :enabled="true" />
-        <DxPaging :enabled="false" />
+        <DxPaging :enabled="filterSettings.viewMode === 'paper'" :page-size="filterSettings.pageSize" />
+        <DxPager :visible="false" />
 
         <slot name="columns">
           <DxColumn
@@ -179,28 +220,28 @@
             <span>Baris filter</span>
             <DxCheckBox
               :value="filterSettings.showFilterRow"
-              @valueChanged="() => toggleFilterOption('showFilterRow')"
+              @valueChanged="(e) => setFilterOption('showFilterRow', e.value)"
             />
           </div>
           <div class="rb-filter-popup__row">
             <span>Filter header kolom</span>
             <DxCheckBox
               :value="filterSettings.showHeaderFilter"
-              @valueChanged="() => toggleFilterOption('showHeaderFilter')"
+              @valueChanged="(e) => setFilterOption('showHeaderFilter', e.value)"
             />
           </div>
           <div class="rb-filter-popup__row">
             <span>Panel filter</span>
             <DxCheckBox
               :value="filterSettings.showFilterPanel"
-              @valueChanged="() => toggleFilterOption('showFilterPanel')"
+              @valueChanged="(e) => setFilterOption('showFilterPanel', e.value)"
             />
           </div>
           <div class="rb-filter-popup__row">
             <span>Panel pencarian</span>
             <DxCheckBox
               :value="filterSettings.showSearchPanel"
-              @valueChanged="() => toggleFilterOption('showSearchPanel')"
+              @valueChanged="(e) => setFilterOption('showSearchPanel', e.value)"
             />
           </div>
         </div>
@@ -215,19 +256,22 @@ import {
   DxDataGrid, DxColumn, DxGrouping, DxGroupPanel, DxScrolling, DxSorting,
   DxSummary, DxGroupItem, DxTotalItem, DxHeaderFilter, DxFilterRow,
   DxFilterPanel, DxSearchPanel, DxColumnChooser, DxColumnFixing,
-  DxSelection, DxStateStoring, DxLoadPanel, DxPaging
+  DxSelection, DxStateStoring, DxLoadPanel, DxPaging, DxPager
 } from 'devextreme-vue/data-grid'
 import DxPopup from 'devextreme-vue/popup'
 import DxCheckBox from 'devextreme-vue/check-box'
 import {
   Minus, Plus, ChevronsDown, ChevronsUp, Columns3, Filter,
-  FileSpreadsheet, FileText, Printer, RotateCcw
+  FileSpreadsheet, FileText, Printer, RotateCcw,
+  ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight
 } from 'lucide-vue-next'
 
 const props = defineProps({
   dataSource:  { type: [Array, Object], default: () => [] },
   keyExpr:     { type: String, default: 'Id' },
   companyName: { type: String, default: 'PT SIAP INTEGRASI' },
+  companyAddress: { type: String, default: '' },
+  companyPhone: { type: String, default: '' },
   reportTitle: { type: String, default: 'Register purchase order' },
   periodLabel: { type: String, default: '' },
   userName:    { type: String, default: 'admin' },
@@ -240,12 +284,16 @@ const dynamicColumns = computed(() => {
   if (data.length === 0) return []
 
   const allKeysSet = new Set()
+  const normalizedKeysSet = new Set()
   data.forEach(item => {
     if (item && typeof item === 'object') {
       Object.keys(item).forEach(key => {
         const normalizedKey = key.toLowerCase().replace(/[\s_]/g, '')
         if (!['id', 'keyindex', 'pagetotal', 'uuid', 'rowversion'].includes(normalizedKey)) {
-          allKeysSet.add(key)
+          if (!normalizedKeysSet.has(normalizedKey)) {
+            normalizedKeysSet.add(normalizedKey)
+            allKeysSet.add(key)
+          }
         }
       })
     }
@@ -437,36 +485,89 @@ const showColumnChooser = () => grid()?.showColumnChooser()
 
 /* ─────────────── FILTER (Baris filter, header, panel, pencarian) ─────────────── */
 const savedFilters = localStorage.getItem(`${props.storageKey}:filters`)
-const filterSettings = ref(savedFilters ? JSON.parse(savedFilters) : {
+const defaultFilters = {
   showFilterRow: false,
   showHeaderFilter: false,
   showFilterPanel: true,
-  showSearchPanel: false
-})
+  showSearchPanel: false,
+  viewMode: 'paper',
+  pageSize: 20
+}
+const filterSettings = ref(savedFilters ? { ...defaultFilters, ...JSON.parse(savedFilters) } : defaultFilters)
 const filterPopupVisible = ref(false)
 
 const showFilterPopup = () => { filterPopupVisible.value = true }
 const hideFilterPopup = () => { filterPopupVisible.value = false }
 
+const pageIndex = ref(0)
+const totalPages = ref(1)
+
+function updatePagerInfo () {
+  const g = grid()
+  if (!g) return
+  pageIndex.value = g.pageIndex()
+  totalPages.value = g.pageCount() || 1
+}
+
+function setPageIndex (idx) {
+  const g = grid()
+  if (!g) return
+  const targetIdx = Math.max(0, Math.min(idx, totalPages.value - 1))
+  g.pageIndex(targetIdx)
+  pageIndex.value = targetIdx
+}
+
+function onPageInputChange (e) {
+  const val = parseInt(e.target.value, 10)
+  if (!isNaN(val)) {
+    const targetIdx = Math.max(0, Math.min(val - 1, totalPages.value - 1))
+    setPageIndex(targetIdx)
+    e.target.value = targetIdx + 1
+  } else {
+    e.target.value = pageIndex.value + 1
+  }
+}
+
 function applyFilterOptionsToGrid () {
   const g = grid()
   if (!g) return
 
-  g.option('filterRow.visible', filterSettings.value.showFilterRow)
-  g.option('headerFilter.visible', filterSettings.value.showHeaderFilter)
-  g.option('filterPanel.visible', filterSettings.value.showFilterPanel)
-  g.option('searchPanel.visible', filterSettings.value.showSearchPanel)
+  const optionsToSet = {
+    'filterRow.visible': filterSettings.value.showFilterRow,
+    'headerFilter.visible': filterSettings.value.showHeaderFilter,
+    'filterPanel.visible': filterSettings.value.showFilterPanel,
+    'searchPanel.visible': filterSettings.value.showSearchPanel,
+    'paging.enabled': filterSettings.value.viewMode === 'paper',
+    'paging.pageSize': filterSettings.value.pageSize
+  }
+
+  let changed = false
+  for (const [key, val] of Object.entries(optionsToSet)) {
+    if (g.option(key) !== val) {
+      g.option(key, val)
+      changed = true
+    }
+  }
 
   localStorage.setItem(`${props.storageKey}:filters`, JSON.stringify(filterSettings.value))
 
-  setTimeout(() => {
-    try { g.updateDimensions() } catch (e) {}
-  }, 50)
+  if (changed) {
+    setTimeout(() => {
+      try {
+        g.updateDimensions()
+        updatePagerInfo()
+      } catch (e) {}
+    }, 50)
+  } else {
+    updatePagerInfo()
+  }
 }
 
-function toggleFilterOption (key) {
-  filterSettings.value[key] = !filterSettings.value[key]
-  applyFilterOptionsToGrid()
+function setFilterOption (key, val) {
+  if (filterSettings.value[key] !== val) {
+    filterSettings.value[key] = val
+    applyFilterOptionsToGrid()
+  }
 }
 
 function resetLayout () {
@@ -477,7 +578,9 @@ function resetLayout () {
     showFilterRow: false,
     showHeaderFilter: false,
     showFilterPanel: true,
-    showSearchPanel: false
+    showSearchPanel: false,
+    viewMode: 'paper',
+    pageSize: 20
   }
   applyFilterOptionsToGrid()
   applyZoom(1)
@@ -486,6 +589,7 @@ function resetLayout () {
 
 function onContentReady () {
   applyFilterOptionsToGrid()
+  updatePagerInfo()
 }
 
 /* ─────────────── CLIPBOARD ─────────────── */
@@ -624,9 +728,12 @@ async function exportPdf () {
   ])
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
 
-  doc.setFontSize(11); doc.text(props.companyName, 40, 34)
-  doc.setFontSize(14); doc.text(props.reportTitle, 40, 52)
-  doc.setFontSize(9);  doc.text(props.periodLabel, 40, 66)
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const centerX = pageWidth / 2
+
+  doc.setFontSize(11); doc.text(props.companyName, centerX, 34, { align: 'center' })
+  doc.setFontSize(14); doc.text(props.reportTitle, centerX, 52, { align: 'center' })
+  doc.setFontSize(9);  doc.text(props.periodLabel, centerX, 66, { align: 'center' })
 
   await exportDataGrid({
     jsPDFDocument: doc,
@@ -734,6 +841,11 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 .report-head .company {
   font-size: calc(11.5px * var(--z));
   font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+}
+.report-head .company-address {
+  font-size: calc(9.5px * var(--z));
+  color: var(--ink-soft);
+  margin-top: calc(2px * var(--z));
 }
 .report-head .title {
   font-size: calc(19px * var(--z));
@@ -914,7 +1026,24 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 }
 
 /* ---- Scrollbar ---- */
-.report-sheet :deep(.dx-scrollable-scroll-content) { background: rgba(22,24,29,.22); }
+.report-sheet :deep(.dx-scrollable-container) {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(22, 24, 29, 0.22) transparent;
+}
+.report-sheet :deep(.dx-scrollable-container::-webkit-scrollbar) {
+  width: 8px;
+  height: 8px;
+}
+.report-sheet :deep(.dx-scrollable-container::-webkit-scrollbar-track) {
+  background: transparent;
+}
+.report-sheet :deep(.dx-scrollable-container::-webkit-scrollbar-thumb) {
+  background: rgba(22, 24, 29, 0.22);
+  border-radius: 4px;
+}
+.report-sheet :deep(.dx-scrollable-container::-webkit-scrollbar-thumb:hover) {
+  background: rgba(22, 24, 29, 0.4);
+}
 
 /* ============================================================
    POPUP FILTER
@@ -946,6 +1075,54 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 .rb-fade-enter-active, .rb-fade-leave-active { transition: opacity .18s, transform .18s; }
 .rb-fade-enter-from, .rb-fade-leave-to { opacity: 0; transform: translate(-50%, 6px); }
 
+.rb-select {
+  height: 27px;
+  padding: 0 24px 0 8px;
+  font: inherit; font-size: 11.5px;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 4px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23707782' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 12px;
+  transition: border-color .12s, color .12s;
+}
+.rb-select:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.rb-select:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+.rb-pager-input {
+  width: 34px;
+  height: 27px;
+  text-align: center;
+  font: inherit;
+  font-size: 11.5px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 4px;
+  margin: 0 4px;
+}
+.rb-pager-input:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+.rb-pager-total {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-right: 8px;
+  align-self: center;
+}
+
 /* ============================================================
    CETAK
    ============================================================ */
@@ -955,6 +1132,16 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
     --z: 1;
     max-width: none; margin: 0; padding: 0;
     border: none; box-shadow: none;
+  }
+  .report-head {
+    display: block !important;
+    text-align: center !important;
+  }
+  .report-head .company,
+  .report-head .company-address,
+  .report-head .title,
+  .report-head .period {
+    text-align: center !important;
   }
   .report-sheet :deep(.dx-datagrid-header-panel),
   .report-sheet :deep(.dx-datagrid-filter-row),

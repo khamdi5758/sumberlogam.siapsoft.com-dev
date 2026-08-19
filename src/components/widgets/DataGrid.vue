@@ -1020,9 +1020,19 @@ export default {
         if (!this.dataSource.length) return [];
 
         const allKeysSet = new Set();
+        const normalizedKeysSet = new Set();
         this.dataSource.forEach((item) => {
           if (item && typeof item === "object") {
-            Object.keys(item).forEach((key) => allKeysSet.add(key));
+            Object.keys(item).forEach((key) => {
+              const normalizedKey = (key || "")
+                .toString()
+                .toLowerCase()
+                .replace(/[\s_]/g, "");
+              if (!normalizedKeysSet.has(normalizedKey)) {
+                normalizedKeysSet.add(normalizedKey);
+                allKeysSet.add(key);
+              }
+            });
           }
         });
 

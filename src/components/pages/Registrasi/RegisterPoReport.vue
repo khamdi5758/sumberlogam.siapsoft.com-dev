@@ -2,11 +2,11 @@
   <!-- ============ LEMBAR KERTAS ============ -->
   <div class="report-sheet">
     <!-- Kop laporan -->
-    <header class="report-head">
+    <div class="report-head">
       <div class="company">PT SIAP INTEGRASI</div>
       <h1 class="title">Register Purchase Order</h1>
       <div class="period">Periode 01 Agustus 2026 &ndash; 31 Agustus 2026</div>
-    </header>
+    </div>
 
     <DxDataGrid
       class="report-grid"
@@ -24,7 +24,7 @@
       @exporting="onExporting"
     >
       <DxLoadPanel :enabled="true" />
-      <DxScrolling mode="virtual" />
+      <DxScrolling mode="virtual" :use-native="true" />
       <DxGrouping :auto-expand-all="true" />
       <DxGroupPanel :visible="false" />
       <DxHeaderFilter :visible="true" />
@@ -275,7 +275,24 @@ function onExporting (e) { /* biarkan default / isi sesuai kebutuhan */ }
 }
 
 /* ---- Scrollbar tipis ---- */
-.report-sheet :deep(.dx-scrollable-scroll-content) { background: rgba(22, 24, 29, .22); }
+.report-sheet :deep(.dx-scrollable-container) {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(22, 24, 29, 0.22) transparent;
+}
+.report-sheet :deep(.dx-scrollable-container::-webkit-scrollbar) {
+  width: 8px;
+  height: 8px;
+}
+.report-sheet :deep(.dx-scrollable-container::-webkit-scrollbar-track) {
+  background: transparent;
+}
+.report-sheet :deep(.dx-scrollable-container::-webkit-scrollbar-thumb) {
+  background: rgba(22, 24, 29, 0.22);
+  border-radius: 4px;
+}
+.report-sheet :deep(.dx-scrollable-container::-webkit-scrollbar-thumb:hover) {
+  background: rgba(22, 24, 29, 0.4);
+}
 
 /* ============================================================
    CETAK — grid jadi benar-benar selembar kertas
@@ -284,6 +301,15 @@ function onExporting (e) { /* biarkan default / isi sesuai kebutuhan */ }
   .report-sheet {
     max-width: none; margin: 0; padding: 0;
     border: none; box-shadow: none;
+  }
+  .report-head {
+    display: block !important;
+    text-align: center !important;
+  }
+  .report-head .company,
+  .report-head .title,
+  .report-head .period {
+    text-align: center !important;
   }
   .report-sheet :deep(.dx-datagrid-header-panel),
   .report-sheet :deep(.dx-datagrid-pager),

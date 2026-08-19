@@ -6,7 +6,8 @@ const state = {
   sumcolom: [],
   avgcolom: [],
   keyfield: "",
-  ketsp:""
+  ketsp:"",
+  perusahaan: null
 };
 
 const getters = {
@@ -15,6 +16,7 @@ const getters = {
   sumcolom: (state) => state.sumcolom,
   avgcolom: (state) => state.avgcolom,
   keyfield: (state) => state.keyfield,
+  perusahaan: (state) => state.perusahaan,
   ketsp: (state) => state.ketsp,
 };
 
@@ -34,10 +36,14 @@ const mutations = {
   setKeyfield(state, field) {
     state.keyfield = field;
   },
+  setPerusahaan(state, perusahaan) {
+    state.perusahaan = perusahaan;
+  },
   clearRegister(state) {
     state.registerList = [];
     state.sumcolom = [];
     state.avgcolom = [];
+    state.perusahaan = null;
     state.ketsp = "";
   },
   setKetsp(state, ketsp) {
@@ -69,9 +75,13 @@ const actions = {
       if (response.data?.keyfield) {
          commit("setKeyfield", response.data.keyfield);
       }
-       if (response.data?.sqlquery) {
+      if (response.data?.perusahaan) {
+         commit("setPerusahaan", response.data.perusahaan);
+      }
+      if (response.data?.sqlquery) {
         commit("setKetsp", response.data.sqlquery);
       }
+      return response.data;
     } catch (error) {
       console.error("Error getRegister PO:", error);
     } finally {

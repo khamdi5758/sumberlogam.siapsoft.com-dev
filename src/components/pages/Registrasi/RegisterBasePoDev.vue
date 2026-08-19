@@ -18,6 +18,9 @@
       ref="gridBuilderRef"
       :dataSource="gridDataSource"
       :keyExpr="keyfield"
+      :companyName="companyName"
+      :companyAddress="companyAddress"
+      :companyPhone="companyPhone"
       :reportTitle="title"
       :periodLabel="formatDateRange"
       :userName="userName"
@@ -126,11 +129,68 @@ export default {
       return data.map(item => {
         if (!item || typeof item !== 'object') return item;
         const newItem = { ...item };
-        if ('Kodebrg' in newItem && !('KodeBrg' in newItem)) {
-          newItem.KodeBrg = newItem.Kodebrg;
-        } else if ('KodeBrg' in newItem && !('Kodebrg' in newItem)) {
-          newItem.Kodebrg = newItem.KodeBrg;
+
+        // Helper to get case-insensitive value from item
+        const getVal = (possibleKeys) => {
+          for (const key of possibleKeys) {
+            if (key in item && item[key] !== undefined && item[key] !== null) {
+              return item[key];
+            }
+          }
+          return undefined;
+        };
+
+        // Get values with fallback
+        const noBukti = getVal(['NoBukti', 'nobukti']);
+        const tanggal = getVal(['Tanggal', 'tanggal']);
+        const kodeSupp = getVal(['KodeSupp', 'kodesupp']);
+        const namaSupp = getVal(['NamaSupp', 'namasupp']);
+        const ppn = getVal(['PPN', 'ppn']);
+        const kodeBrg = getVal(['Kodebrg', 'KodeBrg', 'kodebrg']);
+        const namaBrg = getVal(['NamaBrg', 'namabrg']);
+        const satuan = getVal(['Satuan', 'satuan']);
+        const qnt = getVal(['Qnt', 'qnt', 'Qty', 'qty']);
+        const harga = getVal(['Harga', 'harga']);
+        const diskon = getVal(['Diskon', 'diskon']);
+        const jumlah = getVal(['Jumlah', 'jumlah']);
+
+        // Remove any non-standard keys to prevent duplicate columns in the grid
+        const keysToDelete = [
+          'nobukti', 'tanggal', 'kodesupp', 'namasupp', 'ppn', 'kodebrg',
+          'namabrg', 'satuan', 'qnt', 'Qty', 'qty', 'harga', 'diskon', 'jumlah'
+        ];
+        keysToDelete.forEach(k => {
+          if (k in newItem) delete newItem[k];
+        });
+
+        // Set standard keys
+        if (noBukti !== undefined) newItem.NoBukti = noBukti;
+        if (tanggal !== undefined) newItem.Tanggal = tanggal;
+        if (kodeSupp !== undefined) newItem.KodeSupp = kodeSupp;
+        if (namaSupp !== undefined) newItem.NamaSupp = namaSupp;
+        if (ppn !== undefined) newItem.PPN = ppn;
+        
+        // Standardize product code to both casing variants to avoid breaking other parts
+        if (kodeBrg !== undefined) {
+          newItem.Kodebrg = kodeBrg;
+          newItem.KodeBrg = kodeBrg;
         }
+        
+        if (namaBrg !== undefined) newItem.NamaBrg = namaBrg;
+        if (satuan !== undefined) newItem.Satuan = satuan;
+        
+        const numericQnt = Number(qnt !== undefined ? qnt : 0);
+        const numericHarga = Number(harga !== undefined ? harga : 0);
+        const numericDiskon = Number(diskon !== undefined ? diskon : 0);
+        
+        newItem.Qnt = numericQnt;
+        newItem.Harga = numericHarga;
+        newItem.Diskon = numericDiskon;
+
+        // Calculate Jumlah (amount)
+        const computedJumlah = numericQnt * (numericHarga - numericDiskon);
+        newItem.Jumlah = (jumlah !== undefined && Number(jumlah) !== 0) ? Number(jumlah) : computedJumlah;
+
         return newItem;
       });
     },
@@ -142,6 +202,21 @@ export default {
     },
     isLoading() {
       return this.$store.getters[`${this.storeModule}/isLoading`] || false;
+    },
+    perusahaan() {
+      return this.$store.getters[`${this.storeModule}/perusahaan`] || null;
+    },
+    companyName() {
+      return this.perusahaan?.namaperusahaan || "PT SIAP INTEGRASI";
+    },
+    companyAddress() {
+      if (!this.perusahaan) return "";
+      const a1 = this.perusahaan.alamat1 || "";
+      const a2 = this.perusahaan.alamat2 || "";
+      return [a1, a2].filter(Boolean).join(" ");
+    },
+    companyPhone() {
+      return this.perusahaan?.telpon || "";
     },
   },
   methods: {
