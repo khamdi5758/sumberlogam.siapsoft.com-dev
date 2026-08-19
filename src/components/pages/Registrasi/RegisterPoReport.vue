@@ -107,7 +107,8 @@ function onExporting (e) { /* biarkan default / isi sesuai kebutuhan */ }
   --rule-hair:  #e8e9ec;   /* garis antar baris   */
   --paper:      #ffffff;
   --paper-edge: #e3e4e8;
-  --tint:       #f7f8f9;   /* hover / seleksi     */
+  --tint:       #f7f8f9;   /* hover             */
+  --select-bg:  #e2e8f0;   /* seleksi           */
 
   --font-body: "Inter", ui-sans-serif, "Segoe UI", Roboto, Arial, sans-serif;
   --font-num:  "Roboto Mono", ui-monospace, "Consolas", monospace;
@@ -249,7 +250,7 @@ function onExporting (e) { /* biarkan default / isi sesuai kebutuhan */ }
 .report-sheet :deep(.dx-datagrid-rowsview .dx-selection.dx-row > td),
 .report-sheet :deep(.dx-row-focused.dx-data-row > td),
 .report-sheet :deep(.dx-row-focused.dx-group-row > td) {
-  background: var(--tint) !important;
+  background: var(--select-bg) !important;
   color: var(--ink) !important;
   border-bottom-color: var(--rule-hair) !important;
 }

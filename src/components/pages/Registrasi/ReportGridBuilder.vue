@@ -776,6 +776,7 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   --paper:      #ffffff;
   --paper-edge: #e3e4e8;
   --tint:       #f7f8f9;
+  --select-bg:  #e2e8f0;
   --chrome:     #fbfbfc;
 
   --font-body: "Inter", ui-sans-serif, "Segoe UI", Roboto, Arial, sans-serif;
@@ -997,12 +998,15 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 .report-sheet :deep(.dx-datagrid-summary-item) { color: var(--ink) !important; font-weight: 700; }
 
 /* ---- Matikan seluruh biru bawaan tema ---- */
-.report-sheet :deep(.dx-datagrid-rowsview .dx-row.dx-state-hover:not(.dx-header-row) > td),
+.report-sheet :deep(.dx-datagrid-rowsview .dx-row.dx-state-hover:not(.dx-header-row) > td) {
+  background: var(--tint) !important;
+  color: var(--ink) !important;
+}
 .report-sheet :deep(.dx-datagrid-rowsview .dx-selection > td),
 .report-sheet :deep(.dx-datagrid-rowsview .dx-selection.dx-row > td),
 .report-sheet :deep(.dx-row-focused.dx-data-row > td),
 .report-sheet :deep(.dx-row-focused.dx-group-row > td) {
-  background: var(--tint) !important;
+  background: var(--select-bg) !important;
   color: var(--ink) !important;
 }
 .report-sheet :deep(.dx-datagrid-focus-overlay) {
