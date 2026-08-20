@@ -34,6 +34,7 @@ import registerstockserialrekapModule from "./modules/registerstockserialrekap";
 import registeroutstandingpoModule from "./modules/registeroutstandingpo";
 import registeroutstandingsoModule from "./modules/registeroutstandingso";
 import registeroutstandingtransferModule from "./modules/registeroutstandingtransfer";
+import produksiModule from "./modules/produksi";
 
 import masterbarang from "./modules/masterbarang";
 import labarugi from "./modules/labarugi";
@@ -87,6 +88,7 @@ export default createStore({
     registeroutstandingpo: registeroutstandingpoModule,
     registeroutstandingso: registeroutstandingsoModule,
     registeroutstandingtransfer: registeroutstandingtransferModule,
+    produksi: produksiModule,
 
     masterbarang: masterbarang,
     labarugi: labarugi,

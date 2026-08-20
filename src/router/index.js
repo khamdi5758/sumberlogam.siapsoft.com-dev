@@ -365,6 +365,133 @@ const routes = [
         ],
       },
       {
+        path: "produksi",
+        component: RouterView,
+        children: [
+          {
+            path: "hasil",
+            name: "HasilProduksi",
+            component: () => import("@/components/pages/Produksi/MainProduksi/HasilProduksi.vue"),
+          },
+          {
+            path: "mutasi",
+            name: "MutasiProduksi",
+            component: () => import("@/components/pages/Produksi/MainProduksi/MutasiProduksi.vue"),
+          },
+          {
+            path: "register",
+            name: "RegisterProduksi",
+            component: () => import("@/components/pages/Produksi/MainProduksi/RegisterProduksi.vue"),
+          },
+          {
+            path: "koreksi",
+            name: "KoreksiProduksi",
+            component: () => import("@/components/pages/Produksi/MainProduksi/KoreksiProduksi.vue"),
+          },
+          {
+            path: "mutsetjadi",
+            name: "MutasiBarangSetengahJadi",
+            component: () => import("@/components/pages/Produksi/MainProduksi/MutasiBarangSetengahJadi.vue"),
+          },
+          {
+            path: "mutstock",
+            name: "MutasiStockPersiapan",
+            component: () => import("@/components/pages/Produksi/MainProduksi/MutasiStockPersiapan.vue"),
+          },
+          {
+            path: "mutstockrp",
+            name: "MutasiStockPersiapanRP",
+            component: () => import("@/components/pages/Produksi/MainProduksi/MutasiStockPersiapanRP.vue"),
+          },
+          {
+            path: "mutsetjadirp",
+            name: "MutasiBarangSetengahJadiRP",
+            component: () => import("@/components/pages/Produksi/MainProduksi/MutasiBarangSetengahJadiRP.vue"),
+          },
+          {
+            path: "kartustock",
+            name: "KartuStockProduksi",
+            component: () => import("@/components/pages/Produksi/MainProduksi/KartuStockProduksi.vue"),
+          },
+          {
+            path: "tfbarangjadi",
+            name: "TransferBarangJadi",
+            component: () => import("@/components/pages/Produksi/MainProduksi/TransferBarangJadi.vue"),
+          },
+          {
+            path: "pemakaianbahan",
+            name: "PemakaianBahan",
+            component: () => import("@/components/pages/Produksi/MainProduksi/PemakaianBahan.vue"),
+          },
+          {
+            path: "tfjo",
+            name: "TransferJO",
+            component: () => import("@/components/pages/Produksi/MainProduksi/TransferJO.vue"),
+          },
+          {
+            path: "tfoutwip",
+            name: "TransferOutWIP",
+            component: () => import("@/components/pages/Produksi/MainProduksi/TransferOutWIP.vue"),
+          },
+          {
+            path: "tfinwip",
+            name: "TransferInWIP",
+            component: () => import("@/components/pages/Produksi/MainProduksi/TransferInWIP.vue"),
+          },
+          {
+            path: "register",
+            component: RouterView,
+            children: [
+              {
+                path: "joborder",
+                name: "RegisterJobOrder",
+                component: () => import("@/components/pages/Produksi/MainProduksi/RegisterJobOrder.vue"),
+              },
+              {
+                path: "hasilproduksi",
+                name: "RegisterHasilProduksi",
+                component: () => import("@/components/pages/Produksi/MainProduksi/RegisterHasilProduksi.vue"),
+              },
+              {
+                path: "transferbrgjadi",
+                name: "RegisterTransferBrgJadi",
+                component: () => import("@/components/pages/Produksi/MainProduksi/RegisterTransferBrgJadi.vue"),
+              },
+              {
+                path: "koreksiproduksi",
+                name: "RegisterKoreksiProduksi",
+                component: () => import("@/components/pages/Produksi/MainProduksi/RegisterKoreksiProduksi.vue"),
+              },
+              {
+                path: "transferjo",
+                name: "RegisterTransferJO",
+                component: () => import("@/components/pages/Produksi/MainProduksi/RegisterTransferJO.vue"),
+              },
+              {
+                path: "transferoutbahan",
+                name: "RegisterTransferOutBahan",
+                component: () => import("@/components/pages/Produksi/MainProduksi/RegisterTransferOutBahan.vue"),
+              },
+              {
+                path: "transferoutwip",
+                name: "RegisterTransferOutWIP",
+                component: () => import("@/components/pages/Produksi/MainProduksi/RegisterTransferOutWIP.vue"),
+              },
+              {
+                path: "transferinbahanwip",
+                name: "RegisterTransferInBahanWIP",
+                component: () => import("@/components/pages/Produksi/MainProduksi/RegisterTransferInBahanWIP.vue"),
+              },
+              {
+                path: "pemakaianbahanwip",
+                name: "RegisterPemakaianBahanWIP",
+                component: () => import("@/components/pages/Produksi/MainProduksi/RegisterPemakaianBahanWIP.vue"),
+              },
+            ],
+          },
+        ],
+      },
+      {
         path: "finance",
         children: [
           {
