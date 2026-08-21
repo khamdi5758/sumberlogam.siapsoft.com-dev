@@ -366,7 +366,8 @@ const routes = [
       },
       {
         path: "produksi",
-        component: RouterView,
+        name: "Produksi",
+        component: () => import("@/components/pages/Produksi/ProduksiWrapper.vue"),
         children: [
           {
             path: "hasil",

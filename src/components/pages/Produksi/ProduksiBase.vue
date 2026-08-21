@@ -14,7 +14,15 @@
     </div>
 
     <!-- Report View using ReportGridBuilder -->
+    <!--
+      Jangan render report grid saat popup filter terbuka.
+      Store "produksi" dipakai bersama oleh seluruh anak menu Produksi,
+      sehingga halaman yang baru dibuka bisa menampilkan data milik
+      halaman Produksi sebelumnya di belakang popup. Dengan menyembunyikan
+      grid selama popup terbuka, background di belakang popup menjadi blank.
+    -->
     <ReportGridBuilder
+      v-show="!showFilter"
       ref="gridBuilderRef"
       :dataSource="gridDataSource"
       :keyExpr="keyfield"
@@ -95,20 +103,60 @@ export default {
         status: "gabungan",
       },
       isMobile: false,
+      // Snapshot data milik instance ini. Store "produksi" dipakai bersama
+      // oleh seluruh anak menu Produksi, sehingga instance yang diaktifkan
+      // kembali oleh keep-alive harus memakai datanya sendiri, bukan data
+      // milik halaman lain yang terakhir dimuat ke store.
+      localData: null,
+      localKeyfield: "",
+      localPerusahaan: null,
+      hasLoaded: false,
     };
   },
   created() {
-    if (this.dataSource && this.dataSource.length > 0) {
-      return;
-    }
-    // Open filter popup automatically on first mount
+    this._myRoutePath = this.$route.path;
+
+    // Popup initialization HANYA untuk pembukaan PERTAMA menu ini.
+    // Sentinel per-menu (storageKey unik per anak menu: "produksi-hasil",
+    // "produksi-mutasi", dst.). Begitu pernah dibuka, selanjutnya tidak
+    // pernah tampil lagi — bahkan jika instance dibuat ulang karena
+    // keep-alive miss. Sentinel dibersihkan hanya saat tab-nya DITUTUP.
     window.__produksiVisited = window.__produksiVisited || {};
     if (!window.__produksiVisited[this.storageKey]) {
-      this.showFilter = true;
+      // Instance BARU untuk tab BARU. Bersihkan store shared agar data
+      // halaman lain tidak terbawa, lalu buka popup filter dengan
+      // background blank.
       window.__produksiVisited[this.storageKey] = true;
-    } else {
-      // If already visited, load data automatically
+      this.$store.commit(`${this.storeModule}/clearProduksi`);
+      this.showFilter = true;
+    } else if (!this.hasLoaded) {
+      // Sudah pernah dibuka, tapi instance ini baru dibuat ulang (cache
+      // miss) dan belum punya data → muat ulang dengan filter terakhir
+      // (default), TANPA popup.
       this.loadData();
+    }
+  },
+  activated() {
+    // Instance LAMA diaktifkan kembali dari cache keep-alive (mis. klik
+    // tab Hasil Produksi yang sudah pernah load). JANGAN reset state:
+    // biarkan snapshot lokal + hasLoaded tetap, sehingga tampilan sama
+    // seperti terakhir kali (data tetap ada, popup tidak muncul lagi).
+  },
+  unmounted() {
+    // Bersihkan sentinel HANYA jika tab untuk path ini BENAR-BENAR sudah
+    // ditutup (di-silang), bukan sekadar di-deactivate keep-alive. Jika
+    // tab masih ada, biarkan sentinel agar popup tidak muncul lagi saat
+    // instance dibuat ulang nanti.
+    const activeTabs = this.$store.getters["tabs/getTabs"] || [];
+    const isTabStillOpen = activeTabs.some(
+      (path) => String(path).toLowerCase() === this._myRoutePath.toLowerCase(),
+    );
+    if (
+      !isTabStillOpen &&
+      window.__produksiVisited &&
+      window.__produksiVisited[this.storageKey]
+    ) {
+      delete window.__produksiVisited[this.storageKey];
     }
   },
   mounted() {
@@ -195,15 +243,20 @@ export default {
       });
     },
     produksiList() {
+      // Jika instance ini sudah pernah memuat data, gunakan snapshot lokalnya
+      // (state terakhir milik halaman ini). Jika belum, fallback ke store.
+      if (this.hasLoaded) return this.localData || [];
       return this.$store.getters[`${this.storeModule}/produksiList`] || [];
     },
     keyfield() {
+      if (this.hasLoaded) return this.localKeyfield || "Id";
       return this.$store.getters[`${this.storeModule}/keyfield`] || "Id";
     },
     isLoading() {
       return this.$store.getters[`${this.storeModule}/isLoading`] || false;
     },
     perusahaan() {
+      if (this.hasLoaded) return this.localPerusahaan;
       return this.$store.getters[`${this.storeModule}/perusahaan`] || null;
     },
     companyName() {
@@ -246,6 +299,14 @@ export default {
       return this.$store.dispatch(actionName, {
         endpoint: this.endpoint,
         payload: payload
+      }).then((res) => {
+        // Simpan snapshot data ke instance ini agar state terakhir tetap
+        // tampil saat halaman diaktifkan kembali oleh keep-alive.
+        this.localData = this.$store.getters[`${this.storeModule}/produksiList`] || [];
+        this.localKeyfield = this.$store.getters[`${this.storeModule}/keyfield`] || "Id";
+        this.localPerusahaan = this.$store.getters[`${this.storeModule}/perusahaan`] || null;
+        this.hasLoaded = true;
+        return res;
       }).catch((err) => {
         console.error("Error loading data:", err);
       });
