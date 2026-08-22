@@ -101,6 +101,20 @@ export default {
         endDate: `${y}-${m}-${String(lastDay).padStart(2, "0")}`,
         gudang: "",
         status: "gabungan",
+        // Parameter skema Produksi
+        jo: "",
+        sisa_order: "",
+        tahun: String(y),
+        periode_bulan: m,
+        periode_tahun: String(y),
+        produksi: "1",
+        wip: "1",
+        laporan_per: "tanggal",
+        rekap_detail: "detail",
+        record_tertentu: false,
+        kode_barang: "",
+        report: "detail",
+        action: "Go",
       },
       isMobile: false,
       // Snapshot data milik instance ini. Store "produksi" dipakai bersama
@@ -280,12 +294,64 @@ export default {
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${time}`;
     },
     defaultBuildPayload(data) {
-      return {
-        mulaitgl: this.formatDateForSp(data.startDate, false),
-        sampaitgl: this.formatDateForSp(data.endDate, true),
-        kodegdg: data.gudang || "",
-        status: data.status,
-      };
+      const payload = { action: "Go" };
+
+      // 3. Register Produk: tahun + sisa_order (tanpa rentang tanggal)
+      if (this.type === "register") {
+        payload.tahun = data.tahun || "";
+        payload.sisa_order = data.sisa_order || "";
+        return payload;
+      }
+
+      // 5/6/7. Skema periode: mutsetjadi / mutstock / kartustock
+      if (["mutsetjadi", "mutstock", "kartustock"].includes(this.type)) {
+        const bulan = data.periode_bulan || "";
+        const tahun = data.periode_tahun || "";
+        payload.periode = `${bulan} ${tahun}`;
+        payload.periode_bulan = bulan;
+        payload.periode_tahun = tahun;
+        payload.produksi = data.produksi || "1";
+        if (this.type !== "mutstock") {
+          payload.jo = data.jo || "";
+        }
+        if (this.type === "mutsetjadi") {
+          payload.wip = data.wip || "1";
+        }
+        if (this.type === "kartustock") {
+          payload.kode_barang = data.kode_barang || "";
+          payload.report = data.report || "detail";
+        }
+        return payload;
+      }
+
+      // Skema rentang tanggal (dari_tanggal / sd_tanggal)
+      payload.dari_tanggal = this.formatDateForSp(data.startDate, false);
+      payload.sd_tanggal = this.formatDateForSp(data.endDate, true);
+      // Kompatibilitas SP lama
+      payload.mulaitgl = payload.dari_tanggal;
+      payload.sampaitgl = payload.sd_tanggal;
+
+      // 1. Hasil Produksi
+      if (this.type === "hasil") {
+        payload.jo = data.jo || "";
+      }
+
+      // 2. Mutasi Produk
+      if (this.type === "mutasi") {
+        payload.sisa_order = data.sisa_order || "";
+      }
+
+      // 4/8/9. Koreksi Produksi / Barang Jadi / Pemakaian Bahan
+      if (["koreksi", "tfbarangjadi", "pemakaianbahan"].includes(this.type)) {
+        payload.laporan_per = data.laporan_per || "tanggal";
+        payload.rekap_detail = data.rekap_detail || "detail";
+        payload.status = data.status || "semua";
+        if (this.type !== "tfbarangjadi") {
+          payload.record_tertentu = data.record_tertentu === true || data.record_tertentu === "1";
+        }
+      }
+
+      return payload;
     },
     loadData() {
       const payload = this.defaultBuildPayload(this.filterData);

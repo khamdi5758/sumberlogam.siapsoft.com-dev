@@ -33,7 +33,153 @@
       <!-- Form -->
       <div class="pt-4">
         <div class="space-y-4">
-          <!-- Mulai Tanggal -->
+          <!-- ===== SKEMA PRODUKSI (key sesuai parameter DB) ===== -->
+
+          <!-- 3. Register Produk: tahun + sisa_order -->
+          <template v-if="type === 'register'">
+            <!-- Tahun -->
+            <div
+              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+            >
+              <label for="tahun" class="text-[14px] text-slate-700">Tahun</label>
+              <input
+                id="tahun"
+                v-model="localTahun"
+                type="number"
+                min="1900"
+                max="2100"
+                class="min-w-0 flex-1 rounded border border-slate-300 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+              />
+            </div>
+            <!-- Sisa Order -->
+            <div
+              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+            >
+              <label for="sisa-order" class="text-[14px] text-slate-700"
+                >Sisa Order</label
+              >
+              <select
+                id="sisa-order"
+                v-model="localSisaOrder"
+                class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+              >
+                <option value="">Semua</option>
+                <option value="1">Hanya Sisa Order</option>
+                <option value="0">Tanpa Sisa Order</option>
+              </select>
+            </div>
+          </template>
+
+          <!-- Skema periode berdampingan: mutsetjadi / mutstock / kartustock -->
+          <template v-else-if="['mutsetjadi', 'mutstock', 'kartustock'].includes(type)">
+            <!-- Periode: [bulan] [tahun] -->
+            <div
+              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+            >
+              <label for="periode-bulan" class="text-[14px] text-slate-700"
+                >Periode</label
+              >
+              <div class="flex items-center gap-2">
+                <select
+                  id="periode-bulan"
+                  v-model="localPeriodeBulan"
+                  class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+                >
+                  <option v-for="b in 12" :key="b" :value="String(b).padStart(2, '0')">
+                    {{ String(b).padStart(2, "0") }}
+                  </option>
+                </select>
+                <input
+                  id="periode-tahun"
+                  v-model="localPeriodeTahun"
+                  type="number"
+                  min="1900"
+                  max="2100"
+                  class="min-w-0 w-24 rounded border border-slate-300 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+                />
+              </div>
+            </div>
+            <!-- Kode Barang (Khusus Kartu Stock Produksi) -->
+            <div
+              v-if="type === 'kartustock'"
+              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+            >
+              <label for="kode-barang" class="text-[14px] text-slate-700"
+                >Kode Barang</label
+              >
+              <input
+                id="kode-barang"
+                v-model="localKodeBarang"
+                type="text"
+                placeholder="Kode barang (kosong = semua)"
+                class="min-w-0 flex-1 rounded border border-slate-300 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none placeholder:text-slate-400"
+              />
+            </div>
+            <!-- JO (mutsetjadi & kartustock) -->
+            <div
+              v-if="type !== 'mutstock'"
+              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+            >
+              <label for="jo" class="text-[14px] text-slate-700">JO</label>
+              <input
+                id="jo"
+                v-model="localJo"
+                type="text"
+                placeholder="No. JO (kosong = semua)"
+                class="min-w-0 flex-1 rounded border border-slate-300 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none placeholder:text-slate-400"
+              />
+            </div>
+            <!-- Produksi -->
+            <div
+              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+            >
+              <label for="produksi-check" class="text-[14px] text-slate-700"
+                >Produksi</label
+              >
+              <select
+                id="produksi-check"
+                v-model="localProduksi"
+                class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+              >
+                <option value="1">Ya</option>
+                <option value="0">Tidak</option>
+              </select>
+            </div>
+            <!-- WIP (Khusus Mutasi Barang Setengah Jadi) -->
+            <div
+              v-if="type === 'mutsetjadi'"
+              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+            >
+              <label for="wip-check" class="text-[14px] text-slate-700">WIP</label>
+              <select
+                id="wip-check"
+                v-model="localWip"
+                class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+              >
+                <option value="1">Ya</option>
+                <option value="0">Tidak</option>
+              </select>
+            </div>
+            <!-- Report (Khusus Kartu Stock Produksi) -->
+            <div
+              v-if="type === 'kartustock'"
+              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+            >
+              <label for="report" class="text-[14px] text-slate-700">Report</label>
+              <select
+                id="report"
+                v-model="localReport"
+                class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+              >
+                <option value="detail">Detail</option>
+                <option value="rekap">Rekap</option>
+              </select>
+            </div>
+          </template>
+
+          <!-- Skema dengan rentang tanggal: hasil / mutasi / koreksi / default -->
+          <template v-else>
+          <!-- Dari Tanggal -->
           <div
             v-if="
               type !== 'stock-serial-rekap' && !type.startsWith('outstanding-')
@@ -104,6 +250,111 @@
             </div> -->
           </div>
 
+          <!-- JO (Khusus Hasil Produksi) -->
+          <div
+            v-if="type === 'hasil'"
+            class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+          >
+            <label for="jo-hasil" class="text-[14px] text-slate-700">JO</label>
+            <input
+              id="jo-hasil"
+              v-model="localJo"
+              type="text"
+              placeholder="No. JO (kosong = semua)"
+              class="min-w-0 flex-1 rounded border border-slate-300 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none placeholder:text-slate-400"
+            />
+          </div>
+
+          <!-- Sisa Order (Khusus Mutasi Produksi) -->
+          <div
+            v-if="type === 'mutasi'"
+            class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+          >
+            <label for="sisa-order-mutasi" class="text-[14px] text-slate-700"
+              >Sisa Order</label
+            >
+            <select
+              id="sisa-order-mutasi"
+              v-model="localSisaOrder"
+              class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+            >
+              <option value="">Semua</option>
+              <option value="1">Hanya Sisa Order</option>
+              <option value="0">Tanpa Sisa Order</option>
+            </select>
+          </div>
+
+          <!-- Parameter skema: koreksi / tfbarangjadi (Barang Jadi) / pemakaianbahan -->
+          <template v-if="['koreksi', 'tfbarangjadi', 'pemakaianbahan'].includes(type)">
+            <!-- Laporan Per -->
+            <div
+              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+            >
+              <label for="laporan-per" class="text-[14px] text-slate-700"
+                >Laporan Per</label
+              >
+              <select
+                id="laporan-per"
+                v-model="localLaporanPer"
+                class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+              >
+                <option value="tanggal">Tanggal</option>
+                <option value="jo">JO</option>
+                <option value="barang">Barang</option>
+              </select>
+            </div>
+            <!-- Rekap / Detail -->
+            <div
+              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+            >
+              <label for="rekap-detail" class="text-[14px] text-slate-700"
+                >Rekap/Detail</label
+              >
+              <select
+                id="rekap-detail"
+                v-model="localRekapDetail"
+                class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+              >
+                <option value="rekap">Rekap</option>
+                <option value="detail">Detail</option>
+              </select>
+            </div>
+            <!-- Status -->
+            <div
+              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+            >
+              <label for="status-koreksi" class="text-[14px] text-slate-700"
+                >Status</label
+              >
+              <select
+                id="status-koreksi"
+                v-model="localStatus"
+                class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+              >
+                <option value="semua">Semua</option>
+                <option value="tervalidasi">Tervalidasi</option>
+                <option value="belum_validasi">Belum Validasi</option>
+              </select>
+            </div>
+            <!-- Record Tertentu checkbox (koreksi & pemakaianbahan) -->
+            <div
+              v-if="type !== 'tfbarangjadi'"
+              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+            >
+              <label for="record-tertentu" class="text-[14px] text-slate-700"
+                >Record Tertentu</label
+              >
+              <div class="flex h-[34px] items-center">
+                <input
+                  id="record-tertentu"
+                  v-model="localRecordTertentu"
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-slate-300 text-[#0f3d7a] accent-[#0f3d7a]"
+                />
+              </div>
+            </div>
+          </template>
+
           <!-- Status (Khusus Outstanding) -->
           <div
             v-if="type.startsWith('outstanding-')"
@@ -127,13 +378,18 @@
             </div>
           </div>
 
-          <!-- Gudang -->
+          <!-- Gudang (tidak dipakai skema Produksi: hasil/mutasi/koreksi) -->
           <div
             v-if="
               type !== 'po' &&
               type !== 'so' &&
               type !== 'creditenote' &&
               type !== 'stock-serial' &&
+              type !== 'hasil' &&
+              type !== 'mutasi' &&
+              type !== 'koreksi' &&
+              type !== 'tfbarangjadi' &&
+              type !== 'pemakaianbahan' &&
               !type.startsWith('outstanding-')
             "
             class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
@@ -185,6 +441,8 @@
               </select>
             </div>
           </div>
+          </template>
+          <!-- ===== END SKEMA PRODUKSI ===== -->
         </div>
       </div>
 
@@ -230,11 +488,25 @@ export default {
     storeModule: { type: String, default: "registerbeli" },
   },
   data() {
+    const now = new Date();
     return {
       localStartDate: this.initialStartDate,
       localEndDate: this.initialEndDate,
       localGudang: this.initialGudang,
       localStatus: this.initialStatus,
+      // Parameter skema Produksi
+      localJo: "",
+      localSisaOrder: "",
+      localTahun: String(now.getFullYear()),
+      localPeriodeBulan: String(now.getMonth() + 1).padStart(2, "0"),
+      localPeriodeTahun: String(now.getFullYear()),
+      localProduksi: "1",
+      localWip: "1",
+      localLaporanPer: "tanggal",
+      localRekapDetail: "detail",
+      localRecordTertentu: false,
+      localKodeBarang: "",
+      localReport: "detail",
       gudangList: [],
       gudangLabel: "",
       isDialogOpen: false,
@@ -266,6 +538,15 @@ export default {
         this.localStatus = this.initialStatus;
         this.updateGudangLabel();
       }
+    },
+    type: {
+      handler(newType) {
+        // Default status untuk skema koreksi-like memakai status sendiri
+        if (["koreksi", "tfbarangjadi", "pemakaianbahan"].includes(newType)) {
+          this.localStatus = "semua";
+        }
+      },
+      immediate: true,
     },
   },
   methods: {
@@ -345,12 +626,59 @@ export default {
       }
     },
     applyFilter() {
-      this.$emit("apply", {
+      // action: "Go" — tombol submit selalu memetakan ke action Go
+      const base = {
         startDate: this.localStartDate,
         endDate: this.localEndDate,
         gudang: this.localGudang,
         status: this.localStatus,
-      });
+        action: "Go",
+      };
+
+      // 1. Hasil Produksi: dari_tanggal, sd_tanggal, jo
+      if (this.type === "hasil") {
+        base.jo = this.localJo || "";
+      }
+
+      // 2. Mutasi Produk: dari_tanggal, sd_tanggal, sisa_order
+      if (this.type === "mutasi") {
+        base.sisa_order = this.localSisaOrder;
+      }
+
+      // 3. Register Produk: tahun, sisa_order
+      if (this.type === "register") {
+        base.tahun = this.localTahun;
+        base.sisa_order = this.localSisaOrder;
+      }
+
+      // 4/8/9. Koreksi / Barang Jadi / Pemakaian Bahan: laporan_per, rekap_detail, status, record_tertentu
+      if (["koreksi", "tfbarangjadi", "pemakaianbahan"].includes(this.type)) {
+        base.laporan_per = this.localLaporanPer;
+        base.rekap_detail = this.localRekapDetail;
+        if (this.type !== "tfbarangjadi") {
+          base.record_tertentu = this.localRecordTertentu;
+        }
+      }
+
+      // 5/6/7. Skema periode: mutsetjadi / mutstock / kartustock
+      if (["mutsetjadi", "mutstock", "kartustock"].includes(this.type)) {
+        base.periode = `${this.localPeriodeBulan} ${this.localPeriodeTahun}`;
+        base.periode_bulan = this.localPeriodeBulan;
+        base.periode_tahun = this.localPeriodeTahun;
+        base.produksi = this.localProduksi;
+        if (this.type !== "mutstock") {
+          base.jo = this.localJo || "";
+        }
+        if (this.type === "mutsetjadi") {
+          base.wip = this.localWip;
+        }
+        if (this.type === "kartustock") {
+          base.kode_barang = this.localKodeBarang || "";
+          base.report = this.localReport;
+        }
+      }
+
+      this.$emit("apply", base);
       // Popup akan ditutup oleh parent via @apply
     },
   },
