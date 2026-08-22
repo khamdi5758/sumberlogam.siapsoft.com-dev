@@ -305,18 +305,18 @@ export default {
         return payload;
       }
 
-      // 5/6/7. Skema periode: mutsetjadi / mutstock / kartustock
-      if (["mutsetjadi", "mutstock", "kartustock"].includes(this.type)) {
+      // 5/6/7/8/14. Skema periode: mutsetjadi / mutsetjadirp / mutstock / kartustock / mutstockrp
+      if (["mutsetjadi", "mutsetjadirp", "mutstock", "kartustock", "mutstockrp"].includes(this.type)) {
         const bulan = data.periode_bulan || "";
         const tahun = data.periode_tahun || "";
         payload.periode = `${bulan} ${tahun}`;
         payload.periode_bulan = bulan;
         payload.periode_tahun = tahun;
         payload.produksi = data.produksi || "1";
-        if (this.type !== "mutstock") {
+        if (["mutsetjadi", "mutsetjadirp", "kartustock"].includes(this.type)) {
           payload.jo = data.jo || "";
         }
-        if (this.type === "mutsetjadi") {
+        if (["mutsetjadi", "mutsetjadirp"].includes(this.type)) {
           payload.wip = data.wip || "1";
         }
         if (this.type === "kartustock") {
@@ -343,14 +343,20 @@ export default {
         payload.sisa_order = data.sisa_order || "";
       }
 
-      // 4/8/9. Koreksi Produksi / Barang Jadi / Pemakaian Bahan
-      if (["koreksi", "tfbarangjadi", "pemakaianbahan"].includes(this.type)) {
+      // 4/8/9/10. Koreksi Produksi / Barang Jadi / Pemakaian Bahan / Transfer JO
+      if (["koreksi", "tfbarangjadi", "pemakaianbahan", "tfjo"].includes(this.type)) {
         payload.laporan_per = data.laporan_per || "tanggal";
         payload.rekap_detail = data.rekap_detail || "detail";
         payload.status = data.status || "semua";
         if (this.type !== "tfbarangjadi") {
           payload.record_tertentu = data.record_tertentu === true || data.record_tertentu === "1";
         }
+      }
+
+      // 11/12. TransOut BHN & WIP / Transf In WIP
+      if (["tfoutwip", "tfinwip"].includes(this.type)) {
+        payload.laporan_per = data.laporan_per || "tanggal";
+        payload.record_tertentu = data.record_tertentu === true || data.record_tertentu === "1";
       }
 
       return payload;

@@ -70,8 +70,8 @@
             </div>
           </template>
 
-          <!-- Skema periode berdampingan: mutsetjadi / mutstock / kartustock -->
-          <template v-else-if="['mutsetjadi', 'mutstock', 'kartustock'].includes(type)">
+          <!-- Skema periode berdampingan: mutsetjadi / mutsetjadirp / mutstock / kartustock / mutstockrp -->
+          <template v-else-if="['mutsetjadi', 'mutsetjadirp', 'mutstock', 'kartustock', 'mutstockrp'].includes(type)">
             <!-- Periode: [bulan] [tahun] -->
             <div
               class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
@@ -99,82 +99,116 @@
                 />
               </div>
             </div>
-            <!-- Kode Barang (Khusus Kartu Stock Produksi) -->
-            <div
-              v-if="type === 'kartustock'"
-              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
-            >
-              <label for="kode-barang" class="text-[14px] text-slate-700"
-                >Kode Barang</label
+            <!-- Kartu Stock Produksi: Produksi tepat di bawah Periode -->
+            <template v-if="type === 'kartustock'">
+              <!-- Produksi -->
+              <div
+                class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
               >
-              <input
-                id="kode-barang"
-                v-model="localKodeBarang"
-                type="text"
-                placeholder="Kode barang (kosong = semua)"
-                class="min-w-0 flex-1 rounded border border-slate-300 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none placeholder:text-slate-400"
-              />
-            </div>
-            <!-- JO (mutsetjadi & kartustock) -->
-            <div
-              v-if="type !== 'mutstock'"
-              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
-            >
-              <label for="jo" class="text-[14px] text-slate-700">JO</label>
-              <input
-                id="jo"
-                v-model="localJo"
-                type="text"
-                placeholder="No. JO (kosong = semua)"
-                class="min-w-0 flex-1 rounded border border-slate-300 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none placeholder:text-slate-400"
-              />
-            </div>
-            <!-- Produksi -->
-            <div
-              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
-            >
-              <label for="produksi-check" class="text-[14px] text-slate-700"
-                >Produksi</label
+                <label for="produksi-check" class="text-[14px] text-slate-700"
+                  >Produksi</label
+                >
+                <select
+                  id="produksi-check"
+                  v-model="localProduksi"
+                  class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+                >
+                  <option value="1">Ya</option>
+                  <option value="0">Tidak</option>
+                </select>
+              </div>
+              <!-- Kode Barang -->
+              <div
+                class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
               >
-              <select
-                id="produksi-check"
-                v-model="localProduksi"
-                class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+                <label for="kode-barang" class="text-[14px] text-slate-700"
+                  >Kode Barang</label
+                >
+                <input
+                  id="kode-barang"
+                  v-model="localKodeBarang"
+                  type="text"
+                  placeholder="Kode barang (kosong = semua)"
+                  class="min-w-0 flex-1 rounded border border-slate-300 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none placeholder:text-slate-400"
+                />
+              </div>
+              <!-- JO -->
+              <div
+                class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
               >
-                <option value="1">Ya</option>
-                <option value="0">Tidak</option>
-              </select>
-            </div>
-            <!-- WIP (Khusus Mutasi Barang Setengah Jadi) -->
-            <div
-              v-if="type === 'mutsetjadi'"
-              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
-            >
-              <label for="wip-check" class="text-[14px] text-slate-700">WIP</label>
-              <select
-                id="wip-check"
-                v-model="localWip"
-                class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+                <label for="jo" class="text-[14px] text-slate-700">JO</label>
+                <input
+                  id="jo"
+                  v-model="localJo"
+                  type="text"
+                  placeholder="No. JO (kosong = semua)"
+                  class="min-w-0 flex-1 rounded border border-slate-300 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none placeholder:text-slate-400"
+                />
+              </div>
+              <!-- Report -->
+              <div
+                class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
               >
-                <option value="1">Ya</option>
-                <option value="0">Tidak</option>
-              </select>
-            </div>
-            <!-- Report (Khusus Kartu Stock Produksi) -->
-            <div
-              v-if="type === 'kartustock'"
-              class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
-            >
-              <label for="report" class="text-[14px] text-slate-700">Report</label>
-              <select
-                id="report"
-                v-model="localReport"
-                class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+                <label for="report" class="text-[14px] text-slate-700">Report</label>
+                <select
+                  id="report"
+                  v-model="localReport"
+                  class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+                >
+                  <option value="detail">Detail</option>
+                  <option value="rekap">Rekap</option>
+                </select>
+              </div>
+            </template>
+
+            <!-- Skema periode lainnya: mutsetjadi / mutsetjadirp / mutstock / mutstockrp -->
+            <template v-else>
+              <!-- JO (Khusus Mutasi Barang Setengah Jadi & QntRp) -->
+              <div
+                v-if="['mutsetjadi', 'mutsetjadirp'].includes(type)"
+                class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
               >
-                <option value="detail">Detail</option>
-                <option value="rekap">Rekap</option>
-              </select>
-            </div>
+                <label for="jo" class="text-[14px] text-slate-700">JO</label>
+                <input
+                  id="jo"
+                  v-model="localJo"
+                  type="text"
+                  placeholder="No. JO (kosong = semua)"
+                  class="min-w-0 flex-1 rounded border border-slate-300 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none placeholder:text-slate-400"
+                />
+              </div>
+              <!-- Produksi -->
+              <div
+                class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+              >
+                <label for="produksi-check" class="text-[14px] text-slate-700"
+                  >Produksi</label
+                >
+                <select
+                  id="produksi-check"
+                  v-model="localProduksi"
+                  class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+                >
+                  <option value="1">Ya</option>
+                  <option value="0">Tidak</option>
+                </select>
+              </div>
+              <!-- WIP (Khusus Mutasi Barang Setengah Jadi & QntRp) -->
+              <div
+                v-if="['mutsetjadi', 'mutsetjadirp'].includes(type)"
+                class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+              >
+                <label for="wip-check" class="text-[14px] text-slate-700">WIP</label>
+                <select
+                  id="wip-check"
+                  v-model="localWip"
+                  class="min-w-0 flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-[14px] text-slate-900 outline-none"
+                >
+                  <option value="1">Ya</option>
+                  <option value="0">Tidak</option>
+                </select>
+              </div>
+            </template>
           </template>
 
           <!-- Skema dengan rentang tanggal: hasil / mutasi / koreksi / default -->
@@ -284,8 +318,8 @@
             </select>
           </div>
 
-          <!-- Parameter skema: koreksi / tfbarangjadi (Barang Jadi) / pemakaianbahan -->
-          <template v-if="['koreksi', 'tfbarangjadi', 'pemakaianbahan'].includes(type)">
+          <!-- Parameter skema: koreksi / tfbarangjadi (Barang Jadi) / pemakaianbahan / tfjo (Transfer JO) / tfoutwip / tfinwip -->
+          <template v-if="['koreksi', 'tfbarangjadi', 'pemakaianbahan', 'tfjo', 'tfoutwip', 'tfinwip'].includes(type)">
             <!-- Laporan Per -->
             <div
               class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
@@ -303,8 +337,9 @@
                 <option value="barang">Barang</option>
               </select>
             </div>
-            <!-- Rekap / Detail -->
+            <!-- Rekap / Detail (bukan TransOut BHN & WIP / Transf In WIP) -->
             <div
+              v-if="!['tfoutwip', 'tfinwip'].includes(type)"
               class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
             >
               <label for="rekap-detail" class="text-[14px] text-slate-700"
@@ -319,8 +354,9 @@
                 <option value="detail">Detail</option>
               </select>
             </div>
-            <!-- Status -->
+            <!-- Status (koreksi / Barang Jadi / Pemakaian Bahan / Transfer JO) -->
             <div
+              v-if="['koreksi', 'tfbarangjadi', 'pemakaianbahan', 'tfjo'].includes(type)"
               class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
             >
               <label for="status-koreksi" class="text-[14px] text-slate-700"
@@ -336,7 +372,7 @@
                 <option value="belum_validasi">Belum Validasi</option>
               </select>
             </div>
-            <!-- Record Tertentu checkbox (koreksi & pemakaianbahan) -->
+            <!-- Record Tertentu checkbox (kecuali Barang Jadi) -->
             <div
               v-if="type !== 'tfbarangjadi'"
               class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
@@ -390,6 +426,9 @@
               type !== 'koreksi' &&
               type !== 'tfbarangjadi' &&
               type !== 'pemakaianbahan' &&
+              type !== 'tfjo' &&
+              type !== 'tfoutwip' &&
+              type !== 'tfinwip' &&
               !type.startsWith('outstanding-')
             "
             class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
@@ -542,7 +581,7 @@ export default {
     type: {
       handler(newType) {
         // Default status untuk skema koreksi-like memakai status sendiri
-        if (["koreksi", "tfbarangjadi", "pemakaianbahan"].includes(newType)) {
+        if (["koreksi", "tfbarangjadi", "pemakaianbahan", "tfjo"].includes(newType)) {
           this.localStatus = "semua";
         }
       },
@@ -651,8 +690,8 @@ export default {
         base.sisa_order = this.localSisaOrder;
       }
 
-      // 4/8/9. Koreksi / Barang Jadi / Pemakaian Bahan: laporan_per, rekap_detail, status, record_tertentu
-      if (["koreksi", "tfbarangjadi", "pemakaianbahan"].includes(this.type)) {
+      // 4/8/9/10. Koreksi / Barang Jadi / Pemakaian Bahan / Transfer JO
+      if (["koreksi", "tfbarangjadi", "pemakaianbahan", "tfjo"].includes(this.type)) {
         base.laporan_per = this.localLaporanPer;
         base.rekap_detail = this.localRekapDetail;
         if (this.type !== "tfbarangjadi") {
@@ -660,16 +699,22 @@ export default {
         }
       }
 
-      // 5/6/7. Skema periode: mutsetjadi / mutstock / kartustock
-      if (["mutsetjadi", "mutstock", "kartustock"].includes(this.type)) {
+      // 11/12. TransOut BHN & WIP / Transf In WIP: laporan_per + record_tertentu
+      if (["tfoutwip", "tfinwip"].includes(this.type)) {
+        base.laporan_per = this.localLaporanPer;
+        base.record_tertentu = this.localRecordTertentu;
+      }
+
+      // 5/6/7/8/14. Skema periode: mutsetjadi / mutsetjadirp / mutstock / kartustock / mutstockrp
+      if (["mutsetjadi", "mutsetjadirp", "mutstock", "kartustock", "mutstockrp"].includes(this.type)) {
         base.periode = `${this.localPeriodeBulan} ${this.localPeriodeTahun}`;
         base.periode_bulan = this.localPeriodeBulan;
         base.periode_tahun = this.localPeriodeTahun;
         base.produksi = this.localProduksi;
-        if (this.type !== "mutstock") {
+        if (["mutsetjadi", "mutsetjadirp", "kartustock"].includes(this.type)) {
           base.jo = this.localJo || "";
         }
-        if (this.type === "mutsetjadi") {
+        if (["mutsetjadi", "mutsetjadirp"].includes(this.type)) {
           base.wip = this.localWip;
         }
         if (this.type === "kartustock") {
