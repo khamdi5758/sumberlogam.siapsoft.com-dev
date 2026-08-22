@@ -15,7 +15,7 @@
 
       <!-- TAB HEADER -->
       <div
-        class="flex items-center gap-2 bg-gray-100 px-4 py-2 border-b overflow-x-auto"
+      class="tab-header flex h-14 items-start gap-2 bg-gray-100 px-2 pt-1 border-b overflow-x-auto overflow-y-hidden"
         :style="{
           backgroundColor: 'var(--layout-tab-header-bg)',
           borderBottomColor: 'var(--dark-base)',
@@ -25,7 +25,7 @@
         <div
           v-for="tab in tabsflmenu"
           :key="tab"
-          class="flex items-center gap-0.5 px-4 py-2 rounded-t-lg cursor-pointer whitespace-nowrap"
+          class="flex h-9 shrink-0 items-center gap-0.5 px-4 rounded-t-lg cursor-pointer whitespace-nowrap"
           :class="{
             'bg-dark-base text-white': tab.pathfile === selectedTab,
             'bg-dark-base/75 text-white': tab.pathfile !== selectedTab,
@@ -217,3 +217,27 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.tab-header {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.tab-header::-webkit-scrollbar {
+  height: 8px;
+}
+
+.tab-header::-webkit-scrollbar-track {
+  background: var(--layout-tab-header-bg);
+}
+
+.tab-header::-webkit-scrollbar-thumb {
+  background: var(--layout-sidebar-muted);
+  border-radius: 4px;
+}
+
+.tab-header::-webkit-scrollbar-thumb:hover {
+  background: var(--layout-sidebar-accent);
+}
+</style>
