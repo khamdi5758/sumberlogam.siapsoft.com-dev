@@ -297,7 +297,14 @@ const props = defineProps({
   userName:    { type: String, default: 'admin' },
   storageKey:  { type: String, default: 'report-register-po' },
   fileName:    { type: String, default: 'register-po' },
-  logoSrc:     { type: String, default: '' }
+  logoSrc:     { type: String, default: '' },
+  // Nama-nama dataField kolom yang selnya digabung tampilannya (merge)
+  // kalau nilainya sama dengan baris tepat di atasnya. Contoh: ['NamaSupp', 'Tanggal']
+  // Catatan: hanya berlaku untuk baris yang bersebelahan, jadi data harus
+  // sudah tersusun/terurut berdasarkan kolom tersebut supaya nilai yang
+  // sama saling berdekatan (kolom yang dipakai untuk grouping otomatis
+  // sudah terurut dengan sendirinya).
+  mergeColumns: { type: Array, default: () => [] }
 })
 
 const storedCompany = getStoredCompany()
@@ -723,6 +730,88 @@ function onContentReady () {
   updatePagerInfo()
   // Grid bisa di-rebuild saat kolom/grup berubah — pasang ulang drag-scroll
   enableDragScroll()
+  // Hitung ulang sel yang perlu digabung (merge) berdasarkan tampilan final
+  applyColumnMerge()
+}
+
+/* ─────────────── MERGE KOLOM ───────────────
+   DevExtreme DataGrid tidak punya rowSpan bawaan untuk sel data.
+   Triknya: kalau nilai kolom ini sama dengan baris data tepat di
+   atasnya, sembunyikan teksnya secara visual dan hapus border di
+   antara keduanya — secara visual jadi terlihat seperti satu sel
+   gabungan.
+   Aktifkan lewat prop :merge-columns="['NamaSupp', 'Tanggal']".
+   Data harus sudah terurut berdasarkan kolom tsb supaya nilai yang
+   sama saling berdekatan (kolom yang dipakai groupIndex otomatis
+   sudah terurut dengan sendirinya).
+
+   CATATAN PERBAIKAN:
+   Sebelumnya logic ini jalan di event `cellPrepared` per-sel, dengan
+   mengambil "baris sebelumnya" dari `getVisibleRows()`. Pendekatan itu
+   rapuh karena:
+   1. `cellPrepared` bisa terpanggil ulang berkali-kali (mis. saat
+      DxStateStoring atau opsi grid berubah lewat applyFilterOptionsToGrid),
+      dan tiap kali itu terjadi seluruh grid di-render ulang dari data
+      asli — sehingga teks yang sudah "dikosongkan" bisa muncul lagi.
+   2. Index dari getVisibleRows() tidak selalu selaras dengan urutan
+      elemen DOM saat event tsb berjalan, terutama saat baris grup
+      (dx-group-row) turut dihitung.
+
+   Solusi: JANGAN hitung merge per-sel saat cellPrepared. Sebagai
+   gantinya, lakukan SATU KALI pass penuh setelah grid selesai
+   render (`content-ready`), baca langsung dari DOM yang sudah jadi,
+   berurutan baris demi baris, dan reset perhitungan setiap kali
+   ketemu baris grup (dx-group-row) — supaya merge tidak pernah
+   "menembus" ke grup lain. Ini membuat hasilnya konsisten walau
+   grid di-render ulang berkali-kali.
+*/
+function applyColumnMerge () {
+  const g = grid()
+  const rowsView = sheetEl.value?.querySelector('.dx-datagrid-rowsview')
+  if (!g || !rowsView || !props.mergeColumns.length) return
+
+  const visibleColumns = g.getVisibleColumns()
+
+  props.mergeColumns.forEach(field => {
+    const colIndex = visibleColumns.findIndex(c => c.dataField === field)
+    if (colIndex === -1) return // dataField tidak ditemukan di kolom yang sedang tampil
+
+    // Ambil baris data & baris grup sesuai urutan tampil di layar —
+    // baris grup dipakai sebagai penanda untuk memutus rantai merge.
+    const rows = Array.from(rowsView.querySelectorAll('.dx-data-row, .dx-group-row'))
+
+    let prevCell = null
+    let prevValue = null
+
+    rows.forEach(row => {
+      if (row.classList.contains('dx-group-row')) {
+        // Masuk grup baru → mulai lagi dari sel kosong biasa
+        prevCell = null
+        prevValue = null
+        return
+      }
+
+      const cell = row.children[colIndex]
+      if (!cell) { prevCell = null; prevValue = null; return }
+
+      // Reset dulu sebelum dievaluasi ulang, supaya pass berikutnya
+      // (mis. setelah scroll/re-render) tidak mewarisi state lama.
+      cell.classList.remove('rb-merged-cell')
+      cell.style.borderTop = ''
+      if (prevCell) prevCell.style.borderBottom = ''
+
+      const value = cell.textContent
+
+      if (prevCell && value !== '' && value === prevValue) {
+        cell.classList.add('rb-merged-cell')
+        cell.style.borderTop = 'none'
+        prevCell.style.borderBottom = 'none'
+      }
+
+      prevCell = cell
+      prevValue = value
+    })
+  })
 }
 
 /* ─────────────── CLIPBOARD ─────────────── */
@@ -951,7 +1040,7 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   display: flex; align-items: center; justify-content: space-between;
   gap: 16px; flex-wrap: wrap;
   max-width: 1240px; margin: 0 auto;
-  padding: 9px 14px;
+  padding: 2px 14px;
   background: var(--layout-sidebar-bg);
   color: var(--layout-sidebar-text);
   font-family: var(--font-sans);
@@ -1147,6 +1236,15 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 }
 .report-sheet :deep(.dx-datagrid .dx-row-alt > td) { background: var(--paper) !important; }
 
+/* ---- Sel hasil merge (lihat fungsi applyColumnMerge) ----
+   Teks tetap ada di DOM (supaya fitur salin sel/baris tetap akurat),
+   hanya disembunyikan secara visual + border dihilangkan supaya
+   terlihat seperti satu sel gabungan dengan baris di atasnya. */
+.report-sheet :deep(.rb-merged-cell) {
+  border-top: none !important;
+  color: transparent !important;
+}
+
 /* ---- Baris grup ---- */
 .report-sheet :deep(.dx-datagrid-rowsview .dx-group-row) { background: var(--paper) !important; }
 .report-sheet :deep(.dx-datagrid-rowsview .dx-group-row > td) {
@@ -1305,7 +1403,7 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 }
 .rb-pager-input {
   width: 34px;
-  height: 27px;
+  height: 20px;
   text-align: center;
   font: inherit;
   font-size: 11.5px;

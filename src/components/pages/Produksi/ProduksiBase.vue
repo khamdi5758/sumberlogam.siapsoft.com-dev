@@ -34,6 +34,7 @@
       :userName="userName"
       :storageKey="`report-${storageKey}`"
       :fileName="fileName"
+      :mergeColumns="mergeColumns"
     >
       <!-- Forward custom columns slot if provided by parent -->
       <template v-if="$slots.columns" #columns>
@@ -87,6 +88,7 @@ export default {
     dataSource: { type: Array, default: () => [] },
     storageKey: { type: String, required: true },
     fileName: { type: String, required: true },
+    mergeColumns: { type: Array, default: () => [] }
   },
   data() {
     const today = new Date();
@@ -412,7 +414,7 @@ export default {
   gap: 5px;
   border-radius: 4px;
   padding: 0 12px;
-  height: 27px;
+  height: 20px;
   border: 1px solid var(--layout-sidebar-accent);
   transition: all 0.2s ease;
 }
