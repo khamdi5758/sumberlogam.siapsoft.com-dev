@@ -11,35 +11,91 @@
       <div class="rb-chrome__tools">
         <!-- Zoom -->
         <div class="rb-group">
-          <button class="rb-btn" title="Perkecil (Ctrl -)" @click="zoomOut">&#8722;</button>
+          <button class="rb-btn" title="Perkecil (Ctrl -)" @click="zoomOut">
+            <Minus :size="15" :stroke-width="2" />
+          </button>
           <button class="rb-btn rb-btn--zoom" title="Kembalikan ke 100%" @click="zoomReset">
             {{ Math.round(zoom * 100) }}%
           </button>
-          <button class="rb-btn" title="Perbesar (Ctrl +)" @click="zoomIn">&#43;</button>
+          <button class="rb-btn" title="Perbesar (Ctrl +)" @click="zoomIn">
+            <Plus :size="15" :stroke-width="2" />
+          </button>
+        </div>
+
+        <span class="rb-sep"></span>
+
+        <!-- Mode Tampilan -->
+        <div class="rb-group">
+          <select class="rb-select" v-model="filterSettings.viewMode" title="Mode Tampilan" @change="applyFilterOptionsToGrid">
+            <option value="paper">Halaman Kertas</option>
+            <option value="all">Semua Data</option>
+          </select>
+        </div>
+
+        <!-- Paginasi (Hanya jika mode Halaman Kertas) -->
+        <div class="rb-group" v-if="filterSettings.viewMode === 'paper'">
+          <button class="rb-btn" title="Halaman pertama" :disabled="pageIndex === 0" @click="setPageIndex(0)">
+            <ChevronsLeft :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Halaman sebelumnya" :disabled="pageIndex === 0" @click="setPageIndex(pageIndex - 1)">
+            <ChevronLeft :size="15" :stroke-width="2" />
+          </button>
+
+          <input
+            type="text"
+            class="rb-pager-input"
+            :value="pageIndex + 1"
+            @change="onPageInputChange"
+            @keydown.enter="onPageInputChange"
+            title="Masukkan halaman"
+          />
+          <span class="rb-pager-total">/ {{ totalPages }}</span>
+
+          <button class="rb-btn" title="Halaman berikutnya" :disabled="pageIndex >= totalPages - 1" @click="setPageIndex(pageIndex + 1)">
+            <ChevronRight :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Halaman terakhir" :disabled="pageIndex >= totalPages - 1" @click="setPageIndex(totalPages - 1)">
+            <ChevronsRight :size="15" :stroke-width="2" />
+          </button>
         </div>
 
         <span class="rb-sep"></span>
 
         <!-- Struktur -->
         <div class="rb-group">
-          <button class="rb-btn" title="Buka semua grup" @click="expandAll">Buka semua</button>
-          <button class="rb-btn" title="Tutup semua grup" @click="collapseAll">Tutup semua</button>
-          <button class="rb-btn" title="Pilih kolom yang tampil" @click="showColumnChooser">Kolom</button>
+          <button class="rb-btn" title="Buka semua grup" @click="expandAll">
+            <ChevronsDown :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Tutup semua grup" @click="collapseAll">
+            <ChevronsUp :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Pilih kolom yang tampil" @click="showColumnChooser">
+            <Columns3 :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Pengaturan filter" @click="showFilterPopup">
+            <Filter :size="15" :stroke-width="2" />
+          </button>
         </div>
 
         <span class="rb-sep"></span>
 
         <!-- Keluaran -->
         <div class="rb-group">
-          <button class="rb-btn" title="Unduh sebagai Excel" @click="exportExcel">Excel</button>
-          <button class="rb-btn" title="Unduh sebagai PDF" @click="exportPdf">PDF</button>
-          <button class="rb-btn" title="Cetak lembar ini" @click="printSheet">Cetak</button>
+          <button class="rb-btn" title="Unduh sebagai Excel" @click="exportExcel">
+            <FileSpreadsheet :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Unduh sebagai PDF" @click="exportPdf">
+            <FileText :size="15" :stroke-width="2" />
+          </button>
+          <button class="rb-btn" title="Cetak lembar ini" @click="printSheet">
+            <Printer :size="15" :stroke-width="2" />
+          </button>
         </div>
 
         <span class="rb-sep"></span>
 
         <button class="rb-btn rb-btn--ghost" title="Kembalikan susunan kolom & grup ke awal" @click="resetLayout">
-          Atur ulang
+          <RotateCcw :size="15" :stroke-width="2" />
         </button>
 
         <span class="rb-sep"></span>
@@ -50,11 +106,14 @@
     <!-- ══════════════ LEMBAR KERTAS ══════════════ -->
     <div ref="sheetEl" class="report-sheet" :style="{ '--z': zoom }">
 
-      <header class="report-head">
+      <div class="report-head">
         <div class="company">{{ companyName }}</div>
+        <div v-if="companyAddress" class="company-address">
+          {{ companyAddress }}<span v-if="companyPhone"> &bull; Telp: {{ companyPhone }}</span>
+        </div>
         <h1 class="title">{{ reportTitle }}</h1>
         <div class="period">{{ periodLabel }}</div>
-      </header>
+      </div>
 
       <DxDataGrid
         ref="gridRef"
@@ -74,13 +133,14 @@
         :remote-operations="false"
         @context-menu-preparing="onContextMenuPreparing"
         @cell-dbl-click="onCellDblClick"
+        @row-click="onRowClick"
         @content-ready="onContentReady"
       >
         <!-- Susunan kolom, lebar, dan grup tersimpan otomatis -->
         <DxStateStoring :enabled="true" type="localStorage" :storage-key="storageKey" />
 
         <DxLoadPanel :enabled="true" />
-        <DxScrolling mode="standard" column-rendering-mode="standard" />
+        <DxScrolling mode="standard" column-rendering-mode="standard" :use-native="true" />
         <DxSorting mode="multiple" />
         <DxSelection mode="multiple" show-check-boxes-mode="none" />
 
@@ -92,27 +152,30 @@
         />
         <DxGrouping :auto-expand-all="true" :context-menu-enabled="true" expand-mode="rowClick" />
 
-        <DxFilterRow :visible="true" />
-        <DxHeaderFilter :visible="true" />
-        <DxFilterPanel :visible="true" />
-        <DxSearchPanel :visible="true" :width="220" placeholder="Cari di seluruh laporan" />
-        <DxColumnChooser :enabled="true" mode="select" title="Kolom yang ditampilkan" />
+        <DxFilterRow :visible="filterSettings.showFilterRow" />
+        <DxHeaderFilter :visible="filterSettings.showHeaderFilter" />
+        <DxFilterPanel :visible="filterSettings.showFilterPanel" />
+        <DxSearchPanel :visible="filterSettings.showSearchPanel" :width="220" placeholder="Cari di seluruh laporan" />
+        <DxColumnChooser :enabled="false" mode="select" title="Kolom yang ditampilkan" />
         <DxColumnFixing :enabled="true" />
-        <DxPaging :enabled="false" />
+        <DxPaging :enabled="filterSettings.viewMode === 'paper'" :page-size="filterSettings.pageSize" />
+        <DxPager :visible="false" />
 
         <slot name="columns">
-          <DxColumn data-field="NoBukti"  caption="No. bukti"    :group-index="0" />
-          <DxColumn data-field="Tanggal"  caption="Tanggal"      data-type="date" format="dd/MM/yyyy" :width="95" />
-          <DxColumn data-field="KodeSupp" caption="Kode supp"    :width="95" />
-          <DxColumn data-field="NamaSupp" caption="Nama supplier" :min-width="190" />
-          <DxColumn data-field="PPN"      caption="PPN"          :width="60" alignment="center" />
-          <DxColumn data-field="KodeBrg"  caption="Kode barang"  :width="110" />
-          <DxColumn data-field="NamaBrg"  caption="Nama barang"  :min-width="200" />
-          <DxColumn data-field="Satuan"   caption="Satuan"       :width="70" alignment="center" />
-          <DxColumn data-field="Qnt"      caption="Qty"          :width="90"  format="#,##0.###" />
-          <DxColumn data-field="Harga"    caption="Harga"        :width="110" format="#,##0.00" />
-          <DxColumn data-field="Diskon"   caption="Diskon"       :width="95"  format="#,##0.00" />
-          <DxColumn data-field="Jumlah"   caption="Jumlah"       :width="130" format="#,##0.00" fixed-position="right" />
+          <DxColumn
+            v-for="col in dynamicColumns"
+            :key="col.dataField"
+            :data-field="col.dataField"
+            :caption="col.caption"
+            :alignment="col.alignment"
+            :data-type="col.dataType"
+            :format="col.format"
+            :width="col.width"
+            :min-width="col.minWidth"
+            :group-index="col.groupIndex"
+            :fixed="col.fixed"
+            :fixed-position="col.fixedPosition"
+          />
         </slot>
 
         <DxSummary>
@@ -141,6 +204,50 @@
     <transition name="rb-fade">
       <div v-if="toast" class="rb-toast">{{ toast }}</div>
     </transition>
+
+    <!-- Popup pengaturan filter -->
+    <DxPopup
+      :visible="filterPopupVisible"
+      :show-title="true"
+      title="Pengaturan Filter"
+      :width="260"
+      :height="undefined"
+      :shading="false"
+      :on-hidden="hideFilterPopup"
+    >
+      <template #contentTemplate>
+        <div class="rb-filter-popup">
+          <div class="rb-filter-popup__row">
+            <span>Baris filter</span>
+            <DxCheckBox
+              :value="filterSettings.showFilterRow"
+              @valueChanged="(e) => setFilterOption('showFilterRow', e.value)"
+            />
+          </div>
+          <div class="rb-filter-popup__row">
+            <span>Filter header kolom</span>
+            <DxCheckBox
+              :value="filterSettings.showHeaderFilter"
+              @valueChanged="(e) => setFilterOption('showHeaderFilter', e.value)"
+            />
+          </div>
+          <div class="rb-filter-popup__row">
+            <span>Panel filter</span>
+            <DxCheckBox
+              :value="filterSettings.showFilterPanel"
+              @valueChanged="(e) => setFilterOption('showFilterPanel', e.value)"
+            />
+          </div>
+          <div class="rb-filter-popup__row">
+            <span>Panel pencarian</span>
+            <DxCheckBox
+              :value="filterSettings.showSearchPanel"
+              @valueChanged="(e) => setFilterOption('showSearchPanel', e.value)"
+            />
+          </div>
+        </div>
+      </template>
+    </DxPopup>
   </div>
 </template>
 
@@ -150,18 +257,211 @@ import {
   DxDataGrid, DxColumn, DxGrouping, DxGroupPanel, DxScrolling, DxSorting,
   DxSummary, DxGroupItem, DxTotalItem, DxHeaderFilter, DxFilterRow,
   DxFilterPanel, DxSearchPanel, DxColumnChooser, DxColumnFixing,
-  DxSelection, DxStateStoring, DxLoadPanel, DxPaging
+  DxSelection, DxStateStoring, DxLoadPanel, DxPaging, DxPager
 } from 'devextreme-vue/data-grid'
+import DxPopup from 'devextreme-vue/popup'
+import DxCheckBox from 'devextreme-vue/check-box'
+import {
+  Minus, Plus, ChevronsDown, ChevronsUp, Columns3, Filter,
+  FileSpreadsheet, FileText, Printer, RotateCcw,
+  ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight
+} from 'lucide-vue-next'
+
+function getStoredCompany () {
+  try {
+    const stored = JSON.parse(localStorage.getItem('perusahaan') || 'null')
+    return Array.isArray(stored) ? (stored[0] || {}) : (stored || {})
+  } catch {
+    return {}
+  }
+}
 
 const props = defineProps({
   dataSource:  { type: [Array, Object], default: () => [] },
   keyExpr:     { type: String, default: 'Id' },
   companyName: { type: String, default: 'PT SIAP INTEGRASI' },
+  companyAddress: { type: String, default: '' },
+  companyPhone: { type: String, default: '' },
   reportTitle: { type: String, default: 'Register purchase order' },
   periodLabel: { type: String, default: '' },
   userName:    { type: String, default: 'admin' },
   storageKey:  { type: String, default: 'report-register-po' },
   fileName:    { type: String, default: 'register-po' }
+})
+
+const storedCompany = getStoredCompany()
+const companyName = computed(() => storedCompany.namaperusahaan || props.companyName)
+const companyAddress = computed(() =>
+  [storedCompany.alamat1, storedCompany.alamat2].filter(Boolean).join(' ') || props.companyAddress
+)
+const companyPhone = computed(() => storedCompany.telpon || props.companyPhone)
+
+const dynamicColumns = computed(() => {
+  const data = Array.isArray(props.dataSource) ? props.dataSource : []
+  if (data.length === 0) return []
+
+  const allKeysSet = new Set()
+  const normalizedKeysSet = new Set()
+  data.forEach(item => {
+    if (item && typeof item === 'object') {
+      Object.keys(item).forEach(key => {
+        const normalizedKey = key.toLowerCase().replace(/[\s_]/g, '')
+        if (!['id', 'keyindex', 'pagetotal', 'uuid', 'rowversion'].includes(normalizedKey)) {
+          if (!normalizedKeysSet.has(normalizedKey)) {
+            normalizedKeysSet.add(normalizedKey)
+            allKeysSet.add(key)
+          }
+        }
+      })
+    }
+  })
+
+  const allKeys = Array.from(allKeysSet)
+
+  return allKeys.map(key => {
+    const lower = key.toLowerCase()
+
+    // Determine alignment
+    let alignment = 'left'
+    if (
+      lower.startsWith('qnt') ||
+      lower.startsWith('harga') ||
+      lower.startsWith('diskon') ||
+      lower.startsWith('jumlah') ||
+      lower.startsWith('dpp') ||
+      lower.startsWith('ppn') ||
+      lower.startsWith('total') ||
+      lower.startsWith('sum') ||
+      lower.startsWith('avg') ||
+      lower.startsWith('dec')
+    ) {
+      alignment = 'right'
+    } else if (
+      lower.includes('tanggal') ||
+      lower.includes('tgl') ||
+      lower.includes('date') ||
+      lower.includes('ppn')
+    ) {
+      alignment = 'center'
+    }
+
+    // Parse caption
+    let caption = key.toString()
+    if (lower === 'nobukti') caption = 'No. bukti'
+    else if (lower === 'kodesupp') caption = 'Kode supp'
+    else if (lower === 'namasupp') caption = 'Nama supplier'
+    else if (lower === 'kodebrg') caption = 'Kode barang'
+    else if (lower === 'namabrg') caption = 'Nama barang'
+    else if (lower === 'qnt') caption = 'Qty'
+    else {
+      let stripped = true
+      while (stripped) {
+        stripped = false
+        if (caption.startsWith('dec')) {
+          caption = caption.substring(3)
+          stripped = true
+        } else if (caption.startsWith('sum') || caption.startsWith('avg')) {
+          caption = caption.substring(3)
+          stripped = true
+        }
+      }
+      caption = caption
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/_/g, ' ')
+        .trim()
+      caption = caption
+        .split(' ')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ')
+    }
+
+    // Determine dataType and format
+    let dataType = 'string'
+    let format = undefined
+
+    if (
+      lower.includes('tanggal') ||
+      lower.includes('tgl') ||
+      lower.includes('date')
+    ) {
+      dataType = 'date'
+      format = 'dd/MM/yyyy'
+    } else if (
+      lower.startsWith('qnt') ||
+      lower.startsWith('harga') ||
+      lower.startsWith('diskon') ||
+      lower.startsWith('jumlah') ||
+      lower.startsWith('dpp') ||
+      lower.startsWith('total') ||
+      lower.startsWith('sum') ||
+      lower.startsWith('avg') ||
+      lower.startsWith('dec')
+    ) {
+      dataType = 'number'
+      if (lower.startsWith('qnt') || lower.includes('qty')) {
+        format = '#,##0.###'
+      } else {
+        format = '#,##0.00'
+      }
+    }
+
+    // Determine width/minWidth
+    let width = undefined
+    let minWidth = undefined
+
+    if (lower === 'nobukti') {
+      width = 120
+    } else if (lower.includes('tanggal') || lower.includes('tgl')) {
+      width = 95
+    } else if (lower === 'kodesupp') {
+      width = 95
+    } else if (lower === 'namasupp') {
+      minWidth = 190
+    } else if (lower === 'ppn') {
+      width = 60
+    } else if (lower === 'kodebrg') {
+      width = 110
+    } else if (lower === 'namabrg') {
+      minWidth = 200
+    } else if (lower === 'satuan') {
+      width = 70
+    } else if (lower === 'qnt') {
+      width = 90
+    } else if (lower === 'harga') {
+      width = 110
+    } else if (lower === 'diskon') {
+      width = 95
+    } else if (lower === 'jumlah') {
+      width = 130
+    }
+
+    // Grouping
+    let groupIndex = undefined
+    if (lower === 'nobukti') {
+      groupIndex = 0
+    }
+
+    // Fixed column
+    let fixed = undefined
+    let fixedPosition = undefined
+    if (lower === 'jumlah') {
+      fixed = true
+      fixedPosition = 'right'
+    }
+
+    return {
+      dataField: key,
+      caption,
+      alignment,
+      dataType,
+      format,
+      width,
+      minWidth,
+      groupIndex,
+      fixed,
+      fixedPosition
+    }
+  })
 })
 
 const gridRef = ref(null)
@@ -192,22 +492,223 @@ function onKeydown (e) {
   if (e.key === '-')                  { e.preventDefault(); zoomOut() }
   if (e.key === '0')                  { e.preventDefault(); zoomReset() }
 }
-onMounted(()      => window.addEventListener('keydown', onKeydown))
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+
+/* ─────────────── DRAG-TO-SCROLL (untuk pengguna mouse) ───────────────
+   Trackpad bisa langsung swipe kiri/kanan, tapi mouse biasa tidak.
+   Solusi ini menambahkan "klik-tahan-geser" pada area grid: user
+   klik-tahan tombol kiri mouse lalu menggeser ke kiri/kanan untuk
+   men-scroll horizontal, mirip gesture drag di peta.
+------------------------------------------------------------------- */
+let dragCleanup = null
+
+function enableDragScroll () {
+  // Bersihkan listener lama kalau grid sempat re-render
+  if (dragCleanup) dragCleanup()
+
+  const container = sheetEl.value?.querySelector(
+    '.dx-datagrid-rowsview .dx-scrollable-container'
+  )
+  if (!container) return
+
+  const DRAG_THRESHOLD = 6 // px — di bawah ini dianggap klik biasa, bukan drag
+
+  let isDown = false
+  let dragging = false   // baru true setelah melewati threshold
+  let startX = 0
+  let scrollLeftStart = 0
+  let justDragged = false // dipakai onClickCapture, direset setelah 1 click
+
+  function onMouseDown (e) {
+    // Jangan aktifkan drag-scroll kalau user sedang klik di editor filter,
+    // checkbox, atau tombol lain di dalam grid
+    if (e.target.closest('.dx-texteditor, input, textarea, .dx-checkbox, .dx-selectbox, button')) return
+    // Hanya klik kiri
+    if (e.button !== 0) return
+
+    isDown = true
+    dragging = false
+    startX = e.pageX - container.offsetLeft
+    scrollLeftStart = container.scrollLeft
+  }
+
+  function endDrag () {
+    isDown = false
+    if (dragging) {
+      justDragged = true
+      container.classList.remove('rb-dragging')
+    }
+    dragging = false
+  }
+
+  function onMouseUp () { endDrag() }
+  function onMouseLeave () { endDrag() }
+
+  function onMouseMove (e) {
+    if (!isDown) return
+    const x = e.pageX - container.offsetLeft
+    const walk = x - startX
+
+    if (!dragging) {
+      // Belum lewat threshold → biarkan sebagai klik biasa (row selection tetap jalan)
+      if (Math.abs(walk) < DRAG_THRESHOLD) return
+      dragging = true
+      container.classList.add('rb-dragging')
+    }
+
+    e.preventDefault()
+    container.scrollLeft = scrollLeftStart - walk
+  }
+
+  // Cegah klik "nyangkut" jadi select sel HANYA kalau barusan benar-benar drag
+  function onClickCapture (e) {
+    if (justDragged) {
+      e.stopPropagation()
+      e.preventDefault()
+      justDragged = false
+    }
+  }
+
+  container.addEventListener('mousedown', onMouseDown)
+  window.addEventListener('mouseup', onMouseUp)
+  container.addEventListener('mouseleave', onMouseLeave)
+  container.addEventListener('mousemove', onMouseMove)
+  container.addEventListener('click', onClickCapture, true)
+
+  dragCleanup = () => {
+    container.removeEventListener('mousedown', onMouseDown)
+    window.removeEventListener('mouseup', onMouseUp)
+    container.removeEventListener('mouseleave', onMouseLeave)
+    container.removeEventListener('mousemove', onMouseMove)
+    container.removeEventListener('click', onClickCapture, true)
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  // Tunggu DxDataGrid selesai render pertama kali sebelum memasang drag-scroll
+  setTimeout(enableDragScroll, 300)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+  if (dragCleanup) dragCleanup()
+})
 
 /* ─────────────── STRUKTUR ─────────────── */
 const expandAll   = () => grid()?.expandAll()
 const collapseAll = () => grid()?.collapseAll()
 const showColumnChooser = () => grid()?.showColumnChooser()
 
+/* ─────────────── FILTER (Baris filter, header, panel, pencarian) ─────────────── */
+const savedFilters = localStorage.getItem(`${props.storageKey}:filters`)
+const defaultFilters = {
+  showFilterRow: false,
+  showHeaderFilter: false,
+  showFilterPanel: true,
+  showSearchPanel: false,
+  viewMode: 'paper',
+  pageSize: 20
+}
+const filterSettings = ref(savedFilters ? { ...defaultFilters, ...JSON.parse(savedFilters) } : defaultFilters)
+const filterPopupVisible = ref(false)
+
+const showFilterPopup = () => { filterPopupVisible.value = true }
+const hideFilterPopup = () => { filterPopupVisible.value = false }
+
+const pageIndex = ref(0)
+const totalPages = ref(1)
+
+function updatePagerInfo () {
+  const g = grid()
+  if (!g) return
+  pageIndex.value = g.pageIndex()
+  totalPages.value = g.pageCount() || 1
+}
+
+function setPageIndex (idx) {
+  const g = grid()
+  if (!g) return
+  const targetIdx = Math.max(0, Math.min(idx, totalPages.value - 1))
+  g.pageIndex(targetIdx)
+  pageIndex.value = targetIdx
+}
+
+function onPageInputChange (e) {
+  const val = parseInt(e.target.value, 10)
+  if (!isNaN(val)) {
+    const targetIdx = Math.max(0, Math.min(val - 1, totalPages.value - 1))
+    setPageIndex(targetIdx)
+    e.target.value = targetIdx + 1
+  } else {
+    e.target.value = pageIndex.value + 1
+  }
+}
+
+function applyFilterOptionsToGrid () {
+  const g = grid()
+  if (!g) return
+
+  const optionsToSet = {
+    'filterRow.visible': filterSettings.value.showFilterRow,
+    'headerFilter.visible': filterSettings.value.showHeaderFilter,
+    'filterPanel.visible': filterSettings.value.showFilterPanel,
+    'searchPanel.visible': filterSettings.value.showSearchPanel,
+    'paging.enabled': filterSettings.value.viewMode === 'paper',
+    'paging.pageSize': filterSettings.value.pageSize
+  }
+
+  let changed = false
+  for (const [key, val] of Object.entries(optionsToSet)) {
+    if (g.option(key) !== val) {
+      g.option(key, val)
+      changed = true
+    }
+  }
+
+  localStorage.setItem(`${props.storageKey}:filters`, JSON.stringify(filterSettings.value))
+
+  if (changed) {
+    setTimeout(() => {
+      try {
+        g.updateDimensions()
+        updatePagerInfo()
+      } catch (e) {}
+    }, 50)
+  } else {
+    updatePagerInfo()
+  }
+}
+
+function setFilterOption (key, val) {
+  if (filterSettings.value[key] !== val) {
+    filterSettings.value[key] = val
+    applyFilterOptionsToGrid()
+  }
+}
+
 function resetLayout () {
   grid()?.state(null)
   localStorage.removeItem(props.storageKey)
+  localStorage.removeItem(`${props.storageKey}:filters`)
+  filterSettings.value = {
+    showFilterRow: false,
+    showHeaderFilter: false,
+    showFilterPanel: true,
+    showSearchPanel: false,
+    viewMode: 'paper',
+    pageSize: 20
+  }
+  activeRowKey.value = null
+  applyFilterOptionsToGrid()
   applyZoom(1)
   notify('Susunan dikembalikan ke awal')
 }
 
-function onContentReady () { /* hook bila perlu */ }
+function onContentReady () {
+  applyFilterOptionsToGrid()
+  updatePagerInfo()
+  // Grid bisa di-rebuild saat kolom/grup berubah — pasang ulang drag-scroll
+  enableDragScroll()
+}
 
 /* ─────────────── CLIPBOARD ─────────────── */
 function notify (msg) {
@@ -238,6 +739,32 @@ function cellText (e) {
 function onCellDblClick (e) {
   if (e.rowType !== 'data') return
   toClipboard(cellText(e), 'Sel disalin')
+}
+
+/* Klik di baris yang sama sekali lagi → lepas seleksinya (toggle).
+   Ctrl/Shift+klik tetap dibiarkan mengikuti perilaku multi-select bawaan grid.
+   PENTING: status "sudah dipilih atau belum" TIDAK dibaca dari grid
+   (g.getSelectedRowKeys()), karena saat event row-click ini berjalan,
+   grid sudah lebih dulu otomatis men-select barisnya sendiri — kalau kita
+   baca statusnya dari grid, selalu kebaca "sudah terpilih" dan langsung
+   di-deselect lagi (select+deselect dalam satu klik = kelihatan tidak
+   bisa dipilih). Makanya dipakai ref sendiri sebagai sumber kebenaran. */
+const activeRowKey = ref(null)
+
+function onRowClick (e) {
+  if (e.rowType !== 'data') return
+  if (e.event && (e.event.ctrlKey || e.event.metaKey || e.event.shiftKey)) return
+
+  const g = grid()
+  if (!g) return
+
+  if (activeRowKey.value === e.key) {
+    g.deselectRows([e.key])
+    activeRowKey.value = null
+  } else {
+    g.selectRows([e.key], false) // false = ganti seleksi, bukan ditambah
+    activeRowKey.value = e.key
+  }
 }
 
 function rowText (rowData, columns) {
@@ -308,7 +835,7 @@ async function exportExcel () {
   const ws = wb.addWorksheet(props.reportTitle.slice(0, 31))
 
   ws.mergeCells('A1:D1')
-  ws.getCell('A1').value = props.companyName
+  ws.getCell('A1').value = companyName.value
   ws.getCell('A1').font = { bold: true, size: 12 }
   ws.mergeCells('A2:D2')
   ws.getCell('A2').value = `${props.reportTitle} — ${props.periodLabel}`
@@ -345,9 +872,12 @@ async function exportPdf () {
   ])
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
 
-  doc.setFontSize(11); doc.text(props.companyName, 40, 34)
-  doc.setFontSize(14); doc.text(props.reportTitle, 40, 52)
-  doc.setFontSize(9);  doc.text(props.periodLabel, 40, 66)
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const centerX = pageWidth / 2
+
+  doc.setFontSize(11); doc.text(companyName.value, centerX, 34, { align: 'center' })
+  doc.setFontSize(14); doc.text(props.reportTitle, centerX, 52, { align: 'center' })
+  doc.setFontSize(9);  doc.text(props.periodLabel, centerX, 66, { align: 'center' })
 
   await exportDataGrid({
     jsPDFDocument: doc,
@@ -390,6 +920,7 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   --paper:      #ffffff;
   --paper-edge: #e3e4e8;
   --tint:       #f7f8f9;
+  --select-bg:  #e2e8f0;
   --chrome:     #fbfbfc;
 
   --font-body: "Inter", ui-sans-serif, "Segoe UI", Roboto, Arial, sans-serif;
@@ -455,6 +986,11 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 .report-head .company {
   font-size: calc(11.5px * var(--z));
   font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+}
+.report-head .company-address {
+  font-size: calc(9.5px * var(--z));
+  color: var(--ink-soft);
+  margin-top: calc(2px * var(--z));
 }
 .report-head .title {
   font-size: calc(19px * var(--z));
@@ -605,13 +1141,19 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 }
 .report-sheet :deep(.dx-datagrid-summary-item) { color: var(--ink) !important; font-weight: 700; }
 
-/* ---- Matikan seluruh biru bawaan tema ---- */
-.report-sheet :deep(.dx-datagrid-rowsview .dx-row.dx-state-hover:not(.dx-header-row) > td),
+/* ---- Matikan seluruh biru bawaan tema ----
+   Baris yang sedang selected/focused dikecualikan dari style hover,
+   supaya warna "terpilih" langsung tampil begitu diklik — tidak perlu
+   menggeser mouse/scroll dulu supaya hover-nya lepas. */
+.report-sheet :deep(.dx-datagrid-rowsview .dx-row.dx-state-hover:not(.dx-header-row):not(.dx-selection):not(.dx-row-focused) > td) {
+  background: var(--tint) !important;
+  color: var(--ink) !important;
+}
 .report-sheet :deep(.dx-datagrid-rowsview .dx-selection > td),
 .report-sheet :deep(.dx-datagrid-rowsview .dx-selection.dx-row > td),
 .report-sheet :deep(.dx-row-focused.dx-data-row > td),
 .report-sheet :deep(.dx-row-focused.dx-group-row > td) {
-  background: var(--tint) !important;
+  background: var(--select-bg) !important;
   color: var(--ink) !important;
 }
 .report-sheet :deep(.dx-datagrid-focus-overlay) {
@@ -635,7 +1177,51 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 }
 
 /* ---- Scrollbar ---- */
-.report-sheet :deep(.dx-scrollable-scroll-content) { background: rgba(22,24,29,.22); }
+.report-sheet :deep(.dx-scrollable-container) {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(22, 24, 29, 0.22) transparent;
+}
+.report-sheet :deep(.dx-scrollable-container::-webkit-scrollbar) {
+  width: 8px;
+  height: 8px;
+}
+.report-sheet :deep(.dx-scrollable-container::-webkit-scrollbar-track) {
+  background: transparent;
+}
+.report-sheet :deep(.dx-scrollable-container::-webkit-scrollbar-thumb) {
+  background: rgba(22, 24, 29, 0.22);
+  border-radius: 4px;
+}
+.report-sheet :deep(.dx-scrollable-container::-webkit-scrollbar-thumb:hover) {
+  background: rgba(22, 24, 29, 0.4);
+}
+
+/* ---- Drag-to-scroll (mouse) ---- */
+.report-sheet :deep(.dx-datagrid-rowsview .dx-scrollable-container) {
+  cursor: grab;
+}
+.report-sheet :deep(.dx-datagrid-rowsview .dx-scrollable-container.rb-dragging) {
+  cursor: grabbing;
+  user-select: none;
+}
+
+
+/* ============================================================
+   POPUP FILTER
+   ============================================================ */
+.rb-filter-popup {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.rb-filter-popup__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
 /* ============================================================
    TOAST
@@ -650,6 +1236,54 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 .rb-fade-enter-active, .rb-fade-leave-active { transition: opacity .18s, transform .18s; }
 .rb-fade-enter-from, .rb-fade-leave-to { opacity: 0; transform: translate(-50%, 6px); }
 
+.rb-select {
+  height: 27px;
+  padding: 0 24px 0 8px;
+  font: inherit; font-size: 11.5px;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 4px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23707782' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 12px;
+  transition: border-color .12s, color .12s;
+}
+.rb-select:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.rb-select:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+.rb-pager-input {
+  width: 34px;
+  height: 27px;
+  text-align: center;
+  font: inherit;
+  font-size: 11.5px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 4px;
+  margin: 0 4px;
+}
+.rb-pager-input:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+.rb-pager-total {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-right: 8px;
+  align-self: center;
+}
+
 /* ============================================================
    CETAK
    ============================================================ */
@@ -659,6 +1293,16 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
     --z: 1;
     max-width: none; margin: 0; padding: 0;
     border: none; box-shadow: none;
+  }
+  .report-head {
+    display: block !important;
+    text-align: center !important;
+  }
+  .report-head .company,
+  .report-head .company-address,
+  .report-head .title,
+  .report-head .period {
+    text-align: center !important;
   }
   .report-sheet :deep(.dx-datagrid-header-panel),
   .report-sheet :deep(.dx-datagrid-filter-row),

@@ -125,6 +125,7 @@ const actions = {
           cookies.set("loggedIn", "true", "10h");
           localStorage.setItem("token", res.data.token);
           localStorage.setItem("loggedIn", "true");
+          localStorage.setItem("perusahaan", JSON.stringify(res.data.perusahaan));
 
           // Ambil data user yang login
           return context.dispatch("users/getusersignin", null, { root: true });
@@ -168,6 +169,7 @@ const actions = {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         localStorage.removeItem("tokenmpmhnda");
+        localStorage.removeItem("perusahaan");
         sessionStorage.removeItem("loggedIn");
         cookies.remove("loggedIn");
         cookies.remove("token");

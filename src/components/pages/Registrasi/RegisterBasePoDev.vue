@@ -274,8 +274,8 @@ export default {
 
 /* Custom button styles to match ReportGridBuilder theme */
 .rb-btn--filter {
-  background-color: #1e293b !important;
-  color: #ffffff !important;
+  background-color: var(--layout-sidebar-accent) !important;
+  color: var(--layout-sidebar-bg) !important;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -283,21 +283,24 @@ export default {
   border-radius: 4px;
   padding: 0 12px;
   height: 27px;
-  border: 1px solid transparent;
+  border: 1px solid var(--layout-sidebar-accent);
   transition: all 0.2s ease;
 }
 
 .rb-btn--filter:hover {
-  background-color: #334155 !important;
+  background-color: #ffffff !important;
+  border-color: #ffffff;
+  color: var(--layout-sidebar-bg) !important;
   transform: translateY(-1px);
+}
+
+.rb-btn--filter:focus-visible {
+  outline: 2px solid var(--layout-sidebar-accent);
+  outline-offset: 2px;
 }
 
 .rb-btn--filter:active {
   transform: scale(0.97);
 }
 
-.filter-ico {
-  font-style: normal;
-  font-size: 14px;
-}
 </style>

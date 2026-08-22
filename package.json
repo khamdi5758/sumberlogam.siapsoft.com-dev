@@ -12,6 +12,7 @@
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
     "@googlemaps/markerclusterer": "^2.6.2",
+    "@lucide/vue": "^1.33.0",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.6",
     "browser-image-compression": "^2.0.2",

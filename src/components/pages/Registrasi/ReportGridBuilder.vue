@@ -40,11 +40,11 @@
           <button class="rb-btn" title="Halaman sebelumnya" :disabled="pageIndex === 0" @click="setPageIndex(pageIndex - 1)">
             <ChevronLeft :size="15" :stroke-width="2" />
           </button>
-          
-          <input 
-            type="text" 
-            class="rb-pager-input" 
-            :value="pageIndex + 1" 
+
+          <input
+            type="text"
+            class="rb-pager-input"
+            :value="pageIndex + 1"
             @change="onPageInputChange"
             @keydown.enter="onPageInputChange"
             title="Masukkan halaman"
@@ -107,12 +107,22 @@
     <div ref="sheetEl" class="report-sheet" :style="{ '--z': zoom }">
 
       <div class="report-head">
-        <div class="company">{{ companyName }}</div>
-        <div v-if="companyAddress" class="company-address">
-          {{ companyAddress }}<span v-if="companyPhone"> &bull; Telp: {{ companyPhone }}</span>
+        <img
+          v-if="companyLogo && !logoLoadFailed"
+          class="report-logo"
+          :src="companyLogo"
+          :alt="`Logo ${companyName}`"
+          @error="logoLoadFailed = true"
+        />
+        <div v-else class="report-logo report-logo--fallback" aria-hidden="true">KMJ</div>
+        <div class="report-head__content">
+          <div class="company">{{ companyName }}</div>
+          <div v-if="companyAddress" class="company-address">
+            {{ companyAddress }}<span v-if="companyPhone"> &bull; Telp: {{ companyPhone }}</span>
+          </div>
+          <h1 class="title">{{ reportTitle }}</h1>
+          <div class="period">{{ periodLabel }}</div>
         </div>
-        <h1 class="title">{{ reportTitle }}</h1>
-        <div class="period">{{ periodLabel }}</div>
       </div>
 
       <DxDataGrid
@@ -133,6 +143,7 @@
         :remote-operations="false"
         @context-menu-preparing="onContextMenuPreparing"
         @cell-dbl-click="onCellDblClick"
+        @row-click="onRowClick"
         @content-ready="onContentReady"
       >
         <!-- Susunan kolom, lebar, dan grup tersimpan otomatis -->
@@ -266,6 +277,15 @@ import {
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight
 } from 'lucide-vue-next'
 
+function getStoredCompany () {
+  try {
+    const stored = JSON.parse(localStorage.getItem('perusahaan') || 'null')
+    return Array.isArray(stored) ? (stored[0] || {}) : (stored || {})
+  } catch {
+    return {}
+  }
+}
+
 const props = defineProps({
   dataSource:  { type: [Array, Object], default: () => [] },
   keyExpr:     { type: String, default: 'Id' },
@@ -276,8 +296,20 @@ const props = defineProps({
   periodLabel: { type: String, default: '' },
   userName:    { type: String, default: 'admin' },
   storageKey:  { type: String, default: 'report-register-po' },
-  fileName:    { type: String, default: 'register-po' }
+  fileName:    { type: String, default: 'register-po' },
+  logoSrc:     { type: String, default: '' }
 })
+
+const storedCompany = getStoredCompany()
+const companyName = computed(() => storedCompany.namaperusahaan || props.companyName)
+const companyAddress = computed(() =>
+  [storedCompany.alamat1, storedCompany.alamat2].filter(Boolean).join(' ') || props.companyAddress
+)
+const companyPhone = computed(() => storedCompany.telpon || props.companyPhone)
+const companyLogo = computed(() =>
+  storedCompany.logo || storedCompany.logoUrl || storedCompany.logoPerusahaan || props.logoSrc
+)
+const logoLoadFailed = ref(false)
 
 const dynamicColumns = computed(() => {
   const data = Array.isArray(props.dataSource) ? props.dataSource : []
@@ -300,10 +332,10 @@ const dynamicColumns = computed(() => {
   })
 
   const allKeys = Array.from(allKeysSet)
-  
+
   return allKeys.map(key => {
     const lower = key.toLowerCase()
-    
+
     // Determine alignment
     let alignment = 'left'
     if (
@@ -475,8 +507,106 @@ function onKeydown (e) {
   if (e.key === '-')                  { e.preventDefault(); zoomOut() }
   if (e.key === '0')                  { e.preventDefault(); zoomReset() }
 }
-onMounted(()      => window.addEventListener('keydown', onKeydown))
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+
+/* ─────────────── DRAG-TO-SCROLL (untuk pengguna mouse) ───────────────
+   Trackpad bisa langsung swipe kiri/kanan, tapi mouse biasa tidak.
+   Solusi ini menambahkan "klik-tahan-geser" pada area grid: user
+   klik-tahan tombol kiri mouse lalu menggeser ke kiri/kanan untuk
+   men-scroll horizontal, mirip gesture drag di peta.
+------------------------------------------------------------------- */
+let dragCleanup = null
+
+function enableDragScroll () {
+  // Bersihkan listener lama kalau grid sempat re-render
+  if (dragCleanup) dragCleanup()
+
+  const container = sheetEl.value?.querySelector(
+    '.dx-datagrid-rowsview .dx-scrollable-container'
+  )
+  if (!container) return
+
+  const DRAG_THRESHOLD = 6 // px — di bawah ini dianggap klik biasa, bukan drag
+
+  let isDown = false
+  let dragging = false   // baru true setelah melewati threshold
+  let startX = 0
+  let scrollLeftStart = 0
+  let justDragged = false // dipakai onClickCapture, direset setelah 1 click
+
+  function onMouseDown (e) {
+    // Jangan aktifkan drag-scroll kalau user sedang klik di editor filter,
+    // checkbox, atau tombol lain di dalam grid
+    if (e.target.closest('.dx-texteditor, input, textarea, .dx-checkbox, .dx-selectbox, button')) return
+    // Hanya klik kiri
+    if (e.button !== 0) return
+
+    isDown = true
+    dragging = false
+    startX = e.pageX - container.offsetLeft
+    scrollLeftStart = container.scrollLeft
+  }
+
+  function endDrag () {
+    isDown = false
+    if (dragging) {
+      justDragged = true
+      container.classList.remove('rb-dragging')
+    }
+    dragging = false
+  }
+
+  function onMouseUp () { endDrag() }
+  function onMouseLeave () { endDrag() }
+
+  function onMouseMove (e) {
+    if (!isDown) return
+    const x = e.pageX - container.offsetLeft
+    const walk = x - startX
+
+    if (!dragging) {
+      // Belum lewat threshold → biarkan sebagai klik biasa (row selection tetap jalan)
+      if (Math.abs(walk) < DRAG_THRESHOLD) return
+      dragging = true
+      container.classList.add('rb-dragging')
+    }
+
+    e.preventDefault()
+    container.scrollLeft = scrollLeftStart - walk
+  }
+
+  // Cegah klik "nyangkut" jadi select sel HANYA kalau barusan benar-benar drag
+  function onClickCapture (e) {
+    if (justDragged) {
+      e.stopPropagation()
+      e.preventDefault()
+      justDragged = false
+    }
+  }
+
+  container.addEventListener('mousedown', onMouseDown)
+  window.addEventListener('mouseup', onMouseUp)
+  container.addEventListener('mouseleave', onMouseLeave)
+  container.addEventListener('mousemove', onMouseMove)
+  container.addEventListener('click', onClickCapture, true)
+
+  dragCleanup = () => {
+    container.removeEventListener('mousedown', onMouseDown)
+    window.removeEventListener('mouseup', onMouseUp)
+    container.removeEventListener('mouseleave', onMouseLeave)
+    container.removeEventListener('mousemove', onMouseMove)
+    container.removeEventListener('click', onClickCapture, true)
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  // Tunggu DxDataGrid selesai render pertama kali sebelum memasang drag-scroll
+  setTimeout(enableDragScroll, 300)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+  if (dragCleanup) dragCleanup()
+})
 
 /* ─────────────── STRUKTUR ─────────────── */
 const expandAll   = () => grid()?.expandAll()
@@ -582,6 +712,7 @@ function resetLayout () {
     viewMode: 'paper',
     pageSize: 20
   }
+  activeRowKey.value = null
   applyFilterOptionsToGrid()
   applyZoom(1)
   notify('Susunan dikembalikan ke awal')
@@ -590,6 +721,8 @@ function resetLayout () {
 function onContentReady () {
   applyFilterOptionsToGrid()
   updatePagerInfo()
+  // Grid bisa di-rebuild saat kolom/grup berubah — pasang ulang drag-scroll
+  enableDragScroll()
 }
 
 /* ─────────────── CLIPBOARD ─────────────── */
@@ -621,6 +754,32 @@ function cellText (e) {
 function onCellDblClick (e) {
   if (e.rowType !== 'data') return
   toClipboard(cellText(e), 'Sel disalin')
+}
+
+/* Klik di baris yang sama sekali lagi → lepas seleksinya (toggle).
+   Ctrl/Shift+klik tetap dibiarkan mengikuti perilaku multi-select bawaan grid.
+   PENTING: status "sudah dipilih atau belum" TIDAK dibaca dari grid
+   (g.getSelectedRowKeys()), karena saat event row-click ini berjalan,
+   grid sudah lebih dulu otomatis men-select barisnya sendiri — kalau kita
+   baca statusnya dari grid, selalu kebaca "sudah terpilih" dan langsung
+   di-deselect lagi (select+deselect dalam satu klik = kelihatan tidak
+   bisa dipilih). Makanya dipakai ref sendiri sebagai sumber kebenaran. */
+const activeRowKey = ref(null)
+
+function onRowClick (e) {
+  if (e.rowType !== 'data') return
+  if (e.event && (e.event.ctrlKey || e.event.metaKey || e.event.shiftKey)) return
+
+  const g = grid()
+  if (!g) return
+
+  if (activeRowKey.value === e.key) {
+    g.deselectRows([e.key])
+    activeRowKey.value = null
+  } else {
+    g.selectRows([e.key], false) // false = ganti seleksi, bukan ditambah
+    activeRowKey.value = e.key
+  }
 }
 
 function rowText (rowData, columns) {
@@ -691,7 +850,7 @@ async function exportExcel () {
   const ws = wb.addWorksheet(props.reportTitle.slice(0, 31))
 
   ws.mergeCells('A1:D1')
-  ws.getCell('A1').value = props.companyName
+  ws.getCell('A1').value = companyName.value
   ws.getCell('A1').font = { bold: true, size: 12 }
   ws.mergeCells('A2:D2')
   ws.getCell('A2').value = `${props.reportTitle} — ${props.periodLabel}`
@@ -731,7 +890,7 @@ async function exportPdf () {
   const pageWidth = doc.internal.pageSize.getWidth()
   const centerX = pageWidth / 2
 
-  doc.setFontSize(11); doc.text(props.companyName, centerX, 34, { align: 'center' })
+  doc.setFontSize(11); doc.text(companyName.value, centerX, 34, { align: 'center' })
   doc.setFontSize(14); doc.text(props.reportTitle, centerX, 52, { align: 'center' })
   doc.setFontSize(9);  doc.text(props.periodLabel, centerX, 66, { align: 'center' })
 
@@ -793,8 +952,10 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   gap: 16px; flex-wrap: wrap;
   max-width: 1240px; margin: 0 auto;
   padding: 9px 14px;
-  background: var(--chrome);
-  border: 1px solid var(--paper-edge);
+  background: var(--layout-sidebar-bg);
+  color: var(--layout-sidebar-text);
+  font-family: var(--font-sans);
+  border: 1px solid var(--layout-sidebar-border);
   border-bottom: none;
   border-radius: 4px 4px 0 0;
 }
@@ -802,27 +963,27 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   display: flex; align-items: center; gap: 8px;
   font-size: 12.5px; font-weight: 600; letter-spacing: -.005em;
 }
-.rb-ico { color: var(--ink-soft); font-style: normal; }
+.rb-ico { color: var(--layout-sidebar-text); font-style: normal; }
 .rb-chrome__tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .rb-group { display: flex; align-items: center; gap: 2px; }
-.rb-sep { width: 1px; height: 18px; background: var(--paper-edge); }
+.rb-sep { width: 1px; height: 18px; background: var(--layout-sidebar-border); }
 
 .rb-btn {
   height: 27px; min-width: 27px;
   padding: 0 9px;
   font: inherit; font-size: 11.5px;
-  color: var(--ink-soft);
+  color: var(--layout-sidebar-text);
   background: transparent;
   border: 1px solid transparent;
   border-radius: 4px;
   cursor: pointer;
   transition: background .12s, color .12s, border-color .12s;
 }
-.rb-btn:hover  { background: #fff; border-color: var(--paper-edge); color: var(--ink); }
+.rb-btn:hover  { background: var(--layout-sidebar-hover); border-color: var(--layout-sidebar-border); color: var(--layout-sidebar-accent); }
 .rb-btn:active { transform: scale(.97); }
-.rb-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.rb-btn:focus-visible { outline: 2px solid var(--layout-sidebar-accent); outline-offset: 1px; }
 .rb-btn--zoom  { min-width: 46px; font-variant-numeric: tabular-nums; }
-.rb-btn--ghost { color: #9aa0a8; }
+.rb-btn--ghost { color: var(--layout-sidebar-muted); }
 
 /* ============================================================
    LEMBAR KERTAS  (semua ukuran ikut --z)
@@ -838,7 +999,32 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   box-shadow: 0 1px 1px rgba(16,18,24,.04), 0 10px 28px rgba(16,18,24,.07);
 }
 
-.report-head { text-align: center; padding-bottom: calc(12px * var(--z)); }
+.report-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(18px * var(--z));
+  min-height: calc(72px * var(--z));
+  text-align: left;
+  padding-bottom: calc(12px * var(--z));
+}
+.report-head__content { flex: 1; min-width: 0; }
+.report-logo {
+  flex: 0 0 auto;
+  width: calc(64px * var(--z));
+  height: calc(64px * var(--z));
+  object-fit: contain;
+}
+.report-logo--fallback {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--ink);
+  border-radius: 6px;
+  font-size: calc(16px * var(--z));
+  font-weight: 800;
+  letter-spacing: .08em;
+}
 .report-head .company {
   font-size: calc(11.5px * var(--z));
   font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
@@ -997,8 +1183,11 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
 }
 .report-sheet :deep(.dx-datagrid-summary-item) { color: var(--ink) !important; font-weight: 700; }
 
-/* ---- Matikan seluruh biru bawaan tema ---- */
-.report-sheet :deep(.dx-datagrid-rowsview .dx-row.dx-state-hover:not(.dx-header-row) > td) {
+/* ---- Matikan seluruh biru bawaan tema ----
+   Baris yang sedang selected/focused dikecualikan dari style hover,
+   supaya warna "terpilih" langsung tampil begitu diklik — tidak perlu
+   menggeser mouse/scroll dulu supaya hover-nya lepas. */
+.report-sheet :deep(.dx-datagrid-rowsview .dx-row.dx-state-hover:not(.dx-header-row):not(.dx-selection):not(.dx-row-focused) > td) {
   background: var(--tint) !important;
   color: var(--ink) !important;
 }
@@ -1049,6 +1238,16 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   background: rgba(22, 24, 29, 0.4);
 }
 
+/* ---- Drag-to-scroll (mouse) ---- */
+.report-sheet :deep(.dx-datagrid-rowsview .dx-scrollable-container) {
+  cursor: grab;
+}
+.report-sheet :deep(.dx-datagrid-rowsview .dx-scrollable-container.rb-dragging) {
+  cursor: grabbing;
+  user-select: none;
+}
+
+
 /* ============================================================
    POPUP FILTER
    ============================================================ */
@@ -1083,26 +1282,26 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   height: 27px;
   padding: 0 24px 0 8px;
   font: inherit; font-size: 11.5px;
-  color: var(--ink-soft);
-  background: var(--paper);
-  border: 1px solid var(--paper-edge);
+  color: var(--layout-sidebar-text);
+  background: var(--layout-sidebar-bg);
+  border: 1px solid var(--layout-sidebar-border);
   border-radius: 4px;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23707782' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eff1f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 6px center;
   background-size: 12px;
   transition: border-color .12s, color .12s;
 }
 .rb-select:hover {
-  border-color: var(--ink);
-  color: var(--ink);
+  border-color: var(--layout-sidebar-accent);
+  color: var(--layout-sidebar-accent);
 }
 .rb-select:focus {
   outline: none;
-  border-color: var(--ink);
+  border-color: var(--layout-sidebar-accent);
 }
 .rb-pager-input {
   width: 34px;
@@ -1140,6 +1339,12 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   .report-head {
     display: block !important;
     text-align: center !important;
+  }
+  .report-head__content { width: 100%; }
+  .report-logo {
+    position: absolute;
+    top: 0;
+    left: 0;
   }
   .report-head .company,
   .report-head .company-address,
