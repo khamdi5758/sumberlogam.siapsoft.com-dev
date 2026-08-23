@@ -41,10 +41,16 @@
           <DxSelectBox v-model:value="valas" :data-source="['IDR', 'USD']" styling-mode="outlined" />
         </div>
 
-        <!-- Supplier -->
+        <!-- Dari Supp ID -->
         <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
-          <label class="text-[14px] text-slate-700">Supplier</label>
-          <DxTextBox v-model:value="kodecust" styling-mode="outlined" placeholder="Pilih Supplier" :read-only="true" :buttons="browseButtons('supplier')" @focus-in="handleBrowse('supplier')" />
+          <label class="text-[14px] text-slate-700">Dari Supp ID</label>
+          <DxTextBox v-model:value="kodecust" styling-mode="outlined" placeholder="Pilih Supplier" :read-only="true" :buttons="browseButtons('dari')" @focus-in="handleBrowse('dari')" />
+        </div>
+
+        <!-- S/d Supp ID -->
+        <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+          <label class="text-[14px] text-slate-700">S/d Supp ID</label>
+          <DxTextBox v-model:value="kodecust1" styling-mode="outlined" placeholder="Pilih Supplier" :read-only="true" :buttons="browseButtons('sd')" @focus-in="handleBrowse('sd')" />
         </div>
 
         <!-- Laporan Selection -->
@@ -98,6 +104,7 @@ const endDate = ref(today);
 const perkiraan = ref(props.initialPerkiraan || "");
 const valas = ref("IDR");
 const kodecust = ref("");
+const kodecust1 = ref("");
 const laporan = ref(0);
 
 const laporanOptions = [
@@ -150,8 +157,10 @@ async function handleBrowse(field) {
       const code = selected.Kode || selected.kode || selected.KodePerkiraan || selected.kodeperkiraan || "";
       if (field === "perkiraan") {
         perkiraan.value = code;
-      } else {
+      } else if (field === "dari") {
         kodecust.value = code;
+      } else if (field === "sd") {
+        kodecust1.value = code;
       }
     }
   } catch (error) {
@@ -173,6 +182,7 @@ const submitFilter = () => {
     sampaitgl: formatDate(endDate.value),
     perkiraan: perkiraan.value,
     kodecust: kodecust.value,
+    kodecust1: kodecust1.value,
     tipelaporan: laporan.value,
   };
 

@@ -56,10 +56,16 @@
           <DxSelectBox v-model:value="valas" :data-source="['IDR', 'USD']" styling-mode="outlined" />
         </div>
 
-        <!-- Target ID (Customer / Salesman) -->
+        <!-- Dari Target ID -->
         <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
-          <label class="text-[14px] text-slate-700">{{ targetIdLabel }}</label>
-          <DxTextBox v-model:value="kodecust" styling-mode="outlined" :placeholder="'Pilih ' + targetIdLabel" :read-only="true" :buttons="browseButtons('target')" @focus-in="handleBrowse('target')" />
+          <label class="text-[14px] text-slate-700">{{ targetIdLabel.dari }}</label>
+          <DxTextBox v-model:value="kodecust" styling-mode="outlined" :placeholder="'Pilih ' + targetIdLabel.label" :read-only="true" :buttons="browseButtons('dari')" @focus-in="handleBrowse('dari')" />
+        </div>
+
+        <!-- S/d Target ID -->
+        <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+          <label class="text-[14px] text-slate-700">{{ targetIdLabel.sd }}</label>
+          <DxTextBox v-model:value="kodecust1" styling-mode="outlined" :placeholder="'Pilih ' + targetIdLabel.label" :read-only="true" :buttons="browseButtons('sd')" @focus-in="handleBrowse('sd')" />
         </div>
 
         <!-- Laporan Selection -->
@@ -114,6 +120,7 @@ const targetType = ref("customer");
 const perkiraan = ref(props.initialPerkiraan || "");
 const valas = ref("IDR");
 const kodecust = ref("");
+const kodecust1 = ref("");
 const laporan = ref(0);
 
 const laporanOptions = [
@@ -124,11 +131,17 @@ const laporanOptions = [
 ];
 
 const targetIdLabel = computed(() => {
-  return targetType.value === "customer" ? "Customer" : "Salesman";
+  const isCust = targetType.value === "customer";
+  return {
+    label: isCust ? "Customer" : "Salesman",
+    dari: isCust ? "Dari Cust ID" : "Dari Sales ID",
+    sd: isCust ? "S/d Cust ID" : "S/d Sales ID"
+  };
 });
 
 watch(targetType, () => {
   kodecust.value = "";
+  kodecust1.value = "";
 });
 
 const browseButtons = (field) => [
@@ -174,8 +187,10 @@ async function handleBrowse(field) {
       const code = selected.Kode || selected.kode || selected.KodePerkiraan || selected.kodeperkiraan || selected.KodeCust || selected.KodeSales || "";
       if (field === "perkiraan") {
         perkiraan.value = code;
-      } else {
+      } else if (field === "dari") {
         kodecust.value = code;
+      } else if (field === "sd") {
+        kodecust1.value = code;
       }
     }
   } catch (error) {
@@ -197,6 +212,7 @@ const submitFilter = () => {
     sampaitgl: formatDate(endDate.value),
     perkiraan: perkiraan.value,
     kodecust: kodecust.value,
+    kodecust1: kodecust1.value,
     tipelaporan: laporan.value,
   };
 
