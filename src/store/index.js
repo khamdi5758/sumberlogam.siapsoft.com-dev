@@ -49,6 +49,8 @@ import kasharian from "./modules/kasharian";
 import bankharian from "./modules/bankharian";
 import rekapkasbank from "./modules/rekapkasbank";
 import kasbankaruskas from "./modules/kasbankaruskas";
+import kartuutang from "./modules/kartuutang";
+import kartupiutang from "./modules/kartupiutang";
 
 export default createStore({
   modules: {
@@ -103,5 +105,7 @@ export default createStore({
     bankharian: bankharian,
     rekapkasbank: rekapkasbank,
     kasbankaruskas: kasbankaruskas,
+    kartuutang: kartuutang,
+    kartupiutang: kartupiutang,
   },
 });
