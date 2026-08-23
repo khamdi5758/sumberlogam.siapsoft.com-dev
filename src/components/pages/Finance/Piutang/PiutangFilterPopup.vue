@@ -56,16 +56,10 @@
           <DxSelectBox v-model:value="valas" :data-source="['IDR', 'USD']" styling-mode="outlined" />
         </div>
 
-        <!-- Dari ID -->
+        <!-- Target ID (Customer / Salesman) -->
         <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
-          <label class="text-[14px] text-slate-700">{{ targetIdLabel }} Dari</label>
-          <DxTextBox v-model:value="dariId" styling-mode="outlined" :placeholder="'Pilih ' + targetIdLabel" :read-only="true" :buttons="browseButtons('dari')" @focus-in="handleBrowse('dari')" />
-        </div>
-
-        <!-- S/d ID -->
-        <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
-          <label class="text-[14px] text-slate-700">{{ targetIdLabel }} S/d</label>
-          <DxTextBox v-model:value="sdId" styling-mode="outlined" :placeholder="'Pilih ' + targetIdLabel" :read-only="true" :buttons="browseButtons('sd')" @focus-in="handleBrowse('sd')" />
+          <label class="text-[14px] text-slate-700">{{ targetIdLabel }}</label>
+          <DxTextBox v-model:value="kodecust" styling-mode="outlined" :placeholder="'Pilih ' + targetIdLabel" :read-only="true" :buttons="browseButtons('target')" @focus-in="handleBrowse('target')" />
         </div>
 
         <!-- Laporan Selection -->
@@ -113,8 +107,7 @@ const endDate = ref(today);
 const targetType = ref("customer");
 const perkiraan = ref(props.initialPerkiraan || "");
 const valas = ref("IDR");
-const dariId = ref("");
-const sdId = ref("");
+const kodecust = ref("");
 const laporan = ref("Tanggal - Detail");
 
 const targetIdLabel = computed(() => {
@@ -122,8 +115,7 @@ const targetIdLabel = computed(() => {
 });
 
 watch(targetType, () => {
-  dariId.value = "";
-  sdId.value = "";
+  kodecust.value = "";
 });
 
 const browseButtons = (field) => [
@@ -169,10 +161,8 @@ async function handleBrowse(field) {
       const code = selected.Kode || selected.kode || selected.KodePerkiraan || selected.kodeperkiraan || selected.KodeCust || selected.KodeSales || "";
       if (field === "perkiraan") {
         perkiraan.value = code;
-      } else if (field === "dari") {
-        dariId.value = code;
-      } else if (field === "sd") {
-        sdId.value = code;
+      } else {
+        kodecust.value = code;
       }
     }
   } catch (error) {
@@ -193,11 +183,8 @@ const submitFilter = () => {
     mulaitgl: formatDate(startDate.value),
     sampaitgl: formatDate(endDate.value),
     perkiraan: perkiraan.value,
-    valas: valas.value,
-    laporan: laporan.value,
-    type: targetType.value,
-    daricust: dariId.value,
-    sampaicust: sdId.value,
+    kodecust: kodecust.value,
+    tipelaporan: laporan.value === "Rekap" ? 1 : 0,
   };
 
   emit("apply", payload);
