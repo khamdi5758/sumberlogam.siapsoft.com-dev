@@ -47,7 +47,15 @@
         <!-- Account (Perkiraan) -->
         <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
           <label class="text-[14px] text-slate-700">Perkiraan</label>
-          <DxTextBox v-model:value="perkiraan" styling-mode="outlined" placeholder="Pilih Perkiraan" :read-only="true" :buttons="browseButtons('perkiraan')" @focus-in="handleBrowse('perkiraan')" />
+          <DxTextBox
+            v-model:value="perkiraan"
+            styling-mode="outlined"
+            placeholder="Pilih Perkiraan"
+            :read-only="true"
+            :buttons="browseButtonsPerkiraan"
+            @focus-in="handleBrowse('perkiraan')"
+            @click="handleBrowse('perkiraan')"
+          />
         </div>
 
         <!-- Valas -->
@@ -59,13 +67,29 @@
         <!-- Dari Target ID -->
         <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
           <label class="text-[14px] text-slate-700">{{ targetIdLabel.dari }}</label>
-          <DxTextBox v-model:value="kodecust" styling-mode="outlined" :placeholder="'Pilih ' + targetIdLabel.label" :read-only="true" :buttons="browseButtons('dari')" @focus-in="handleBrowse('dari')" />
+          <DxTextBox
+            v-model:value="kodecust"
+            styling-mode="outlined"
+            :placeholder="'Pilih ' + targetIdLabel.label"
+            :read-only="true"
+            :buttons="browseButtonsDari"
+            @focus-in="handleBrowse('dari')"
+            @click="handleBrowse('dari')"
+          />
         </div>
 
         <!-- S/d Target ID -->
         <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
           <label class="text-[14px] text-slate-700">{{ targetIdLabel.sd }}</label>
-          <DxTextBox v-model:value="kodecust1" styling-mode="outlined" :placeholder="'Pilih ' + targetIdLabel.label" :read-only="true" :buttons="browseButtons('sd')" @focus-in="handleBrowse('sd')" />
+          <DxTextBox
+            v-model:value="kodecust1"
+            styling-mode="outlined"
+            :placeholder="'Pilih ' + targetIdLabel.label"
+            :read-only="true"
+            :buttons="browseButtonsSd"
+            @focus-in="handleBrowse('sd')"
+            @click="handleBrowse('sd')"
+          />
         </div>
 
         <!-- Laporan Selection -->
@@ -144,14 +168,38 @@ watch(targetType, () => {
   kodecust1.value = "";
 });
 
-const browseButtons = (field) => [
+const browseButtonsPerkiraan = [
   {
     name: "browse",
     location: "after",
     options: {
       text: "...",
       stylingMode: "outlined",
-      onClick: () => handleBrowse(field),
+      onClick: () => handleBrowse("perkiraan"),
+    },
+  },
+];
+
+const browseButtonsDari = [
+  {
+    name: "browse",
+    location: "after",
+    options: {
+      text: "...",
+      stylingMode: "outlined",
+      onClick: () => handleBrowse("dari"),
+    },
+  },
+];
+
+const browseButtonsSd = [
+  {
+    name: "browse",
+    location: "after",
+    options: {
+      text: "...",
+      stylingMode: "outlined",
+      onClick: () => handleBrowse("sd"),
     },
   },
 ];
