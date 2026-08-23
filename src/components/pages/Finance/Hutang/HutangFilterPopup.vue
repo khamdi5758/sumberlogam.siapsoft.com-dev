@@ -111,6 +111,7 @@ import { DxSelectBox } from "devextreme-vue/select-box";
 import { DxTextBox } from "devextreme-vue/text-box";
 import api from "@/api/index.js";
 import FormBrowseDialog from "@/components/widgets/FormBrowseDialog.vue";
+import { alertService } from "@/services/alertService";
 
 const props = defineProps({
   visible: Boolean,
@@ -214,6 +215,7 @@ async function handleBrowse(field) {
   } catch (error) {
     if (error !== "cancelled") {
       console.error("Lookup error:", error);
+      alertService.error(`Gagal memuat data lookup: ${error.message || error}`);
     }
   }
 }
