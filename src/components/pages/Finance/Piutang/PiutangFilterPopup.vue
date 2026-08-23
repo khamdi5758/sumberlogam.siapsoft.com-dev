@@ -212,7 +212,7 @@ async function handleBrowse(field) {
     endpoint = "utangpiutang/perkiraan";
     dialogTitle = "Pilih Perkiraan";
   } else {
-    endpoint = targetType.value === "customer" ? "utangpiutang/customer" : "utangpiutang/salesman";
+    endpoint = targetType.value === "customer" ? "utangpiutang/browscustomer" : "utangpiutang/salesman";
     dialogTitle = targetType.value === "customer" ? "Pilih Customer" : "Pilih Salesman";
   }
 
@@ -232,7 +232,7 @@ async function handleBrowse(field) {
     });
 
     if (selected) {
-      const code = selected.Kode || selected.kode || selected.KodePerkiraan || selected.kodeperkiraan || selected.KodeCust || selected.KodeSales || "";
+      const code = selected.Kode || selected.kode || selected.KodePerkiraan || selected.kodeperkiraan || selected.KodeCust || selected.KodeSales || selected.kodecust || "";
       if (field === "perkiraan") {
         perkiraan.value = code;
       } else if (field === "dari") {

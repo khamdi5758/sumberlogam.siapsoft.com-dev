@@ -182,7 +182,7 @@ async function handleBrowse(field) {
     endpoint = "utangpiutang/perkiraan";
     dialogTitle = "Pilih Perkiraan";
   } else {
-    endpoint = "utangpiutang/browsutang";
+    endpoint = "utangpiutang/browscustomer";
     dialogTitle = "Pilih Supplier";
   }
 
@@ -202,7 +202,7 @@ async function handleBrowse(field) {
     });
 
     if (selected) {
-      const code = selected.Kode || selected.kode || selected.KodePerkiraan || selected.kodeperkiraan || "";
+      const code = selected.Kode || selected.kode || selected.KodePerkiraan || selected.kodeperkiraan || selected.KodeCust || selected.kodecust || "";
       if (field === "perkiraan") {
         perkiraan.value = code;
       } else if (field === "dari") {
