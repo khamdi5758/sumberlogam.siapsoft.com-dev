@@ -1,14 +1,14 @@
 <template>
-  <KartuBase
+  <PiutangBase
     title="Kartu Piutang"
-    type="piutang"
+    type="kartu"
     storeModule="kartupiutang"
     initialPerkiraan="130.01"
   />
 </template>
 
 <script setup>
-import KartuBase from "./KartuBase.vue";
+import PiutangBase from "./PiutangBase.vue";
 defineOptions({
   name: "KartuPiutang",
 });

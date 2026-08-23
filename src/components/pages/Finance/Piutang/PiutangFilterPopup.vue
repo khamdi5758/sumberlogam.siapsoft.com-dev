@@ -29,8 +29,8 @@
           <DxDateBox v-model:value="endDate" type="date" display-format="dd-MM-yyyy" :use-mask-behavior="true" styling-mode="outlined" />
         </div>
 
-        <!-- Type Switch (Only for Piutang) -->
-        <div v-if="type === 'piutang'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+        <!-- Type Switch (Customer / Salesman) -->
+        <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
           <label class="text-[14px] text-slate-700">Tipe</label>
           <div class="flex gap-4">
             <label class="flex items-center gap-2 text-[14px] text-slate-700 cursor-pointer">
@@ -56,13 +56,13 @@
           <DxSelectBox v-model:value="valas" :data-source="['IDR', 'USD']" styling-mode="outlined" />
         </div>
 
-        <!-- Dari ID (Supp/Cust/Sales) -->
+        <!-- Dari ID -->
         <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
           <label class="text-[14px] text-slate-700">{{ targetIdLabel }} Dari</label>
           <DxTextBox v-model:value="dariId" styling-mode="outlined" :placeholder="'Pilih ' + targetIdLabel" :read-only="true" :buttons="browseButtons('dari')" @focus-in="handleBrowse('dari')" />
         </div>
 
-        <!-- S/d ID (Supp/Cust/Sales) -->
+        <!-- S/d ID -->
         <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
           <label class="text-[14px] text-slate-700">{{ targetIdLabel }} S/d</label>
           <DxTextBox v-model:value="sdId" styling-mode="outlined" :placeholder="'Pilih ' + targetIdLabel" :read-only="true" :buttons="browseButtons('sd')" @focus-in="handleBrowse('sd')" />
@@ -100,7 +100,6 @@ import FormBrowseDialog from "@/components/widgets/FormBrowseDialog.vue";
 const props = defineProps({
   visible: Boolean,
   title: String,
-  type: String, // 'hutang' or 'piutang'
   initialPerkiraan: String,
 });
 
@@ -111,20 +110,17 @@ const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
 const startDate = ref(startOfMonth);
 const endDate = ref(today);
-const targetType = ref("customer"); // Used for Piutang
+const targetType = ref("customer");
 const perkiraan = ref(props.initialPerkiraan || "");
 const valas = ref("IDR");
 const dariId = ref("");
 const sdId = ref("");
 const laporan = ref("Tanggal - Detail");
 
-// Dynamically set label based on card type and selection
 const targetIdLabel = computed(() => {
-  if (props.type === "hutang") return "Supplier";
   return targetType.value === "customer" ? "Customer" : "Salesman";
 });
 
-// Watch targetType to clear ID filters when switched
 watch(targetType, () => {
   dariId.value = "";
   sdId.value = "";
@@ -150,13 +146,8 @@ async function handleBrowse(field) {
     endpoint = "utangpiutang/perkiraan";
     dialogTitle = "Pilih Perkiraan";
   } else {
-    if (props.type === "hutang") {
-      endpoint = "utangpiutang/browsutang";
-      dialogTitle = "Pilih Supplier";
-    } else {
-      endpoint = targetType.value === "customer" ? "utangpiutang/customer" : "utangpiutang/salesman";
-      dialogTitle = targetType.value === "customer" ? "Pilih Customer" : "Pilih Salesman";
-    }
+    endpoint = targetType.value === "customer" ? "utangpiutang/customer" : "utangpiutang/salesman";
+    dialogTitle = targetType.value === "customer" ? "Pilih Customer" : "Pilih Salesman";
   }
 
   try {
@@ -176,9 +167,6 @@ async function handleBrowse(field) {
 
     if (selected) {
       const code = selected.Kode || selected.kode || selected.KodePerkiraan || selected.kodeperkiraan || selected.KodeCust || selected.KodeSales || "";
-      const name = selected.Nama || selected.nama || selected.NamaPerkiraan || selected.NamaCust || selected.NamaSales || "";
-      const label = code ? `${code} - ${name}` : name;
-
       if (field === "perkiraan") {
         perkiraan.value = code;
       } else if (field === "dari") {
@@ -207,16 +195,10 @@ const submitFilter = () => {
     perkiraan: perkiraan.value,
     valas: valas.value,
     laporan: laporan.value,
+    type: targetType.value,
+    daricust: dariId.value,
+    sampaicust: sdId.value,
   };
-
-  if (props.type === "hutang") {
-    payload.darisupp = dariId.value;
-    payload.sampaisupp = sdId.value;
-  } else {
-    payload.type = targetType.value;
-    payload.daricust = dariId.value;
-    payload.sampaicust = sdId.value;
-  }
 
   emit("apply", payload);
 };

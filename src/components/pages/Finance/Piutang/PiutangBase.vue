@@ -1,5 +1,5 @@
 <template>
-  <div class="kartu-base-container">
+  <div class="piutang-base-container">
     <div v-if="isLoading" class="fixed inset-0 flex items-center justify-center bg-slate-900/20 backdrop-blur-[2px] z-50">
       <div class="rounded-xl bg-white/80 p-4 shadow-lg backdrop-blur-sm">
         <div class="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent"></div>
@@ -16,8 +16,8 @@
       :reportTitle="title"
       :periodLabel="periodLabel"
       :userName="userName"
-      :storageKey="'report-kartu-' + type"
-      :fileName="'report-kartu-' + type"
+      :storageKey="'report-piutang-' + type"
+      :fileName="'report-piutang-' + type"
     >
       <template #extra-tools>
         <button class="rb-btn rb-btn--filter" title="Filter Data" @click="showFilter = true">
@@ -26,11 +26,10 @@
       </template>
     </ReportGridBuilder>
 
-    <FilterPopup
+    <PiutangFilterPopup
       v-if="showFilter"
       :visible="showFilter"
       :title="title"
-      :type="type"
       :initialPerkiraan="initialPerkiraan"
       @apply="handleApplyFilter"
       @close="showFilter = false"
@@ -42,11 +41,11 @@
 import { ref, computed } from "vue";
 import { useStore } from "vuex";
 import ReportGridBuilder from "@/components/pages/Registrasi/ReportGridBuilder.vue";
-import FilterPopup from "./FilterPopup.vue";
+import PiutangFilterPopup from "./PiutangFilterPopup.vue";
 
 const props = defineProps({
   title: String,
-  type: String, // 'hutang' or 'piutang'
+  type: String, // 'kartu', 'sisa', etc.
   storeModule: String,
   initialPerkiraan: String,
 });
@@ -81,7 +80,7 @@ const handleApplyFilter = (payload) => {
 </script>
 
 <style scoped>
-.kartu-base-container {
+.piutang-base-container {
   min-height: 100vh;
   background-color: #f1f5f9;
   padding: 20px;

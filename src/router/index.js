@@ -521,17 +521,22 @@ const routes = [
             ],
           },
           {
-            path: "kartu",
+            path: "hutang",
             children: [
               {
-                path: "hutang",
+                path: "kartu",
                 name: "KartuHutang",
-                component: () => import("@/components/pages/Finance/Kartu/KartuHutang.vue"),
+                component: () => import("@/components/pages/Finance/Hutang/Kartu.vue"),
               },
+            ],
+          },
+          {
+            path: "piutang",
+            children: [
               {
-                path: "piutang",
+                path: "kartu",
                 name: "KartuPiutang",
-                component: () => import("@/components/pages/Finance/Kartu/KartuPiutang.vue"),
+                component: () => import("@/components/pages/Finance/Piutang/Kartu.vue"),
               },
             ],
           },
