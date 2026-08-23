@@ -368,34 +368,7 @@ const dynamicColumns = computed(() => {
     }
 
     // Parse caption
-    let caption = key.toString()
-    if (lower === 'nobukti') caption = 'No. bukti'
-    else if (lower === 'kodesupp') caption = 'Kode supp'
-    else if (lower === 'namasupp') caption = 'Nama supplier'
-    else if (lower === 'kodebrg') caption = 'Kode barang'
-    else if (lower === 'namabrg') caption = 'Nama barang'
-    else if (lower === 'qnt') caption = 'Qty'
-    else {
-      let stripped = true
-      while (stripped) {
-        stripped = false
-        if (caption.startsWith('dec')) {
-          caption = caption.substring(3)
-          stripped = true
-        } else if (caption.startsWith('sum') || caption.startsWith('avg')) {
-          caption = caption.substring(3)
-          stripped = true
-        }
-      }
-      caption = caption
-        .replace(/([A-Z])/g, ' $1')
-        .replace(/_/g, ' ')
-        .trim()
-      caption = caption
-        .split(' ')
-        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ')
-    }
+    let caption = key
 
     // Determine dataType and format
     let dataType = 'string'
@@ -1195,7 +1168,6 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   font-size: calc(10.5px * var(--z)) !important;
   font-weight: 700;
   letter-spacing: .07em;
-  text-transform: uppercase;
   color: var(--ink);
   vertical-align: bottom;
   border: none !important;
