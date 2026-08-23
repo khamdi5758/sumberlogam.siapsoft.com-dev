@@ -9,7 +9,7 @@
       :drag-enabled="false"
       :show-close-button="false"
       :full-screen="false"
-      title="Pilih Item"
+      :title="title"
       :position="popupPosition"
       @hiding="handleCancel"
       @shown="onPopupShown"
