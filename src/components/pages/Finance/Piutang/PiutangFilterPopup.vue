@@ -65,7 +65,13 @@
         <!-- Laporan Selection -->
         <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
           <label class="text-[14px] text-slate-700">Laporan</label>
-          <DxSelectBox v-model:value="laporan" :data-source="['Tanggal - Detail', 'Rekap']" styling-mode="outlined" />
+          <DxSelectBox
+            v-model:value="laporan"
+            :data-source="laporanOptions"
+            value-expr="value"
+            display-expr="label"
+            styling-mode="outlined"
+          />
         </div>
       </div>
 
@@ -108,7 +114,14 @@ const targetType = ref("customer");
 const perkiraan = ref(props.initialPerkiraan || "");
 const valas = ref("IDR");
 const kodecust = ref("");
-const laporan = ref("Tanggal - Detail");
+const laporan = ref(0);
+
+const laporanOptions = [
+  { value: 0, label: "Tanggal - Detail" },
+  { value: 1, label: "Tanggal - Rekap" },
+  { value: 2, label: "Nota - Detail" },
+  { value: 3, label: "Nota - Rekap" }
+];
 
 const targetIdLabel = computed(() => {
   return targetType.value === "customer" ? "Customer" : "Salesman";
@@ -184,7 +197,7 @@ const submitFilter = () => {
     sampaitgl: formatDate(endDate.value),
     perkiraan: perkiraan.value,
     kodecust: kodecust.value,
-    tipelaporan: laporan.value === "Rekap" ? 1 : 0,
+    tipelaporan: laporan.value,
   };
 
   emit("apply", payload);
