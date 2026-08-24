@@ -10,7 +10,7 @@
 <script>
 import RegisterBase from "@/components/pages/Registrasi/RegisterBase.vue";
 export default {
-  name: "RegisterPO",
+  name: "RegisterPo",
   components: { RegisterBase },
 };
 </script>
