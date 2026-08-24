@@ -67,6 +67,14 @@ import rekapkasbank from "./modules/rekapkasbank";
 import kasbankaruskas from "./modules/kasbankaruskas";
 import kartuutang from "./modules/kartuutang";
 import kartupiutang from "./modules/kartupiutang";
+import pelunasanutang from "./modules/pelunasanutang";
+import pelunasanpiutang from "./modules/pelunasanpiutang";
+import sisautang from "./modules/sisautang";
+import sisapiutang from "./modules/sisapiutang";
+import saldoutang from "./modules/saldoutang";
+import saldopiutang from "./modules/saldopiutang";
+import umurutang from "./modules/umurutang";
+import umurpiutang from "./modules/umurpiutang";
 
 export default createStore({
   modules: {
@@ -139,5 +147,13 @@ export default createStore({
     kasbankaruskas: kasbankaruskas,
     kartuutang: kartuutang,
     kartupiutang: kartupiutang,
+    pelunasanutang: pelunasanutang,
+    pelunasanpiutang: pelunasanpiutang,
+    sisautang: sisautang,
+    sisapiutang: sisapiutang,
+    saldoutang: saldoutang,
+    saldopiutang: saldopiutang,
+    umurutang: umurutang,
+    umurpiutang: umurpiutang,
   },
 });

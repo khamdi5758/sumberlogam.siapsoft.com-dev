@@ -30,7 +30,7 @@
         </div>
 
         <!-- Type Switch (Customer / Salesman) -->
-        <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+        <div v-if="type !== 'pelunasan' && type !== 'sisa' && type !== 'saldo' && type !== 'umur'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
           <label class="text-[14px] text-slate-700">Tipe</label>
           <div class="flex gap-4">
             <label class="flex items-center gap-2 text-[14px] text-slate-700 cursor-pointer">
@@ -59,38 +59,53 @@
         </div>
 
         <!-- Valas -->
-        <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+        <div v-if="type !== 'umur'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
           <label class="text-[14px] text-slate-700">Valas</label>
           <DxSelectBox v-model:value="valas" :data-source="['IDR', 'USD']" styling-mode="outlined" />
         </div>
 
-        <!-- Dari Target ID -->
+        <!-- Record Tertentu Checkbox -->
         <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
-          <label class="text-[14px] text-slate-700">{{ targetIdLabel.dari }}</label>
-          <DxTextBox
-            v-model:value="kodecust"
-            styling-mode="outlined"
-            :placeholder="'Pilih ' + targetIdLabel.label"
-            :read-only="true"
-            :buttons="browseButtonsDari"
-            @focus-in="handleBrowse('dari')"
-            @click="handleBrowse('dari')"
-          />
+          <div class="sm:col-start-2 flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="record-tertentu"
+              v-model="recordTertentu"
+              class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            />
+            <label for="record-tertentu" class="text-[14px] text-slate-700 cursor-pointer">Record Tertentu</label>
+          </div>
         </div>
 
-        <!-- S/d Target ID -->
-        <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
-          <label class="text-[14px] text-slate-700">{{ targetIdLabel.sd }}</label>
-          <DxTextBox
-            v-model:value="kodecust1"
-            styling-mode="outlined"
-            :placeholder="'Pilih ' + targetIdLabel.label"
-            :read-only="true"
-            :buttons="browseButtonsSd"
-            @focus-in="handleBrowse('sd')"
-            @click="handleBrowse('sd')"
-          />
-        </div>
+        <template v-if="recordTertentu">
+          <!-- Dari Target ID -->
+          <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+            <label class="text-[14px] text-slate-700">{{ targetIdLabel.dari }}</label>
+            <DxTextBox
+              v-model:value="kodecust"
+              styling-mode="outlined"
+              :placeholder="'Pilih ' + targetIdLabel.label"
+              :read-only="true"
+              :buttons="browseButtonsDari"
+              @focus-in="handleBrowse('dari')"
+              @click="handleBrowse('dari')"
+            />
+          </div>
+
+          <!-- S/d Target ID -->
+          <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+            <label class="text-[14px] text-slate-700">{{ targetIdLabel.sd }}</label>
+            <DxTextBox
+              v-model:value="kodecust1"
+              styling-mode="outlined"
+              :placeholder="'Pilih ' + targetIdLabel.label"
+              :read-only="true"
+              :buttons="browseButtonsSd"
+              @focus-in="handleBrowse('sd')"
+              @click="handleBrowse('sd')"
+            />
+          </div>
+        </template>
 
         <!-- Laporan Selection -->
         <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
@@ -111,7 +126,7 @@
           Batal
         </button>
         <button type="button" class="min-w-[85px] flex items-center justify-center gap-1 rounded-lg bg-[#0f3d7a] px-4 py-2 text-[14px] font-semibold text-white transition hover:bg-[#0b2f5f]" @click="submitFilter">
-          <Printer :size="14" /> Cetak
+          <Printer :size="14" /> Go
         </button>
       </div>
     </section>
@@ -132,6 +147,10 @@ const props = defineProps({
   visible: Boolean,
   title: String,
   initialPerkiraan: String,
+  type: {
+    type: String,
+    default: "kartu"
+  }
 });
 
 const emit = defineEmits(["close", "apply"]);
@@ -147,13 +166,70 @@ const valas = ref("IDR");
 const kodecust = ref("");
 const kodecust1 = ref("");
 const laporan = ref(0);
+const recordTertentu = ref(props.type === "kartu");
 
-const laporanOptions = [
-  { value: 0, label: "Tanggal - Detail" },
-  { value: 1, label: "Tanggal - Rekap" },
-  { value: 2, label: "Nota - Detail" },
-  { value: 3, label: "Nota - Rekap" }
-];
+const laporanOptions = computed(() => {
+  if (props.type === "pelunasan") {
+    return [
+      { value: 0, label: "Tanggal, Customer" },
+      { value: 1, label: "Tanggal, Salesman" },
+      { value: 2, label: "No Nota, Customer" },
+      { value: 3, label: "No Nota, Salesman" }
+    ];
+  }
+  if (props.type === "sisa") {
+    return [
+      { value: 0, label: "Rekap Customer" },
+      { value: 1, label: "Rekap Salesman" },
+      { value: 2, label: "Detail Customer" },
+      { value: 3, label: "Detail Salesman" }
+    ];
+  }
+  if (props.type === "saldo") {
+    return [
+      { value: 0, label: "Customer" },
+      { value: 1, label: "Salesman" }
+    ];
+  }
+  if (props.type === "umur") {
+    return [
+      { value: 0, label: "Rekap Customer" },
+      { value: 1, label: "Rekap Salesman" },
+      { value: 2, label: "Tanggal Customer" },
+      { value: 3, label: "Tanggal Salesman" },
+      { value: 4, label: "No. Nota Customer" },
+      { value: 5, label: "No. Nota Salesman" }
+    ];
+  }
+  return [
+    { value: 0, label: "Tanggal - Detail" },
+    { value: 1, label: "Tanggal - Rekap" },
+    { value: 2, label: "Nota - Detail" },
+    { value: 3, label: "Nota - Rekap" }
+  ];
+});
+
+watch(laporan, (newVal) => {
+  if (props.type === "pelunasan" || props.type === "sisa") {
+    if (newVal === 0 || newVal === 2) {
+      targetType.value = "customer";
+    } else {
+      targetType.value = "salesman";
+    }
+  } else if (props.type === "saldo") {
+    if (newVal === 0) {
+      targetType.value = "customer";
+    } else {
+      targetType.value = "salesman";
+    }
+  } else if (props.type === "umur") {
+    if (newVal === 0 || newVal === 2 || newVal === 4) {
+      targetType.value = "customer";
+    } else {
+      targetType.value = "salesman";
+    }
+  }
+});
 
 const targetIdLabel = computed(() => {
   const isCust = targetType.value === "customer";
@@ -208,17 +284,19 @@ const browseButtonsSd = [
 async function handleBrowse(field) {
   let endpoint = "";
   let dialogTitle = "";
-
-  if (field === "perkiraan") {
-    endpoint = "utangpiutang/perkiraan";
-    dialogTitle = "Pilih Perkiraan";
-  } else {
-    endpoint = targetType.value === "customer" ? "utangpiutang/browscustomer" : "utangpiutang/salesman";
-    dialogTitle = targetType.value === "customer" ? "Pilih Customer" : "Pilih Salesman";
-  }
+  let response;
 
   try {
-    const response = await api.get(endpoint);
+    if (field === "perkiraan") {
+      endpoint = "utangpiutang/perkiraan";
+      dialogTitle = "Pilih Perkiraan";
+      response = await api.getbydata(endpoint, { kode: "11" });
+    } else {
+      endpoint = targetType.value === "customer" ? "utangpiutang/customer" : "utangpiutang/salesman";
+      dialogTitle = targetType.value === "customer" ? "Pilih Customer" : "Pilih Salesman";
+      response = await api.get(endpoint);
+    }
+
     const dataRaw = response.data?.data || response.data?.datafrbrowse || (Array.isArray(response.data) ? response.data : []);
     const formattedData = dataRaw.map((item, index) => ({
       ...item,
@@ -229,11 +307,22 @@ async function handleBrowse(field) {
       title: dialogTitle,
       dataSource: formattedData,
       keyField: "__browseKey",
-      disablecol: ["__browseKey"],
+      disablecol: [...(response.data?.disablecol || []), "__browseKey"],
     });
 
     if (selected) {
-      const code = selected.Kode || selected.kode || selected.KodePerkiraan || selected.kodeperkiraan || selected.KodeCust || selected.KodeSales || selected.kodecust || "";
+      console.log("PiutangFilterPopup selected browse row:", selected);
+      let code = "";
+      if (field === "perkiraan") {
+        code = selected.id || selected.Perkiraan || selected.perkiraan || selected.KodePerkiraan || selected.kodeperkiraan || selected.Kode || selected.kode || "";
+      } else {
+        if (targetType.value === "salesman") {
+          code = selected.KodeSales || selected.kodesales || selected.KodeSls || selected.kodesls || selected.KodeSalesman || selected.kodesalesman || selected.SalesID || selected.salesid || selected.SlsID || selected.slsid || selected.kode_sales || selected.kode_salesman || selected.Kode || selected.kode || selected.id || "";
+        } else {
+          code = selected.KodeCust || selected.kodecust || selected.Kode || selected.kode || selected.id || "";
+        }
+      }
+
       if (field === "perkiraan") {
         perkiraan.value = code;
       } else if (field === "dari") {
@@ -261,9 +350,10 @@ const submitFilter = () => {
     mulaitgl: formatDate(startDate.value),
     sampaitgl: formatDate(endDate.value),
     perkiraan: perkiraan.value,
-    kodecust: kodecust.value,
-    kodecust1: kodecust1.value,
+    kodecust: recordTertentu.value ? kodecust.value : "",
+    kodecust1: recordTertentu.value ? kodecust1.value : "",
     tipelaporan: laporan.value,
+    record_tertentu: recordTertentu.value,
   };
 
   emit("apply", payload);

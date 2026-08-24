@@ -521,6 +521,26 @@ const routes = [
                 name: "KartuHutang",
                 component: () => import("@/components/pages/Finance/Hutang/Kartu.vue"),
               },
+              {
+                path: "pelunasan",
+                name: "PelunasanHutang",
+                component: () => import("@/components/pages/Finance/Hutang/Pelunasan.vue"),
+              },
+              {
+                path: "sisa",
+                name: "SisaHutang",
+                component: () => import("@/components/pages/Finance/Hutang/Sisa.vue"),
+              },
+              {
+                path: "saldo",
+                name: "SaldoHutang",
+                component: () => import("@/components/pages/Finance/Hutang/Saldo.vue"),
+              },
+              {
+                path: "umur",
+                name: "UmurHutang",
+                component: () => import("@/components/pages/Finance/Hutang/Umur.vue"),
+              },
             ],
           },
           {
@@ -530,6 +550,26 @@ const routes = [
                 path: "kartu",
                 name: "KartuPiutang",
                 component: () => import("@/components/pages/Finance/Piutang/Kartu.vue"),
+              },
+              {
+                path: "pelunasan",
+                name: "PelunasanPiutang",
+                component: () => import("@/components/pages/Finance/Piutang/Pelunasan.vue"),
+              },
+              {
+                path: "sisa",
+                name: "SisaPiutang",
+                component: () => import("@/components/pages/Finance/Piutang/Sisa.vue"),
+              },
+              {
+                path: "saldo",
+                name: "SaldoPiutang",
+                component: () => import("@/components/pages/Finance/Piutang/Saldo.vue"),
+              },
+              {
+                path: "umur",
+                name: "UmurPiutang",
+                component: () => import("@/components/pages/Finance/Piutang/Umur.vue"),
               },
             ],
           },

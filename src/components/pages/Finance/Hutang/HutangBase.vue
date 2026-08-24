@@ -30,6 +30,7 @@
       v-if="showFilter"
       :visible="showFilter"
       :title="title"
+      :type="type"
       :initialPerkiraan="initialPerkiraan"
       @apply="handleApplyFilter"
       @close="showFilter = false"

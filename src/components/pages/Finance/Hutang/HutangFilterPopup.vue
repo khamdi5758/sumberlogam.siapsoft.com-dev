@@ -44,7 +44,7 @@
         </div>
 
         <!-- Valas -->
-        <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+        <div v-if="type !== 'umur'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
           <label class="text-[14px] text-slate-700">Valas</label>
           <DxSelectBox v-model:value="valas" :data-source="['IDR', 'USD']" styling-mode="outlined" />
         </div>
@@ -78,7 +78,7 @@
         </div>
 
         <!-- Laporan Selection -->
-        <div class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
+        <div v-if="type !== 'saldo'" class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]">
           <label class="text-[14px] text-slate-700">Laporan</label>
           <DxSelectBox
             v-model:value="laporan"
@@ -96,7 +96,7 @@
           Batal
         </button>
         <button type="button" class="min-w-[85px] flex items-center justify-center gap-1 rounded-lg bg-[#0f3d7a] px-4 py-2 text-[14px] font-semibold text-white transition hover:bg-[#0b2f5f]" @click="submitFilter">
-          <Printer :size="14" /> Cetak
+          <Printer :size="14" /> Go
         </button>
       </div>
     </section>
@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { X, Printer } from "lucide-vue-next";
 import { DxDateBox } from "devextreme-vue/date-box";
 import { DxSelectBox } from "devextreme-vue/select-box";
@@ -117,6 +117,10 @@ const props = defineProps({
   visible: Boolean,
   title: String,
   initialPerkiraan: String,
+  type: {
+    type: String,
+    default: "kartu",
+  },
 });
 
 const emit = defineEmits(["close", "apply"]);
@@ -132,12 +136,33 @@ const kodecust = ref("");
 const kodecust1 = ref("");
 const laporan = ref(0);
 
-const laporanOptions = [
-  { value: 0, label: "Tanggal - Detail" },
-  { value: 1, label: "Tanggal - Rekap" },
-  { value: 2, label: "Nota - Detail" },
-  { value: 3, label: "Nota - Rekap" }
-];
+const laporanOptions = computed(() => {
+  if (props.type === "pelunasan") {
+    return [
+      { value: 0, label: "Tanggal" },
+      { value: 1, label: "No Nota" }
+    ];
+  }
+  if (props.type === "sisa") {
+    return [
+      { value: 0, label: "Rekap" },
+      { value: 1, label: "Detail" }
+    ];
+  }
+  if (props.type === "umur") {
+    return [
+      { value: 0, label: "Rekap" },
+      { value: 1, label: "Tanggal" },
+      { value: 2, label: "No. Nota" }
+    ];
+  }
+  return [
+    { value: 0, label: "Tanggal - Detail" },
+    { value: 1, label: "Tanggal - Rekap" },
+    { value: 2, label: "Nota - Detail" },
+    { value: 3, label: "Nota - Rekap" }
+  ];
+});
 
 const browseButtonsPerkiraan = [
   {
@@ -178,17 +203,19 @@ const browseButtonsSd = [
 async function handleBrowse(field) {
   let endpoint = "";
   let dialogTitle = "";
-
-  if (field === "perkiraan") {
-    endpoint = "utangpiutang/perkiraan";
-    dialogTitle = "Pilih Perkiraan";
-  } else {
-    endpoint = "utangpiutang/browscustomer";
-    dialogTitle = "Pilih Supplier";
-  }
+  let response;
 
   try {
-    const response = await api.get(endpoint);
+    if (field === "perkiraan") {
+      endpoint = "utangpiutang/perkiraan";
+      dialogTitle = "Pilih Perkiraan";
+      response = await api.getbydata(endpoint, { kode: "12" });
+    } else {
+      endpoint = "utangpiutang/customer";
+      dialogTitle = "Pilih Supplier";
+      response = await api.get(endpoint);
+    }
+
     const dataRaw = response.data?.data || response.data?.datafrbrowse || (Array.isArray(response.data) ? response.data : []);
     const formattedData = dataRaw.map((item, index) => ({
       ...item,
@@ -199,11 +226,18 @@ async function handleBrowse(field) {
       title: dialogTitle,
       dataSource: formattedData,
       keyField: "__browseKey",
-      disablecol: ["__browseKey"],
+      disablecol: [...(response.data?.disablecol || []), "__browseKey"],
     });
 
     if (selected) {
-      const code = selected.Kode || selected.kode || selected.KodePerkiraan || selected.kodeperkiraan || selected.KodeCust || selected.kodecust || "";
+      console.log("HutangFilterPopup selected browse row:", selected);
+      let code = "";
+      if (field === "perkiraan") {
+        code = selected.id || selected.Perkiraan || selected.perkiraan || selected.KodePerkiraan || selected.kodeperkiraan || selected.Kode || selected.kode || "";
+      } else {
+        code = selected.KodeCust || selected.kodecust || selected.Kode || selected.kode || selected.id || "";
+      }
+
       if (field === "perkiraan") {
         perkiraan.value = code;
       } else if (field === "dari") {
