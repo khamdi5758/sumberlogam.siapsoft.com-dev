@@ -17,7 +17,7 @@ import { useStore } from "vuex";
 import AccountingBase from "../AccountingBase.vue";
 
 defineOptions({
-  name: "RegisterJurnal",
+  name: "AccountingJurnal",
 });
 
 const store = useStore();

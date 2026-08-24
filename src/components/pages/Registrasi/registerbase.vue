@@ -195,7 +195,7 @@
       :showSearchPanel="true"
       :searchPlaceholder="'Search ' + title + '...'"
       :showActionColumn="false"
-      :showPager="true"
+      :showPager="showPager"
       :pageSize="pageSize"
       :showPageSizeSelector="true"
       :showNavigationButtons="true"
@@ -206,10 +206,12 @@
       :avg="avgcolom"
       :focusedRowKey="focusedRowKey"
       :wordwrap="false"
-      :useBuiltInPager="true"
+      :useBuiltInPager="useBuiltInPager"
       :showGroupPanel="true"
       :allowGrouping="true"
       :height="gridHeight"
+      :scrollingMode="scrollingMode"
+      :rowRenderingMode="rowRenderingMode"
       :spFooterText="ketsp"
       :showFilterPanel="true"
       @optionChanged="onDataGridOptionChanged"
@@ -257,6 +259,7 @@
     
     <!-- Hidden container for measuring row heights in DOM -->
     <div 
+      v-if="currentLayoutMode === 'paper'"
       ref="hiddenMeasureContainer" 
       :style="{
         position: 'absolute', 
@@ -316,6 +319,10 @@ export default {
     apiEndpoint: { type: String, default: "report" },
     layoutMode: { type: String, default: "grid" },
     paperOrientation: { type: String, default: "portrait" },
+    scrollingMode: { type: String, default: "standard" },
+    rowRenderingMode: { type: String, default: "standard" },
+    showPager: { type: Boolean, default: true },
+    useBuiltInPager: { type: Boolean, default: true },
 
     // Nama Vuex action untuk load data. Default "getRegister" (perilaku lama).
     loadAction: { type: String, default: "getRegister" },
@@ -1044,7 +1051,7 @@ export default {
       }
     });
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("resize", this.checkMobile);
   },
   watch: {

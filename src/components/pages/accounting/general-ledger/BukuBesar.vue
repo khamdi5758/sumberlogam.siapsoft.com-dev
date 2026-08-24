@@ -18,7 +18,7 @@ import { useStore } from "vuex";
 import AccountingBase from "../AccountingBase.vue";
 
 defineOptions({
-  name: "RegisterBukuBesar",
+  name: "AccountingBukuBesar",
 });
 
 const store = useStore();

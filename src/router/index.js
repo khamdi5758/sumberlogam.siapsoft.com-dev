@@ -43,7 +43,7 @@ import Notifications from "@/components/pages/Notifications/Notifications.vue";
 import FinanceDashboardView from "@/components/FinanceDashboardView.vue";
 import PiutangDashboardView from "@/components/PiutangDashboardView.vue";
 
-import { createRouter, createWebHistory, RouterView } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import store from "@/store";
 import { useCookies } from "vue3-cookies";
 const { cookies } = useCookies();
@@ -260,7 +260,6 @@ const routes = [
           },
           {
             path: "stock",
-            component: RouterView,
             children: [
               {
                 path: "/app/register/stockbarangserial",
@@ -276,7 +275,6 @@ const routes = [
           },
           {
             path: "outstanding",
-            component: RouterView,
             children: [
               {
                 path: "/app/register/outstandingpo",
@@ -312,7 +310,6 @@ const routes = [
           },
           {
             path: "control",
-            component: RouterView,
             children: [
               {
                 path: "piutang",
@@ -353,7 +350,6 @@ const routes = [
           },
           {
             path: "fpj",
-            component: RouterView,
             children: [
               {
                 path: "beli",
@@ -366,8 +362,6 @@ const routes = [
       },
       {
         path: "produksi",
-        name: "Produksi",
-        component: () => import("@/components/pages/Produksi/ProduksiWrapper.vue"),
         children: [
           {
             path: "hasil",
@@ -441,7 +435,6 @@ const routes = [
           },
           {
             path: "register",
-            component: RouterView,
             children: [
               {
                 path: "joborder",
@@ -544,11 +537,9 @@ const routes = [
       },
       {
         path: "accounting",
-        component: RouterView,
         children: [
           {
             path: "generalledger",
-            component: RouterView,
             children: [
               {
                 path: "jurnal",
@@ -579,7 +570,6 @@ const routes = [
           },
           {
             path: "labarugineraca",
-            component: RouterView,
             children: [
               {
                 path: "labarugi",

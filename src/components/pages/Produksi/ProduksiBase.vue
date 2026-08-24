@@ -35,6 +35,9 @@
       :storageKey="`report-${storageKey}`"
       :fileName="fileName"
       :mergeColumns="mergeColumns"
+      :sumcolom="sumcolom"
+      :avgcolom="avgcolom"
+      :spFooterText="spFooterText"
     >
       <!-- Forward custom columns slot if provided by parent -->
       <template v-if="$slots.columns" #columns>
@@ -43,7 +46,11 @@
 
       <!-- Inject Filter button to the toolbar -->
       <template #extra-tools>
-        <button class="rb-btn rb-btn--filter" title="Filter Data" @click="openFilter">
+        <button
+          class="rb-btn rb-btn--filter"
+          title="Filter Data"
+          @click="openFilter"
+        >
           <i class="filter-ico">&#9906;</i> Filter
         </button>
       </template>
@@ -71,6 +78,8 @@
 <script>
 import ReportGridBuilder from "@/components/pages/Registrasi/ReportGridBuilder.vue";
 import RegisterFilterPopup from "@/components/pages/Registrasi/RegisterPopup.vue";
+
+const PRODUKSI_PAGE_CACHE = "__produksiPageCache";
 
 export default {
   name: "ProduksiBase",
@@ -126,11 +135,23 @@ export default {
       localData: null,
       localKeyfield: "",
       localPerusahaan: null,
+      localSumcolom: [],
+      localAvgcolom: [],
+      localSqlQuery: "",
       hasLoaded: false,
     };
   },
   created() {
     this._myRoutePath = this.$route.path;
+    window[PRODUKSI_PAGE_CACHE] = window[PRODUKSI_PAGE_CACHE] || {};
+
+    const cachedPage = window[PRODUKSI_PAGE_CACHE][this.storageKey];
+    if (cachedPage) {
+      this.restorePageSnapshot(cachedPage);
+      window.__produksiVisited = window.__produksiVisited || {};
+      window.__produksiVisited[this.storageKey] = true;
+      return;
+    }
 
     // Popup initialization HANYA untuk pembukaan PERTAMA menu ini.
     // Sentinel per-menu (storageKey unik per anak menu: "produksi-hasil",
@@ -146,9 +167,6 @@ export default {
       this.$store.commit(`${this.storeModule}/clearProduksi`);
       this.showFilter = true;
     } else if (!this.hasLoaded) {
-      // Sudah pernah dibuka, tapi instance ini baru dibuat ulang (cache
-      // miss) dan belum punya data → muat ulang dengan filter terakhir
-      // (default), TANPA popup.
       this.loadData();
     }
   },
@@ -173,6 +191,7 @@ export default {
       window.__produksiVisited[this.storageKey]
     ) {
       delete window.__produksiVisited[this.storageKey];
+      delete window[PRODUKSI_PAGE_CACHE][this.storageKey];
     }
   },
   mounted() {
@@ -180,20 +199,32 @@ export default {
     window.addEventListener("resize", this.checkMobile);
   },
   beforeUnmount() {
+    this.savePageSnapshot();
     window.removeEventListener("resize", this.checkMobile);
   },
   computed: {
+    spFooterText() {
+      if (this.hasLoaded) return this.localSqlQuery;
+      return this.$store.getters[`${this.storeModule}/ketsp`] || "";
+    },
     formatDateRange() {
       const options = { day: "numeric", month: "short", year: "numeric" };
-      const start = this.filterData.startDate ? new Date(this.filterData.startDate) : new Date();
-      const end = this.filterData.endDate ? new Date(this.filterData.endDate) : new Date();
+      const start = this.filterData.startDate
+        ? new Date(this.filterData.startDate)
+        : new Date();
+      const end = this.filterData.endDate
+        ? new Date(this.filterData.endDate)
+        : new Date();
       return `${start.toLocaleDateString("id-ID", options)} - ${end.toLocaleDateString("id-ID", options)}`;
     },
     gridDataSource() {
-      const data = this.dataSource && this.dataSource.length > 0 ? this.dataSource : this.produksiList;
+      const data =
+        this.dataSource && this.dataSource.length > 0
+          ? this.dataSource
+          : this.produksiList;
       if (!Array.isArray(data)) return [];
-      return data.map(item => {
-        if (!item || typeof item !== 'object') return item;
+      return data.map((item) => {
+        if (!item || typeof item !== "object") return item;
         const newItem = { ...item };
 
         // Helper to get case-insensitive value from item
@@ -207,22 +238,33 @@ export default {
         };
 
         // Standardize common fields
-        const noBukti = getVal(['NoBukti', 'nobukti', 'No_Bukti']);
-        const tanggal = getVal(['Tanggal', 'tanggal', 'Tgl', 'tgl']);
-        const kodeBrg = getVal(['Kodebrg', 'KodeBrg', 'kodebrg', 'Kode_Brg']);
-        const namaBrg = getVal(['NamaBrg', 'namabrg', 'Nama_Brg']);
-        const satuan = getVal(['Satuan', 'satuan']);
-        const qnt = getVal(['Qnt', 'qnt', 'Qty', 'qty', 'Jumlah', 'jumlah']);
-        const harga = getVal(['Harga', 'harga']);
-        const diskon = getVal(['Diskon', 'diskon']);
-        const jumlah = getVal(['Jumlah', 'jumlah', 'Total', 'total']);
+        const noBukti = getVal(["NoBukti", "nobukti", "No_Bukti"]);
+        const tanggal = getVal(["Tanggal", "tanggal", "Tgl", "tgl"]);
+        const kodeBrg = getVal(["Kodebrg", "KodeBrg", "kodebrg", "Kode_Brg"]);
+        const namaBrg = getVal(["NamaBrg", "namabrg", "Nama_Brg"]);
+        const satuan = getVal(["Satuan", "satuan"]);
+        const qnt = getVal(["Qnt", "qnt", "Qty", "qty", "Jumlah", "jumlah"]);
+        const harga = getVal(["Harga", "harga"]);
+        const diskon = getVal(["Diskon", "diskon"]);
+        const jumlah = getVal(["Jumlah", "jumlah", "Total", "total"]);
 
         // Remove any non-standard keys to prevent duplicate columns in the grid
         const keysToDelete = [
-          'nobukti', 'tanggal', 'tgl', 'kodebrg', 'namabrg', 'satuan',
-          'qnt', 'Qty', 'qty', 'harga', 'diskon', 'jumlah', 'total'
+          "nobukti",
+          "tanggal",
+          "tgl",
+          "kodebrg",
+          "namabrg",
+          "satuan",
+          "qnt",
+          "Qty",
+          "qty",
+          "harga",
+          "diskon",
+          "jumlah",
+          "total",
         ];
-        keysToDelete.forEach(k => {
+        keysToDelete.forEach((k) => {
           if (k in newItem) delete newItem[k];
         });
 
@@ -239,11 +281,11 @@ export default {
         if (namaBrg !== undefined) newItem.NamaBrg = namaBrg;
         if (satuan !== undefined) newItem.Satuan = satuan;
 
-        const numericQnt = Number(qnt !== undefined ? qnt : 0);
+        const numericQnt = Number(qnt);
         const numericHarga = Number(harga !== undefined ? harga : 0);
         const numericDiskon = Number(diskon !== undefined ? diskon : 0);
 
-        newItem.Qnt = numericQnt;
+        if (qnt !== undefined) newItem.Qnt = numericQnt;
         if (harga !== undefined) newItem.Harga = numericHarga;
         if (diskon !== undefined) newItem.Diskon = numericDiskon;
 
@@ -287,8 +329,40 @@ export default {
     companyPhone() {
       return this.perusahaan?.telpon || "";
     },
+    sumcolom() {
+      if (this.hasLoaded) return this.localSumcolom;
+      return this.$store.getters[`${this.storeModule}/sumcolom`] || [];
+    },
+    avgcolom() {
+      if (this.hasLoaded) return this.localAvgcolom;
+      return this.$store.getters[`${this.storeModule}/avgcolom`] || [];
+    },
   },
   methods: {
+    savePageSnapshot() {
+      if (!this.hasLoaded) return;
+
+      window[PRODUKSI_PAGE_CACHE] = window[PRODUKSI_PAGE_CACHE] || {};
+      window[PRODUKSI_PAGE_CACHE][this.storageKey] = {
+        localData: this.localData,
+        localKeyfield: this.localKeyfield,
+        localPerusahaan: this.localPerusahaan,
+        localSumcolom: this.localSumcolom,
+        localAvgcolom: this.localAvgcolom,
+        localSqlQuery: this.localSqlQuery,
+        filterData: { ...this.filterData },
+      };
+    },
+    restorePageSnapshot(snapshot) {
+      this.localData = snapshot.localData || [];
+      this.localKeyfield = snapshot.localKeyfield || "Id";
+      this.localPerusahaan = snapshot.localPerusahaan || null;
+      this.localSumcolom = snapshot.localSumcolom || [];
+      this.localAvgcolom = snapshot.localAvgcolom || [];
+      this.localSqlQuery = snapshot.localSqlQuery || "";
+      this.filterData = { ...this.filterData, ...(snapshot.filterData || {}) };
+      this.hasLoaded = true;
+    },
     formatDateForSp(date, isEnd = false) {
       if (!date) return null;
       const d = new Date(date);
@@ -306,7 +380,15 @@ export default {
       }
 
       // 5/6/7/8/14. Skema periode: mutsetjadi / mutsetjadirp / mutstock / kartustock / mutstockrp
-      if (["mutsetjadi", "mutsetjadirp", "mutstock", "kartustock", "mutstockrp"].includes(this.type)) {
+      if (
+        [
+          "mutsetjadi",
+          "mutsetjadirp",
+          "mutstock",
+          "kartustock",
+          "mutstockrp",
+        ].includes(this.type)
+      ) {
         const bulan = data.periode_bulan || "";
         const tahun = data.periode_tahun || "";
         payload.periode = `${bulan} ${tahun}`;
@@ -344,19 +426,25 @@ export default {
       }
 
       // 4/8/9/10. Koreksi Produksi / Barang Jadi / Pemakaian Bahan / Transfer JO
-      if (["koreksi", "tfbarangjadi", "pemakaianbahan", "tfjo"].includes(this.type)) {
+      if (
+        ["koreksi", "tfbarangjadi", "pemakaianbahan", "tfjo"].includes(
+          this.type,
+        )
+      ) {
         payload.laporan_per = data.laporan_per || "tanggal";
         payload.rekap_detail = data.rekap_detail || "detail";
         payload.status = data.status || "semua";
         if (this.type !== "tfbarangjadi") {
-          payload.record_tertentu = data.record_tertentu === true || data.record_tertentu === "1";
+          payload.record_tertentu =
+            data.record_tertentu === true || data.record_tertentu === "1";
         }
       }
 
       // 11/12. TransOut BHN & WIP / Transf In WIP
       if (["tfoutwip", "tfinwip"].includes(this.type)) {
         payload.laporan_per = data.laporan_per || "tanggal";
-        payload.record_tertentu = data.record_tertentu === true || data.record_tertentu === "1";
+        payload.record_tertentu =
+          data.record_tertentu === true || data.record_tertentu === "1";
       }
 
       return payload;
@@ -370,20 +458,30 @@ export default {
         return Promise.resolve();
       }
 
-      return this.$store.dispatch(actionName, {
-        endpoint: this.endpoint,
-        payload: payload
-      }).then((res) => {
-        // Simpan snapshot data ke instance ini agar state terakhir tetap
-        // tampil saat halaman diaktifkan kembali oleh keep-alive.
-        this.localData = this.$store.getters[`${this.storeModule}/produksiList`] || [];
-        this.localKeyfield = this.$store.getters[`${this.storeModule}/keyfield`] || "Id";
-        this.localPerusahaan = this.$store.getters[`${this.storeModule}/perusahaan`] || null;
-        this.hasLoaded = true;
-        return res;
-      }).catch((err) => {
-        console.error("Error loading data:", err);
-      });
+      return this.$store
+        .dispatch(actionName, {
+          endpoint: this.endpoint,
+          payload: payload,
+        })
+        .then((res) => {
+          this.localData =
+            this.$store.getters[`${this.storeModule}/produksiList`] || [];
+          this.localKeyfield =
+            this.$store.getters[`${this.storeModule}/keyfield`] || "Id";
+          this.localPerusahaan =
+            this.$store.getters[`${this.storeModule}/perusahaan`] || null;
+          this.localSumcolom =
+            this.$store.getters[`${this.storeModule}/sumcolom`] || []; // ← tambahkan
+          this.localAvgcolom =
+            this.$store.getters[`${this.storeModule}/avgcolom`] || []; // ← tambahkan
+          this.localSqlQuery =
+            this.$store.getters[`${this.storeModule}/ketsp`] || "";
+          this.hasLoaded = true;
+          return res;
+        })
+        .catch((err) => {
+          console.error("Error loading data:", err);
+        });
     },
     handleApplyFilter(formData) {
       this.showFilter = false;
@@ -400,6 +498,11 @@ export default {
       this.isMobile = window.innerWidth < 768;
     },
   },
+  watch:{
+    spFooterText(e){
+      console.log(e);
+    }
+  }
 };
 </script>
 
@@ -440,5 +543,4 @@ export default {
 .rb-btn--filter:active {
   transform: scale(0.97);
 }
-
 </style>
