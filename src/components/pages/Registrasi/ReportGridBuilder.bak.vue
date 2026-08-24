@@ -107,12 +107,22 @@
     <div ref="sheetEl" class="report-sheet" :style="{ '--z': zoom }">
 
       <div class="report-head">
-        <div class="company">{{ companyName }}</div>
-        <div v-if="companyAddress" class="company-address">
-          {{ companyAddress }}<span v-if="companyPhone"> &bull; Telp: {{ companyPhone }}</span>
+        <img
+          v-if="companyLogo && !logoLoadFailed"
+          class="report-logo"
+          :src="companyLogo"
+          :alt="`Logo ${companyName}`"
+          @error="logoLoadFailed = true"
+        />
+        <div v-else class="report-logo report-logo--fallback" aria-hidden="true">KMJ</div>
+        <div class="report-head__content">
+          <div class="company">{{ companyName }}</div>
+          <div v-if="companyAddress" class="company-address">
+            {{ companyAddress }}<span v-if="companyPhone"> &bull; Telp: {{ companyPhone }}</span>
+          </div>
+          <h1 class="title">{{ reportTitle }}</h1>
+          <div class="period">{{ periodLabel }}</div>
         </div>
-        <h1 class="title">{{ reportTitle }}</h1>
-        <div class="period">{{ periodLabel }}</div>
       </div>
 
       <DxDataGrid
@@ -128,6 +138,7 @@
         :allow-column-resizing="true"
         column-resizing-mode="widget"
         :allow-column-reordering="true"
+        :column-auto-width="true"
         :column-min-width="60"
         :word-wrap-enabled="false"
         :remote-operations="false"
@@ -286,7 +297,15 @@ const props = defineProps({
   periodLabel: { type: String, default: '' },
   userName:    { type: String, default: 'admin' },
   storageKey:  { type: String, default: 'report-register-po' },
-  fileName:    { type: String, default: 'register-po' }
+  fileName:    { type: String, default: 'register-po' },
+  logoSrc:     { type: String, default: '' },
+  // Nama-nama dataField kolom yang selnya digabung tampilannya (merge)
+  // kalau nilainya sama dengan baris tepat di atasnya. Contoh: ['NamaSupp', 'Tanggal']
+  // Catatan: hanya berlaku untuk baris yang bersebelahan, jadi data harus
+  // sudah tersusun/terurut berdasarkan kolom tersebut supaya nilai yang
+  // sama saling berdekatan (kolom yang dipakai untuk grouping otomatis
+  // sudah terurut dengan sendirinya).
+  mergeColumns: { type: Array, default: () => [] }
 })
 
 const storedCompany = getStoredCompany()
@@ -295,6 +314,10 @@ const companyAddress = computed(() =>
   [storedCompany.alamat1, storedCompany.alamat2].filter(Boolean).join(' ') || props.companyAddress
 )
 const companyPhone = computed(() => storedCompany.telpon || props.companyPhone)
+const companyLogo = computed(() =>
+  storedCompany.logo || storedCompany.logoUrl || storedCompany.logoPerusahaan || props.logoSrc
+)
+const logoLoadFailed = ref(false)
 
 const dynamicColumns = computed(() => {
   const data = Array.isArray(props.dataSource) ? props.dataSource : []
@@ -346,34 +369,7 @@ const dynamicColumns = computed(() => {
     }
 
     // Parse caption
-    let caption = key.toString()
-    if (lower === 'nobukti') caption = 'No. bukti'
-    else if (lower === 'kodesupp') caption = 'Kode supp'
-    else if (lower === 'namasupp') caption = 'Nama supplier'
-    else if (lower === 'kodebrg') caption = 'Kode barang'
-    else if (lower === 'namabrg') caption = 'Nama barang'
-    else if (lower === 'qnt') caption = 'Qty'
-    else {
-      let stripped = true
-      while (stripped) {
-        stripped = false
-        if (caption.startsWith('dec')) {
-          caption = caption.substring(3)
-          stripped = true
-        } else if (caption.startsWith('sum') || caption.startsWith('avg')) {
-          caption = caption.substring(3)
-          stripped = true
-        }
-      }
-      caption = caption
-        .replace(/([A-Z])/g, ' $1')
-        .replace(/_/g, ' ')
-        .trim()
-      caption = caption
-        .split(' ')
-        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ')
-    }
+    let caption = key
 
     // Determine dataType and format
     let dataType = 'string'
@@ -405,34 +401,13 @@ const dynamicColumns = computed(() => {
       }
     }
 
-    // Determine width/minWidth
-    let width = undefined
+    // Let DevExtreme size columns from their content.
     let minWidth = undefined
 
-    if (lower === 'nobukti') {
-      width = 120
-    } else if (lower.includes('tanggal') || lower.includes('tgl')) {
-      width = 95
-    } else if (lower === 'kodesupp') {
-      width = 95
-    } else if (lower === 'namasupp') {
+    if (lower === 'namasupp') {
       minWidth = 190
-    } else if (lower === 'ppn') {
-      width = 60
-    } else if (lower === 'kodebrg') {
-      width = 110
     } else if (lower === 'namabrg') {
       minWidth = 200
-    } else if (lower === 'satuan') {
-      width = 70
-    } else if (lower === 'qnt') {
-      width = 90
-    } else if (lower === 'harga') {
-      width = 110
-    } else if (lower === 'diskon') {
-      width = 95
-    } else if (lower === 'jumlah') {
-      width = 130
     }
 
     // Grouping
@@ -455,7 +430,6 @@ const dynamicColumns = computed(() => {
       alignment,
       dataType,
       format,
-      width,
       minWidth,
       groupIndex,
       fixed,
@@ -708,6 +682,88 @@ function onContentReady () {
   updatePagerInfo()
   // Grid bisa di-rebuild saat kolom/grup berubah — pasang ulang drag-scroll
   enableDragScroll()
+  // Hitung ulang sel yang perlu digabung (merge) berdasarkan tampilan final
+  applyColumnMerge()
+}
+
+/* ─────────────── MERGE KOLOM ───────────────
+   DevExtreme DataGrid tidak punya rowSpan bawaan untuk sel data.
+   Triknya: kalau nilai kolom ini sama dengan baris data tepat di
+   atasnya, sembunyikan teksnya secara visual dan hapus border di
+   antara keduanya — secara visual jadi terlihat seperti satu sel
+   gabungan.
+   Aktifkan lewat prop :merge-columns="['NamaSupp', 'Tanggal']".
+   Data harus sudah terurut berdasarkan kolom tsb supaya nilai yang
+   sama saling berdekatan (kolom yang dipakai groupIndex otomatis
+   sudah terurut dengan sendirinya).
+
+   CATATAN PERBAIKAN:
+   Sebelumnya logic ini jalan di event `cellPrepared` per-sel, dengan
+   mengambil "baris sebelumnya" dari `getVisibleRows()`. Pendekatan itu
+   rapuh karena:
+   1. `cellPrepared` bisa terpanggil ulang berkali-kali (mis. saat
+      DxStateStoring atau opsi grid berubah lewat applyFilterOptionsToGrid),
+      dan tiap kali itu terjadi seluruh grid di-render ulang dari data
+      asli — sehingga teks yang sudah "dikosongkan" bisa muncul lagi.
+   2. Index dari getVisibleRows() tidak selalu selaras dengan urutan
+      elemen DOM saat event tsb berjalan, terutama saat baris grup
+      (dx-group-row) turut dihitung.
+
+   Solusi: JANGAN hitung merge per-sel saat cellPrepared. Sebagai
+   gantinya, lakukan SATU KALI pass penuh setelah grid selesai
+   render (`content-ready`), baca langsung dari DOM yang sudah jadi,
+   berurutan baris demi baris, dan reset perhitungan setiap kali
+   ketemu baris grup (dx-group-row) — supaya merge tidak pernah
+   "menembus" ke grup lain. Ini membuat hasilnya konsisten walau
+   grid di-render ulang berkali-kali.
+*/
+function applyColumnMerge () {
+  const g = grid()
+  const rowsView = sheetEl.value?.querySelector('.dx-datagrid-rowsview')
+  if (!g || !rowsView || !props.mergeColumns.length) return
+
+  const visibleColumns = g.getVisibleColumns()
+
+  props.mergeColumns.forEach(field => {
+    const colIndex = visibleColumns.findIndex(c => c.dataField === field)
+    if (colIndex === -1) return // dataField tidak ditemukan di kolom yang sedang tampil
+
+    // Ambil baris data & baris grup sesuai urutan tampil di layar —
+    // baris grup dipakai sebagai penanda untuk memutus rantai merge.
+    const rows = Array.from(rowsView.querySelectorAll('.dx-data-row, .dx-group-row'))
+
+    let prevCell = null
+    let prevValue = null
+
+    rows.forEach(row => {
+      if (row.classList.contains('dx-group-row')) {
+        // Masuk grup baru → mulai lagi dari sel kosong biasa
+        prevCell = null
+        prevValue = null
+        return
+      }
+
+      const cell = row.children[colIndex]
+      if (!cell) { prevCell = null; prevValue = null; return }
+
+      // Reset dulu sebelum dievaluasi ulang, supaya pass berikutnya
+      // (mis. setelah scroll/re-render) tidak mewarisi state lama.
+      cell.classList.remove('rb-merged-cell')
+      cell.style.borderTop = ''
+      if (prevCell) prevCell.style.borderBottom = ''
+
+      const value = cell.textContent
+
+      if (prevCell && value !== '' && value === prevValue) {
+        cell.classList.add('rb-merged-cell')
+        cell.style.borderTop = 'none'
+        prevCell.style.borderBottom = 'none'
+      }
+
+      prevCell = cell
+      prevValue = value
+    })
+  })
 }
 
 /* ─────────────── CLIPBOARD ─────────────── */
@@ -936,9 +992,11 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   display: flex; align-items: center; justify-content: space-between;
   gap: 16px; flex-wrap: wrap;
   max-width: 1240px; margin: 0 auto;
-  padding: 9px 14px;
-  background: var(--chrome);
-  border: 1px solid var(--paper-edge);
+  padding: 2px 14px;
+  background: var(--layout-sidebar-bg);
+  color: var(--layout-sidebar-text);
+  font-family: var(--font-sans);
+  border: 1px solid var(--layout-sidebar-border);
   border-bottom: none;
   border-radius: 4px 4px 0 0;
 }
@@ -946,27 +1004,27 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   display: flex; align-items: center; gap: 8px;
   font-size: 12.5px; font-weight: 600; letter-spacing: -.005em;
 }
-.rb-ico { color: var(--ink-soft); font-style: normal; }
+.rb-ico { color: var(--layout-sidebar-text); font-style: normal; }
 .rb-chrome__tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .rb-group { display: flex; align-items: center; gap: 2px; }
-.rb-sep { width: 1px; height: 18px; background: var(--paper-edge); }
+.rb-sep { width: 1px; height: 18px; background: var(--layout-sidebar-border); }
 
 .rb-btn {
   height: 27px; min-width: 27px;
   padding: 0 9px;
   font: inherit; font-size: 11.5px;
-  color: var(--ink-soft);
+  color: var(--layout-sidebar-text);
   background: transparent;
   border: 1px solid transparent;
   border-radius: 4px;
   cursor: pointer;
   transition: background .12s, color .12s, border-color .12s;
 }
-.rb-btn:hover  { background: #fff; border-color: var(--paper-edge); color: var(--ink); }
+.rb-btn:hover  { background: var(--layout-sidebar-hover); border-color: var(--layout-sidebar-border); color: var(--layout-sidebar-accent); }
 .rb-btn:active { transform: scale(.97); }
-.rb-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.rb-btn:focus-visible { outline: 2px solid var(--layout-sidebar-accent); outline-offset: 1px; }
 .rb-btn--zoom  { min-width: 46px; font-variant-numeric: tabular-nums; }
-.rb-btn--ghost { color: #9aa0a8; }
+.rb-btn--ghost { color: var(--layout-sidebar-muted); }
 
 /* ============================================================
    LEMBAR KERTAS  (semua ukuran ikut --z)
@@ -982,7 +1040,32 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   box-shadow: 0 1px 1px rgba(16,18,24,.04), 0 10px 28px rgba(16,18,24,.07);
 }
 
-.report-head { text-align: center; padding-bottom: calc(12px * var(--z)); }
+.report-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(18px * var(--z));
+  min-height: calc(72px * var(--z));
+  text-align: left;
+  padding-bottom: calc(12px * var(--z));
+}
+.report-head__content { flex: 1; min-width: 0; }
+.report-logo {
+  flex: 0 0 auto;
+  width: calc(64px * var(--z));
+  height: calc(64px * var(--z));
+  object-fit: contain;
+}
+.report-logo--fallback {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--ink);
+  border-radius: 6px;
+  font-size: calc(16px * var(--z));
+  font-weight: 800;
+  letter-spacing: .08em;
+}
 .report-head .company {
   font-size: calc(11.5px * var(--z));
   font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
@@ -1064,7 +1147,6 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   font-size: calc(10.5px * var(--z)) !important;
   font-weight: 700;
   letter-spacing: .07em;
-  text-transform: uppercase;
   color: var(--ink);
   vertical-align: bottom;
   border: none !important;
@@ -1104,6 +1186,15 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   font-feature-settings: "tnum" 1;
 }
 .report-sheet :deep(.dx-datagrid .dx-row-alt > td) { background: var(--paper) !important; }
+
+/* ---- Sel hasil merge (lihat fungsi applyColumnMerge) ----
+   Teks tetap ada di DOM (supaya fitur salin sel/baris tetap akurat),
+   hanya disembunyikan secara visual + border dihilangkan supaya
+   terlihat seperti satu sel gabungan dengan baris di atasnya. */
+.report-sheet :deep(.rb-merged-cell) {
+  border-top: none !important;
+  color: transparent !important;
+}
 
 /* ---- Baris grup ---- */
 .report-sheet :deep(.dx-datagrid-rowsview .dx-group-row) { background: var(--paper) !important; }
@@ -1240,30 +1331,30 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   height: 27px;
   padding: 0 24px 0 8px;
   font: inherit; font-size: 11.5px;
-  color: var(--ink-soft);
-  background: var(--paper);
-  border: 1px solid var(--paper-edge);
+  color: var(--layout-sidebar-text);
+  background: var(--layout-sidebar-bg);
+  border: 1px solid var(--layout-sidebar-border);
   border-radius: 4px;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23707782' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eff1f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 6px center;
   background-size: 12px;
   transition: border-color .12s, color .12s;
 }
 .rb-select:hover {
-  border-color: var(--ink);
-  color: var(--ink);
+  border-color: var(--layout-sidebar-accent);
+  color: var(--layout-sidebar-accent);
 }
 .rb-select:focus {
   outline: none;
-  border-color: var(--ink);
+  border-color: var(--layout-sidebar-accent);
 }
 .rb-pager-input {
   width: 34px;
-  height: 27px;
+  height: 20px;
   text-align: center;
   font: inherit;
   font-size: 11.5px;
@@ -1297,6 +1388,12 @@ defineExpose({ exportExcel, exportPdf, printSheet, resetLayout, grid })
   .report-head {
     display: block !important;
     text-align: center !important;
+  }
+  .report-head__content { width: 100%; }
+  .report-logo {
+    position: absolute;
+    top: 0;
+    left: 0;
   }
   .report-head .company,
   .report-head .company-address,
