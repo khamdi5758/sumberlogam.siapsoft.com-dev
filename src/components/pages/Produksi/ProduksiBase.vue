@@ -72,6 +72,8 @@
 import ReportGridBuilder from "@/components/pages/Registrasi/ReportGridBuilder.vue";
 import RegisterFilterPopup from "@/components/pages/Registrasi/RegisterPopup.vue";
 
+const PRODUKSI_PAGE_CACHE = "__produksiPageCache";
+
 export default {
   name: "ProduksiBase",
   components: {
@@ -131,6 +133,15 @@ export default {
   },
   created() {
     this._myRoutePath = this.$route.path;
+    window[PRODUKSI_PAGE_CACHE] = window[PRODUKSI_PAGE_CACHE] || {};
+
+    const cachedPage = window[PRODUKSI_PAGE_CACHE][this.storageKey];
+    if (cachedPage) {
+      this.restorePageSnapshot(cachedPage);
+      window.__produksiVisited = window.__produksiVisited || {};
+      window.__produksiVisited[this.storageKey] = true;
+      return;
+    }
 
     // Popup initialization HANYA untuk pembukaan PERTAMA menu ini.
     // Sentinel per-menu (storageKey unik per anak menu: "produksi-hasil",
@@ -146,9 +157,6 @@ export default {
       this.$store.commit(`${this.storeModule}/clearProduksi`);
       this.showFilter = true;
     } else if (!this.hasLoaded) {
-      // Sudah pernah dibuka, tapi instance ini baru dibuat ulang (cache
-      // miss) dan belum punya data → muat ulang dengan filter terakhir
-      // (default), TANPA popup.
       this.loadData();
     }
   },
@@ -173,6 +181,7 @@ export default {
       window.__produksiVisited[this.storageKey]
     ) {
       delete window.__produksiVisited[this.storageKey];
+      delete window[PRODUKSI_PAGE_CACHE][this.storageKey];
     }
   },
   mounted() {
@@ -180,6 +189,7 @@ export default {
     window.addEventListener("resize", this.checkMobile);
   },
   beforeUnmount() {
+    this.savePageSnapshot();
     window.removeEventListener("resize", this.checkMobile);
   },
   computed: {
@@ -289,6 +299,24 @@ export default {
     },
   },
   methods: {
+    savePageSnapshot() {
+      if (!this.hasLoaded) return;
+
+      window[PRODUKSI_PAGE_CACHE] = window[PRODUKSI_PAGE_CACHE] || {};
+      window[PRODUKSI_PAGE_CACHE][this.storageKey] = {
+        localData: this.localData,
+        localKeyfield: this.localKeyfield,
+        localPerusahaan: this.localPerusahaan,
+        filterData: { ...this.filterData },
+      };
+    },
+    restorePageSnapshot(snapshot) {
+      this.localData = snapshot.localData || [];
+      this.localKeyfield = snapshot.localKeyfield || "Id";
+      this.localPerusahaan = snapshot.localPerusahaan || null;
+      this.filterData = { ...this.filterData, ...(snapshot.filterData || {}) };
+      this.hasLoaded = true;
+    },
     formatDateForSp(date, isEnd = false) {
       if (!date) return null;
       const d = new Date(date);

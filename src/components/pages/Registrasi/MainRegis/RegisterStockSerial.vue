@@ -4,6 +4,10 @@
     type="stock-serial"
     storeModule="registerstockserial"
     apiEndpoint="report"
+    scrollingMode="virtual"
+    rowRenderingMode="virtual"
+    :showPager="false"
+    :useBuiltInPager="false"
   />
 </template>
 
