@@ -37,6 +37,22 @@ import registeroutstandingtransferModule from "./modules/registeroutstandingtran
 import produksiModule from "./modules/produksi";
 
 import masterbarang from "./modules/masterbarang";
+import mastergeneralledgerperkiraantipe from "./modules/mastergeneralledgerperkiraantipe";
+import mastergeneralledgerperkiraan from "./modules/mastergeneralledgerperkiraan";
+import mastergeneralledgeraktivatetaptipe from "./modules/mastergeneralledgeraktivatetaptipe";
+import mastergeneralledgeraktivatetap from "./modules/mastergeneralledgeraktivatetap";
+import mastergeneralledgerlabarugi from "./modules/mastergeneralledgerlabarugi";
+import mastergeneralledgergirodibuka from "./modules/mastergeneralledgergirodibuka";
+import mastergeneralledgergiroditerima from "./modules/mastergeneralledgergiroditerima";
+import masterinventorygudang from "./modules/masterinventorygudang";
+import masterinventorystockgolongan from "./modules/masterinventorystockgolongan";
+import masterinventorystockmerk from "./modules/masterinventorystockmerk";
+import masterinventorystockbarang from "./modules/masterinventorystockbarang";
+import masterinventorystockkomponen from "./modules/masterinventorystockkomponen";
+import mastersalesman from "./modules/mastersalesman";
+import mastercustomer from "./modules/mastercustomer";
+import mastersupplier from "./modules/mastersupplier";
+import masterkaryawan from "./modules/masterkaryawan";
 import labarugi from "./modules/labarugi";
 import neraca from "./modules/neraca";
 import neracalajur from "./modules/neracalajur";
@@ -91,6 +107,22 @@ export default createStore({
     produksi: produksiModule,
 
     masterbarang: masterbarang,
+    mastergeneralledgerperkiraantipe: mastergeneralledgerperkiraantipe,
+    mastergeneralledgerperkiraan: mastergeneralledgerperkiraan,
+    mastergeneralledgeraktivatetaptipe: mastergeneralledgeraktivatetaptipe,
+    mastergeneralledgeraktivatetap: mastergeneralledgeraktivatetap,
+    mastergeneralledgerlabarugi: mastergeneralledgerlabarugi,
+    mastergeneralledgergirodibuka: mastergeneralledgergirodibuka,
+    mastergeneralledgergiroditerima: mastergeneralledgergiroditerima,
+    masterinventorygudang: masterinventorygudang,
+    masterinventorystockgolongan: masterinventorystockgolongan,
+    masterinventorystockmerk: masterinventorystockmerk,
+    masterinventorystockbarang: masterinventorystockbarang,
+    masterinventorystockkomponen: masterinventorystockkomponen,
+    mastersalesman: mastersalesman,
+    mastercustomer: mastercustomer,
+    mastersupplier: mastersupplier,
+    masterkaryawan: masterkaryawan,
     labarugi: labarugi,
     neraca: neraca,
     neracalajur: neracalajur,
