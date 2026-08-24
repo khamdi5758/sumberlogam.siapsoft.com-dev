@@ -1,6 +1,10 @@
 <!-- components/pages/master/MasterBase.vue -->
 <template>
-  <div class="flex h-screen flex-col py-6 bg-gray-50">
+  <div
+    ref="masterBaseRoot"
+    class="flex h-screen flex-col py-6 bg-gray-50"
+    @wheel="handleGridWheel"
+  >
     <!-- Loading -->
     <div
       v-if="isLoading"
@@ -13,7 +17,7 @@
       </div>
     </div>
 
-    <!-- Header Section -->
+    <!-- Header Section 
     <div class="header-section px-4 pb-3">
       <div>
         <h2 class="report-title">{{ title }}</h2>
@@ -38,7 +42,7 @@
           @click="openFilter"
         />
       </div>
-    </div>
+    </div> -->
 
     <!-- Data Grid -->
     <ReusableDataGrid
@@ -270,6 +274,41 @@ export default {
     },
     checkMobile() {
       this.isMobile = window.innerWidth < 768;
+    },
+    // Geser grid horizontal pakai mousepad/trackpad (deltaX) atau Shift+wheel (deltaY).
+    // Handler ada di komponen Master ini saja — widget DataGrid tidak diubah,
+    // jadi behavior Register/modul lain tetap sama.
+    handleGridWheel(event) {
+      const delta =
+        Math.abs(event.deltaX) > Math.abs(event.deltaY)
+          ? event.deltaX
+          : event.shiftKey
+            ? event.deltaY
+            : 0;
+
+      if (!delta) return;
+
+      const root = this.$refs.masterBaseRoot;
+      if (!root) return;
+
+      // Cari rowsview milik grid di dalam komponen ini
+      const rowsView = event.target?.closest
+        ? event.target.closest(".dx-datagrid-rowsview")
+        : null;
+      if (!rowsView || !root.contains(rowsView)) return;
+
+      // DevExtreme non-native scrollable menyimpan container di dalam rowsview
+      const container =
+        rowsView.querySelector(".dx-scrollable-container") || rowsView;
+
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      if (maxScroll <= 0) return;
+
+      event.preventDefault();
+      container.scrollLeft = Math.max(
+        0,
+        Math.min(maxScroll, container.scrollLeft + delta),
+      );
     },
   },
   mounted() {

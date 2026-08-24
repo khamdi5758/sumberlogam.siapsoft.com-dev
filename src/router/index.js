@@ -617,7 +617,7 @@ const routes = [
             component: () => import("@/components/pages/master/generalledger/perkiraan/MasterPerkiraan.vue"),
           },
           {
-            path: "generalledger/aktivatetap/tipeaktivatetap",
+            path: "generalledger/aktivatetap/tipe",
             name: "MasterAktivaTetapTipe",
             component: () => import("@/components/pages/master/generalledger/aktivatetap/MasterAktivaTetapTipe.vue"),
           },
