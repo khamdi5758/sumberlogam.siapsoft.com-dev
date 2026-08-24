@@ -625,6 +625,89 @@ const routes = [
             name: "MasterBarang",
             component: () => import("@/components/pages/master/barang/masterbarang.vue"),
           },
+          // General Ledger
+          {
+            path: "generalledger/perkiraan/tipe",
+            name: "MasterPerkiraanTipe",
+            component: () => import("@/components/pages/master/generalledger/perkiraan/MasterPerkiraanTipe.vue"),
+          },
+          {
+            path: "generalledger/perkiraan/perkiraan",
+            name: "MasterPerkiraan",
+            component: () => import("@/components/pages/master/generalledger/perkiraan/MasterPerkiraan.vue"),
+          },
+          {
+            path: "generalledger/aktivatetap/tipe",
+            name: "MasterAktivaTetapTipe",
+            component: () => import("@/components/pages/master/generalledger/aktivatetap/MasterAktivaTetapTipe.vue"),
+          },
+          {
+            path: "generalledger/aktivatetap/aktivatetap",
+            name: "MasterAktivaTetap",
+            component: () => import("@/components/pages/master/generalledger/aktivatetap/MasterAktivaTetap.vue"),
+          },
+          {
+            path: "generalledger/labarugi",
+            name: "MasterLabaRugi",
+            component: () => import("@/components/pages/master/generalledger/labarugi/MasterLabaRugi.vue"),
+          },
+          {
+            path: "generalledger/giro/dibuka",
+            name: "MasterGiroDibuka",
+            component: () => import("@/components/pages/master/generalledger/giro/MasterGiroDibuka.vue"),
+          },
+          {
+            path: "generalledger/giro/diterima",
+            name: "MasterGiroDiterima",
+            component: () => import("@/components/pages/master/generalledger/giro/MasterGiroDiterima.vue"),
+          },
+          // Inventory
+          {
+            path: "inventory/gudang",
+            name: "MasterGudang",
+            component: () => import("@/components/pages/master/inventory/gudang/MasterGudang.vue"),
+          },
+          {
+            path: "inventory/stock/golongan",
+            name: "MasterGolongan",
+            component: () => import("@/components/pages/master/inventory/stock/MasterGolongan.vue"),
+          },
+          {
+            path: "inventory/stock/merk",
+            name: "MasterMerk",
+            component: () => import("@/components/pages/master/inventory/stock/MasterMerk.vue"),
+          },
+          {
+            path: "inventory/stock/barang",
+            name: "MasterStockBarang",
+            component: () => import("@/components/pages/master/inventory/stock/MasterStockBarang.vue"),
+          },
+          {
+            path: "inventory/stock/komponen",
+            name: "MasterKomponen",
+            component: () => import("@/components/pages/master/inventory/stock/MasterKomponen.vue"),
+          },
+          // Master Data
+          {
+            path: "salesman",
+            name: "MasterSalesman",
+            component: () => import("@/components/pages/master/masterdata/MasterSalesman.vue"),
+          },
+          {
+            path: "customer",
+            name: "MasterCustomer",
+            component: () => import("@/components/pages/master/masterdata/MasterCustomer.vue"),
+          },
+          {
+            path: "supplier",
+            name: "MasterSupplier",
+            component: () => import("@/components/pages/master/masterdata/MasterSupplier.vue"),
+          },
+          {
+            path: "karyawan",
+            name: "MasterKaryawan",
+            component: () => import("@/components/pages/master/masterdata/MasterKaryawan.vue"),
+          },
         ],
       },
       {
