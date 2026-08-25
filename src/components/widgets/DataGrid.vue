@@ -417,7 +417,7 @@
         @click="contextMenuVisible = false"
         @contextmenu.prevent="contextMenuVisible = false"
       ></div>
-      
+
       <!-- Context Menu -->
       <div
         v-if="contextMenuVisible"
@@ -433,13 +433,21 @@
           v-for="item in contextMenuItems"
           :key="item.action"
           class="context-menu-item"
-          :class="{ 'disabled': item.disabled }"
+          :class="{ disabled: item.disabled }"
           @click.stop="handleMenuItemClick(item)"
         >
           <span class="context-menu-icon">
             <Copy v-if="item.action === 'copy'" :size="15" :stroke-width="2" />
-            <MoveHorizontal v-else-if="item.action === 'autoFit'" :size="15" :stroke-width="2" />
-            <Columns3 v-else-if="item.action === 'columnChooser'" :size="15" :stroke-width="2" />
+            <MoveHorizontal
+              v-else-if="item.action === 'autoFit'"
+              :size="15"
+              :stroke-width="2"
+            />
+            <Columns3
+              v-else-if="item.action === 'columnChooser'"
+              :size="15"
+              :stroke-width="2"
+            />
           </span>
           <span class="context-menu-text">{{ item.text }}</span>
         </div>
@@ -1113,9 +1121,11 @@ export default {
     // Context menu items untuk klik kanan
     contextMenuItems() {
       const cellValue = this.contextMenuCellData?.value;
-      const displayValue = cellValue !== null && cellValue !== undefined 
-        ? String(cellValue).substring(0, 30) + (String(cellValue).length > 30 ? "..." : "")
-        : "";
+      const displayValue =
+        cellValue !== null && cellValue !== undefined
+          ? String(cellValue).substring(0, 30) +
+            (String(cellValue).length > 30 ? "..." : "")
+          : "";
 
       return [
         {
@@ -1230,19 +1240,43 @@ export default {
 
       return !isNaN(normalized);
     },
+    // Ganti method getColumnAlignment yang lama dengan ini
     getColumnAlignment(column) {
-      if (column?.alignment) return column.alignment;
-      if (column?.dataType === "number") return "right";
-
       const field = column?.dataField;
-      if (!field) return "left";
+      if (
+        !field ||
+        !Array.isArray(this.dataSource) ||
+        !this.dataSource.length
+      ) {
+        return "left";
+      }
 
-      const sample = this.dataSource?.find((item) => {
-        const value = item?.[field];
-        return value !== null && value !== undefined && value !== "";
-      })?.[field];
+      // Cek tipe data asli dari response (sample beberapa row, bukan cuma 1)
+      const SAMPLE_SIZE = 50;
+      let checked = 0;
+      let numericCount = 0;
 
-      return this.isNumericLike(sample) ? "right" : "left";
+      for (
+        let i = 0;
+        i < this.dataSource.length && checked < SAMPLE_SIZE;
+        i++
+      ) {
+        const value = this.dataSource[i]?.[field];
+        if (value === null || value === undefined || value === "") continue;
+
+        checked++;
+
+        // Kalau tipe asli dari response sudah number -> pasti numeric
+        if (typeof value === "number") {
+          numericCount++;
+        }
+        // Kalau tipe asli string, tetap dianggap STRING (rata kiri)
+        // walaupun isinya angka semua, misal "100.01", "310.01", dst.
+      }
+
+      if (checked === 0) return "left";
+
+      return numericCount / checked >= 0.7 ? "right" : "left";
     },
 
     // 🔥 columnName di-pass eksplisit dari template supaya tau desimal kolom mana yang dipakai
@@ -1666,26 +1700,26 @@ export default {
         const mouseEvent = e.event.originalEvent || e.event;
         const x = mouseEvent.clientX || mouseEvent.pageX || 0;
         const y = mouseEvent.clientY || mouseEvent.pageY || 0;
-        
+
         // Pastikan context menu tidak keluar dari viewport
         const menuWidth = 220; // perkiraan lebar menu
         const menuHeight = 120; // perkiraan tinggi menu (3 items)
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        
+
         let posX = x + 2;
         let posY = y + 2;
-        
+
         // Adjust kalau melebihi viewport kanan
         if (posX + menuWidth > viewportWidth) {
           posX = viewportWidth - menuWidth - 10;
         }
-        
+
         // Adjust kalau melebihi viewport bawah
         if (posY + menuHeight > viewportHeight) {
           posY = viewportHeight - menuHeight - 10;
         }
-        
+
         this.contextMenuPosition = { x: posX, y: posY };
       }
 
@@ -1700,7 +1734,7 @@ export default {
     handleMenuItemClick(item) {
       // Jangan lakukan apa-apa kalau item disabled
       if (item?.disabled) return;
-      
+
       const action = item?.action;
       if (!action) return;
 
@@ -1762,11 +1796,7 @@ export default {
     // Notifikasi copy berhasil
     showCopyNotification() {
       if (window.DevExpress?.ui?.notify) {
-        window.DevExpress.ui.notify(
-          "Disalin ke clipboard!",
-          "success",
-          1500
-        );
+        window.DevExpress.ui.notify("Disalin ke clipboard!", "success", 1500);
       }
     },
   },
