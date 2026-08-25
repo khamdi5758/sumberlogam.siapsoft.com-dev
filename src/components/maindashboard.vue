@@ -13,34 +13,64 @@
       <!-- HEADER -->
       <Kepala />
 
-      <!-- TAB HEADER -->
+      <!-- TAB HEADER WRAPPER -->
       <div
-      class="tab-header flex h-14 items-start gap-2 bg-gray-100 px-2 pt-1 border-b overflow-x-auto overflow-y-hidden"
+        class="flex h-14 items-start justify-between border-b bg-gray-100 px-2 pt-1"
         :style="{
           backgroundColor: 'var(--layout-tab-header-bg)',
           borderBottomColor: 'var(--dark-base)',
           color: 'var(--layout-content-text)',
         }"
       >
-        <div
-          v-for="tab in tabsflmenu"
-          :key="tab"
-          class="flex h-9 shrink-0 items-center gap-0.5 px-4 rounded-t-lg cursor-pointer whitespace-nowrap"
-          :class="{
-            'bg-dark-base text-white': tab.pathfile === selectedTab,
-            'bg-dark-base/75 text-white': tab.pathfile !== selectedTab,
-          }"
-          @click="selectTab(tab)"
-        >
-          {{ tab.CAPTION }}
-
-          <span
-            v-if="tab.CAPTION !== 'Dashboard'"
-            @click.stop="removeTab(tab)"
-            class="ml-1 hover:text-red-300 cursor-pointer"
+        <!-- Scrolling Tabs -->
+        <div class="tab-header flex-1 flex items-start gap-2 overflow-x-auto overflow-y-hidden h-full pb-1">
+          <div
+            v-for="tab in tabsflmenu"
+            :key="tab"
+            class="flex h-9 shrink-0 items-center gap-0.5 px-4 rounded-t-lg cursor-pointer whitespace-nowrap"
+            :class="{
+              'bg-dark-base text-white': tab.pathfile === selectedTab,
+              'bg-dark-base/75 text-white': tab.pathfile !== selectedTab,
+            }"
+            @click="selectTab(tab)"
           >
-            ✕
-          </span>
+            {{ tab.CAPTION }}
+
+            <span
+              v-if="tab.CAPTION !== 'Dashboard'"
+              @click.stop="removeTab(tab)"
+              class="ml-1 hover:text-red-300 cursor-pointer"
+            >
+              ✕
+            </span>
+          </div>
+        </div>
+
+        <!-- Dropdown on the right -->
+        <div ref="dropdownContainer" class="relative flex items-center shrink-0 pl-2">
+          <button
+            @click="toggleDropdown"
+            class="flex h-9 items-center gap-1.5 px-4 rounded-t-lg bg-dark-base text-white text-[14px] font-medium hover:bg-dark-base/90 transition cursor-pointer whitespace-nowrap shadow-sm"
+          >
+            {{ selectedTabFlMenu?.CAPTION || 'Dashboard' }}
+            <span class="text-[10px]">▼</span>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div
+            v-if="dropdownOpen"
+            class="absolute right-0 top-10 z-50 min-w-[180px] rounded-lg bg-white py-1.5 shadow-2xl border border-slate-200"
+          >
+            <div
+              v-for="tab in tabsflmenu"
+              :key="tab"
+              class="px-4 py-2 text-[14px] text-slate-700 hover:bg-slate-100 cursor-pointer transition duration-75 text-left"
+              :class="{ 'bg-slate-50 font-semibold text-dark-base border-r-4 border-dark-base': tab.pathfile === selectedTab }"
+              @click="selectTabFromDropdown(tab)"
+            >
+              {{ tab.CAPTION }}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -192,6 +222,12 @@ export default {
       this.selectTabFlMenu(tab);
       this.dropdownOpen = false;
     },
+
+    handleClickOutside(e) {
+      if (this.dropdownOpen && this.$refs.dropdownContainer && !this.$refs.dropdownContainer.contains(e.target)) {
+        this.dropdownOpen = false;
+      }
+    },
   },
 
   async mounted() {
@@ -201,6 +237,11 @@ export default {
 
     this.cekdatamaster();
     // this.loadTabsFromStorage();
+    document.addEventListener("click", this.handleClickOutside);
+  },
+
+  beforeUnmount() {
+    document.removeEventListener("click", this.handleClickOutside);
   },
 
   watch: {
