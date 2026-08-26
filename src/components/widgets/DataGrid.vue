@@ -404,9 +404,7 @@
         </template>
       </DxPopup>
     </div>
-    <div class="sp-footer-hidden">
-      {{ spFooterText }}
-    </div>
+    
 
     <!-- Context Menu untuk klik kanan (custom, lebih reliable) -->
     <Teleport to="body">
@@ -454,6 +452,10 @@
       </div>
     </Teleport>
   </div>
+
+  <div class="sp-footer-hidden">
+      {{ spFooterText }}
+    </div>
 </template>
 
 <script>
