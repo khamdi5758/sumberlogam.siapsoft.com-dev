@@ -804,6 +804,21 @@ export default {
 
     // Payload default (perilaku lama) - dipakai kalau prop buildPayload tidak diisi.
     defaultBuildPayload(data) {
+      if (this.type === "bahan") {
+        return {
+          mulaitgl: this.formatDateForSp(data.startDate, false),
+          sampaitgl: this.formatDateForSp(data.endDate, true),
+          kodebrg: data.kodebrg || "",
+          kodejob: data.kodejob || "",
+        };
+      }
+      if (this.type === "bahanrekap") {
+        return {
+          sampaitgl: this.formatDateForSp(data.endDate, true),
+          isserial: data.isserial ?? 0,
+          kodejob: data.kodejob || "",
+        };
+      }
       return {
         mulaitgl: this.formatDateForSp(data.startDate, false),
         sampaitgl: this.formatDateForSp(data.endDate, true),
@@ -814,6 +829,24 @@ export default {
 
     // Payload print default (perilaku lama) - dipakai kalau prop buildPrintPayload kosong.
     defaultBuildPrintPayload(data) {
+      if (this.type === "bahan") {
+        return {
+          from: this.type,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          kodebrg: data.kodebrg || "",
+          kodejob: data.kodejob || "",
+        };
+      }
+      if (this.type === "bahanrekap") {
+        return {
+          from: this.type,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          isserial: data.isserial ?? 0,
+          kodejob: data.kodejob || "",
+        };
+      }
       return {
         from: this.type,
         startDate: data.startDate,

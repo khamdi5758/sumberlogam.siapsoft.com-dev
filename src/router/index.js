@@ -269,6 +269,16 @@ const routes = [
             component: () => import("@/components/pages/Registrasi/MainRegis/RegisterTerimaJasaLuar.vue"),
           },
           {
+            path: "bahan",
+            name: "RegisterBahan",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterBahan.vue"),
+          },
+          {
+            path: "bahanrekap",
+            name: "RegisterBahanRekap",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterBahanRekap.vue"),
+          },
+          {
             path: "creditnote",
             name: "RegisterCrediteNote",
             component: RegisCrediteNote,

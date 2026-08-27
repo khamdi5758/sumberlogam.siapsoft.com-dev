@@ -38,6 +38,10 @@ import produksiModule from "./modules/produksi";
 import registerpemakaianhasilproduksiModule from "./modules/registerpemakaianhasilproduksi";
 import registerkirimjasaluarModule from "./modules/registerkirimjasaluar";
 import registerterimajasaluarModule from "./modules/registerterimajasaluar";
+import registerbahanModule from "./modules/registerbahan";
+import registerbahanrekapModule from "./modules/registerbahanrekap";
+
+
 
 
 
@@ -124,6 +128,10 @@ export default createStore({
     registerpemakaianhasilproduksi: registerpemakaianhasilproduksiModule,
     registerkirimjasaluar: registerkirimjasaluarModule,
     registerterimajasaluar: registerterimajasaluarModule,
+    registerbahan: registerbahanModule,
+    registerbahanrekap: registerbahanrekapModule,
+
+
 
 
 

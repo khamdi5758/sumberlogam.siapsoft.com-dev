@@ -216,7 +216,9 @@
           <!-- Dari Tanggal -->
           <div
             v-if="
-              type !== 'stock-serial-rekap' && !type.startsWith('outstanding-')
+              type !== 'stock-serial-rekap' &&
+              type !== 'bahanrekap' &&
+              !type.startsWith('outstanding-')
             "
             class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
           >
@@ -429,6 +431,8 @@
               type !== 'tfjo' &&
               type !== 'tfoutwip' &&
               type !== 'tfinwip' &&
+              type !== 'bahan' &&
+              type !== 'bahanrekap' &&
               !type.startsWith('outstanding-')
             "
             class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
@@ -454,6 +458,82 @@
               >
                 …
               </button>
+            </div>
+          </div>
+
+          <!-- Kode Barang (Khusus Register Bahan) -->
+          <div
+            v-if="type === 'bahan'"
+            class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+          >
+            <label for="kode-barang-bahan" class="text-[14px] text-slate-700"
+              >Kode Barang</label
+            >
+            <div class="flex items-center rounded border border-slate-300">
+              <input
+                id="kode-barang-bahan"
+                v-model="barangLabel"
+                type="text"
+                placeholder="Pilih barang (ketik untuk mencari)"
+                class="min-w-0 flex-1 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none placeholder:text-slate-400"
+                @keyup.enter="openBarangPicker"
+                @keydown="handleBarangKeydown"
+                @input="barangBackspaceCount = 0"
+              />
+              <button
+                type="button"
+                class="flex items-center justify-center border-l border-slate-300 bg-white px-3 py-1.5 text-[17px] leading-none text-slate-600 hover:bg-slate-50"
+                @click="openBarangPicker"
+              >
+                …
+              </button>
+            </div>
+          </div>
+
+          <!-- Kode Job (Khusus Register Bahan & Register Bahan Rekap) -->
+          <div
+            v-if="type === 'bahan' || type === 'bahanrekap'"
+            class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+          >
+            <label for="kode-job-bahan" class="text-[14px] text-slate-700"
+              >Kode Job</label
+            >
+            <div class="flex items-center rounded border border-slate-300">
+              <input
+                id="kode-job-bahan"
+                v-model="jobLabel"
+                type="text"
+                placeholder="Pilih job (ketik untuk mencari)"
+                class="min-w-0 flex-1 bg-transparent px-3 py-1.5 text-[14px] text-slate-900 outline-none placeholder:text-slate-400"
+                @keyup.enter="openJobPicker"
+                @keydown="handleJobKeydown"
+                @input="jobBackspaceCount = 0"
+              />
+              <button
+                type="button"
+                class="flex items-center justify-center border-l border-slate-300 bg-white px-3 py-1.5 text-[17px] leading-none text-slate-600 hover:bg-slate-50"
+                @click="openJobPicker"
+              >
+                …
+              </button>
+            </div>
+          </div>
+
+          <!-- Is Serial checkbox (Khusus Register Bahan Rekap) -->
+          <div
+            v-if="type === 'bahanrekap'"
+            class="grid grid-cols-1 items-center gap-1 sm:grid-cols-[120px_1fr]"
+          >
+            <label for="is-serial-bahan" class="text-[14px] text-slate-700"
+              >Is Serial</label
+            >
+            <div class="flex h-[34px] items-center">
+              <input
+                id="is-serial-bahan"
+                v-model="localIsSerial"
+                type="checkbox"
+                class="h-4 w-4 rounded border-slate-300 text-[#0f3d7a] accent-[#0f3d7a]"
+              />
             </div>
           </div>
           
@@ -550,6 +630,12 @@ export default {
       gudangLabel: "",
       isDialogOpen: false,
       gudangBackspaceCount: 0,
+      localKodeJob: "",
+      jobLabel: "",
+      barangLabel: "",
+      barangBackspaceCount: 0,
+      jobBackspaceCount: 0,
+      localIsSerial: false,
     };
   },
   computed: {
@@ -576,6 +662,15 @@ export default {
         this.localGudang = this.initialGudang;
         this.localStatus = this.initialStatus;
         this.updateGudangLabel();
+        if (["bahan", "bahanrekap"].includes(this.type)) {
+          this.localKodeBarang = "";
+          this.barangLabel = "";
+          this.localKodeJob = "";
+          this.jobLabel = "";
+          this.barangBackspaceCount = 0;
+          this.jobBackspaceCount = 0;
+          this.localIsSerial = false;
+        }
       }
     },
     type: {
@@ -589,6 +684,90 @@ export default {
     },
   },
   methods: {
+    handleBarangKeydown(e) {
+      if (e.key !== "Backspace" && e.key !== "Delete") return;
+      if (this.barangLabel && this.barangLabel.length > 0) {
+        this.barangBackspaceCount = 0;
+        return;
+      }
+      this.barangBackspaceCount++;
+      if (this.barangBackspaceCount >= 2) {
+        this.localKodeBarang = "";
+        this.barangLabel = "";
+        this.barangBackspaceCount = 0;
+      }
+    },
+    handleJobKeydown(e) {
+      if (e.key !== "Backspace" && e.key !== "Delete") return;
+      if (this.jobLabel && this.jobLabel.length > 0) {
+        this.jobBackspaceCount = 0;
+        return;
+      }
+      this.jobBackspaceCount++;
+      if (this.jobBackspaceCount >= 2) {
+        this.localKodeJob = "";
+        this.jobLabel = "";
+        this.jobBackspaceCount = 0;
+      }
+    },
+    async openBarangPicker() {
+      try {
+        const cari = this.barangLabel || "";
+        const response = await api.getbydata("formbrowse", {
+          kode: 14,
+          cari: cari,
+          startDate: this.localStartDate,
+          endDate: this.localEndDate,
+        });
+
+        const data = response.data?.datafrbrowse || [];
+
+        const selected = await FormBrowseDialog.show({
+          title: "Pilih Barang",
+          dataSource: data,
+          keyField: "id",
+          disablecol: response.data?.disablecol || ["id", "ket"],
+        });
+
+        if (selected) {
+          this.localKodeBarang = selected.id || selected.kode || "";
+          this.barangLabel = selected.ket || selected.nama || selected.NamaBarang || selected.label || "";
+        }
+      } catch (err) {
+        if (err !== "cancelled") {
+          console.error("Error form browse barang:", err);
+        }
+      }
+    },
+    async openJobPicker() {
+      try {
+        const cari = this.jobLabel || "";
+        const response = await api.getbydata("formbrowse", {
+          kode: 13,
+          cari: cari,
+          startDate: this.localStartDate,
+          endDate: this.localEndDate,
+        });
+
+        const data = response.data?.datafrbrowse || [];
+
+        const selected = await FormBrowseDialog.show({
+          title: "Pilih Job",
+          dataSource: data,
+          keyField: "id",
+          disablecol: response.data?.disablecol || ["id", "ket"],
+        });
+
+        if (selected) {
+          this.localKodeJob = selected.id || selected.kode || "";
+          this.jobLabel = selected.ket || selected.nama || selected.label || "";
+        }
+      } catch (err) {
+        if (err !== "cancelled") {
+          console.error("Error form browse job:", err);
+        }
+      }
+    },
     handleGudangKeydown(e) {
       if (e.key !== "Backspace" && e.key !== "Delete") return;
 
@@ -721,6 +900,16 @@ export default {
           base.kode_barang = this.localKodeBarang || "";
           base.report = this.localReport;
         }
+      }
+
+      if (this.type === "bahan") {
+        base.kodebrg = this.localKodeBarang;
+        base.kodejob = this.localKodeJob;
+      }
+
+      if (this.type === "bahanrekap") {
+        base.isserial = this.localIsSerial ? 1 : 0;
+        base.kodejob = this.localKodeJob;
       }
 
       this.$emit("apply", base);
