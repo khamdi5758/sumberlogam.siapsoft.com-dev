@@ -35,6 +35,12 @@ import registeroutstandingpoModule from "./modules/registeroutstandingpo";
 import registeroutstandingsoModule from "./modules/registeroutstandingso";
 import registeroutstandingtransferModule from "./modules/registeroutstandingtransfer";
 import produksiModule from "./modules/produksi";
+import registerpemakaianhasilproduksiModule from "./modules/registerpemakaianhasilproduksi";
+import registerkirimjasaluarModule from "./modules/registerkirimjasaluar";
+import registerterimajasaluarModule from "./modules/registerterimajasaluar";
+
+
+
 
 import masterbarang from "./modules/masterbarang";
 import mastergeneralledgerperkiraantipe from "./modules/mastergeneralledgerperkiraantipe";
@@ -115,6 +121,12 @@ export default createStore({
     registeroutstandingso: registeroutstandingsoModule,
     registeroutstandingtransfer: registeroutstandingtransferModule,
     produksi: produksiModule,
+    registerpemakaianhasilproduksi: registerpemakaianhasilproduksiModule,
+    registerkirimjasaluar: registerkirimjasaluarModule,
+    registerterimajasaluar: registerterimajasaluarModule,
+
+
+
 
     masterbarang: masterbarang,
     mastergeneralledgerperkiraantipe: mastergeneralledgerperkiraantipe,

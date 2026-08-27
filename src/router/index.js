@@ -254,6 +254,21 @@ const routes = [
             component: RegisRepacking,
           },
           {
+            path: "pemakaianhasilproduksi",
+            name: "RegisterPemakaianHasilProduksi",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterPemakaianHasilProduksi.vue"),
+          },
+          {
+            path: "kirimjasaluar",
+            name: "RegisterKirimJasaLuar",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterKirimJasaLuar.vue"),
+          },
+          {
+            path: "terimajasaluar",
+            name: "RegisterTerimaJasaLuar",
+            component: () => import("@/components/pages/Registrasi/MainRegis/RegisterTerimaJasaLuar.vue"),
+          },
+          {
             path: "creditnote",
             name: "RegisterCrediteNote",
             component: RegisCrediteNote,
